@@ -22,7 +22,7 @@ L'URL sera `https://nelfe.github.io/roadto270/`.
 
 ## Mises à jour
 
-Après toute modification de `index.html`, changer `VERSION` dans `sw.js` (ex. `cap270-v2`), sinon les joueurs gardent l'ancienne version en cache.
+Le service worker essaie d'abord le réseau : un simple rafraîchissement de la page récupère la dernière version, et le cache ne sert que hors ligne. Changer `VERSION` dans `sw.js` n'est utile que pour purger l'ancien cache après une modification de `sw.js` lui-même.
 
 ## Fichiers
 
