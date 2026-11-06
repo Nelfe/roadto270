@@ -1,0 +1,17 @@
+{
+  "name": "Cap sur 270",
+  "short_name": "Cap sur 270",
+  "description": "Simulation de campagne présidentielle américaine en 12 semaines.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14213a",
+  "theme_color": "#14213a",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
