@@ -210,6 +210,20 @@ body.tuto{padding-block:0 330px}
 .ach li{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px}
 .ach li.off{opacity:.5}.ach b{display:block;font-weight:600}
 .hs{width:100%;border-collapse:collapse;font-size:13px}.hs td{padding:4px 6px;border-top:1px solid var(--line)}
+
+.pbar{display:grid;grid-template-columns:104px 1fr 44px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.pbar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar .tr{height:14px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.pbar .tr i{display:block;height:100%}
+.pbar.you .nm{font-weight:600}
+.pbar .v{text-align:right;font-family:var(--f-mono)}
+.stance{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:6px 0}
+.stance div{height:30px;border:1px solid var(--line);border-radius:6px;display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.stance div.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.trl{margin:8px 0 12px;padding:0;list-style:none;font-size:14px}
+.trl li{padding:2px 0}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pg .btn{text-align:left}.pg small{display:block;font-weight:400;opacity:.85}
 </style>
 </head>
 <body>
@@ -293,7 +307,7 @@ const GROUPS=[
 ];
 const GCOL=['hsl(28 62% 48%)','hsl(200 56% 45%)','hsl(268 40% 56%)','hsl(150 48% 38%)','hsl(46 76% 48%)','hsl(338 52% 50%)','hsl(95 40% 38%)'];
 const DEMO={AL:[26,5],AK:[3,7],AZ:[5,32],AR:[15,8],CA:[6,40],CO:[4,22],CT:[10,17],DE:[22,11],DC:[45,11],FL:[15,27],GA:[31,10],HI:[2,11],ID:[1,13],IL:[14,18],IN:[9,8],IA:[4,6],KS:[6,13],KY:[8,4],LA:[32,6],ME:[1,2],MD:[30,11],MA:[8,13],MI:[14,6],MN:[6,6],MS:[38,3],MO:[12,5],MT:[1,4],NE:[5,12],NV:[10,29],NH:[2,4],NJ:[14,21],NM:[3,49],NY:[16,20],NC:[22,11],ND:[3,4],OH:[13,4],OK:[7,12],OR:[2,14],PA:[12,8],RI:[8,17],SC:[27,6],SD:[2,5],TN:[16,6],TX:[12,40],UT:[1,15],VT:[1,2],VA:[19,11],WA:[4,14],WV:[4,2],WI:[6,7],WY:[1,10]};
-const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4};
+const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4,pk:1.5,adG:.35,adG2:.2,rivM:.22,rivR:.25,dec:.65,pcash:24};
 let SIM=false;
 let G=null,UI={tab:'map',sel:null,night:null};
 const KEY='cap270.save.v3',slotKey=n=>KEY+'.'+n;
@@ -369,8 +383,9 @@ function newGame(me,diff,seed,daily){
   const inc=raw<0?(rnd()<.7?'D':'R'):(rnd()<.7?'R':'D');
   G={v:3,me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
-     pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'vp',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
+     pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'cand',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
   G.deck=mkDeck();
+  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null}
   UI={tab:'map',sel:null,night:null};
   save();
 }
@@ -378,7 +393,7 @@ function newGame(me,diff,seed,daily){
 /* ---------- Adversaire ---------- */
 function oppTurn(){
   const o=-G.me,wl=12-G.wk+1,pub=[];
-  G.cashO+=7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+rnd()*3;
+  G.cashO+=(trO().includes('funds')?1.5:0)+7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+rnd()*3;
   const sc=G.states.map(s=>{const adv=o*margin(s)+randn()*2;
     return{s,adv,w:(adv>-14&&adv<9)?s.ev/(1+Math.pow(Math.max(0,Math.abs(adv)-1)/5,2)):0}}).sort((a,b)=>b.w-a.w);
   const top=sc.slice(0,7).filter(x=>x.w>0),tw=top.reduce((a,x)=>a+x.w,0)||1;
@@ -386,7 +401,7 @@ function oppTurn(){
   top.forEach(x=>{const share=budget*x.w/tw,u=share/adCost(x.s);if(u>.2){x.s.adsO+=u;spent+=share;ads.push([x.s,share])}});
   if(ads.length){ads.sort((a,b)=>b[1]-a[1]);const tot=ads.reduce((a,x)=>a+x[1],0),names=ads.slice(0,3).map(x=>x[0]);
     pub.push(both(()=>t(`Campagne TV adverse (≈ ${fM(tot)}) surtout en ${names.map(sn).join(', ')}.`,`Opposing TV campaign (≈ ${fM(tot)}) mainly in ${names.map(sn).join(', ')}.`)))}
-  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fieldCost(x.s)+5){x.s.fieldO++;spent+=fieldCost(x.s);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`)))}});
+  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fcost(x.s,false)+5){x.s.fieldO++;spent+=fcost(x.s,false);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`)))}});
   const v=top.slice(0,4).sort(()=>rnd()-.5).slice(0,2);
   v.forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+1.3);spent+=.3;pub.push(both(()=>t(`Meeting de l’adversaire en ${sn(x.s)}.`,`Opponent rally in ${sn(x.s)}.`)))});
   G.cashO=Math.max(0,G.cashO-spent-.08*G.states.reduce((a,s)=>a+s.fieldO*fieldCost(s),0));G.spentO+=spent;
@@ -494,11 +509,11 @@ const EVENTS=[
  {t:B('Prudent','Cautious'),d:B('Peu de risque','Low risk'),fx(){return debate(0,.6)}}]},
 {id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation'),
  x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.'):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.'),
- pre(){G.ev.hit=rnd()<.5?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
+ pre(){G.ev.hit=rnd()<.5+(wkP()==='scandal'?.15:0)-(wkO()==='scandal'?.15:0)?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
  {t:B('Contre-attaque médiatique','Media counterattack'),d:B('−3 M$','−$3M'),fx(){H.pay(3);if(G.ev.hit==='you'){H.img(.5);return B('Vous limitez les dégâts.','You limit the damage.')}H.img(.2);return B('Vous enfoncez le clou.','You drive the point home.')}},
  {t:B('Laisser passer','Let it pass'),d:FREE,fx(){return B('La campagne se poursuit.','The campaign goes on.')}}]}
 ];
-function debate(mean,sd){const r=PARAM.prep*G.prep+mean+randn()*sd;G.prep=0;H.img(clamp(r*.8,-1.4,1.4));
+function debate(mean,sd){const r=PARAM.prep*G.prep+mean+(trP().includes('debate')?.3:0)-(trO().includes('debate')?.3:0)+randn()*sd;G.prep=0;H.img(clamp(r*.8,-1.4,1.4));
   return r>.7?B('Vous dominez le débat. Les éditorialistes sont unanimes.','You dominate the debate. Pundits are unanimous.'):r>-.5?B('Un débat sans vainqueur net.','A debate with no clear winner.'):B('Vous perdez le débat. Les images tournent en boucle.','You lose the debate. The clips play on a loop.')}
 function nextEvent(){
   let id;
@@ -517,13 +532,13 @@ const A={
  sel(d){UI.sel=d.ab;render()},
  tab(d){UI.tab=d.tab;if(d.tab==='log')G.seen=G.log.length;render();window.scrollTo(0,0)},
  ads(d){if(!can())return;const s=ST(UI.sel),n=+d.n,c=adCost(s)*n;if(!needCash(c))return;s.adsP+=adCost(s)*n;s.spP+=c;save();render()},
- field(){if(!can())return;const s=ST(UI.sel);if(s.fieldP>=3){toast(t('Maximum de 3 bureaux.','Maximum of 3 offices.'));return}if(G.ap<1){noAP();return}if(!needCash(fieldCost(s)))return;G.ap--;s.fieldP++;s.spP+=fieldCost(s);L('you',both(()=>t(`Bureau de campagne ouvert en ${sn(s)}.`,`Campaign office opened in ${sn(s)}.`)));save();render()},
+ field(){if(!can())return;const s=ST(UI.sel);if(s.fieldP>=3){toast(t('Maximum de 3 bureaux.','Maximum of 3 offices.'));return}if(G.ap<1){noAP();return}if(!needCash(fcost(s,true)))return;G.ap--;s.fieldP++;s.spP+=fcost(s,true);L('you',both(()=>t(`Bureau de campagne ouvert en ${sn(s)}.`,`Campaign office opened in ${sn(s)}.`)));save();render()},
  visit(){if(!can())return;const s=ST(UI.sel);if(G.ap<1){noAP();return}if(!needCash(.3))return;G.ap--;s.buzzP=Math.min(2.4,s.buzzP+1.3);L('you',both(()=>t(`Visite en ${sn(s)}.`,`Visit to ${sn(s)}.`)));save();render()},
  poll(){if(!can())return;const s=ST(UI.sel);if(s.internal!==null)return;if(!needCash(1))return;s.internal=margin(s)+randn()*.4;save();render()},
  pos(d){if(!can())return;const i=+d.i,sd=side(),np=clamp(G.pos[sd][i]+ +d.d,-2,2);if(np===G.pos[sd][i])return;if(!needAP(1))return;G.pos[sd][i]=np;const nm=ISSUES[i].n;L('you',B(`Nouvelle position sur « ${nm.fr} ».`,`New position on “${nm.en}”.`));save();render()},
  agenda(d){if(!can())return;const i=+d.i;if(!needAP(1))return;G.sal[i]=clamp(G.sal[i]+.14,.1,1.6);G.sal=G.sal.map((v,k)=>k===i?v:Math.max(.1,v-.02));const nm=ISSUES[i].n;L('you',B(`Vous mettez « ${nm.fr} » à l’agenda.`,`You put “${nm.en}” on the agenda.`));save();render()},
  fund(){if(!can()||!needAP(1))return;const r=4+rnd()*3+Math.max(0,G.me*G.img)*1.5;G.cash+=r;L('you',both(()=>t(`Collecte de fonds : ${fM(r)}.`,`Fundraising: ${fM(r)}.`)));save();render()},
- media(){if(!can()||!needAP(1))return;const r=rnd();if(r<.6){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<.85)L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
+ media(){if(!can()||!needAP(1))return;const r=rnd(),gf=wkP()==='gaffe';if(r<(gf?.45:.6)){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<(gf?.7:.85))L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
  prep(){if(!can())return;if(G.prep>=3){toast(t('Préparation au maximum.','Preparation already at maximum.'));return}if(!needAP(1))return;G.prep++;L('you',B(`Préparation du débat (${G.prep}/3).`,`Debate prep (${G.prep}/3).`));save();render()},
  end(){endWeek()},
  choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`));save();showEvent()},
@@ -536,7 +551,7 @@ const A={
  settings(){showModal(settingsHTML(),'set')},
  stats(){showModal(statsHTML(),'stats')},
  set(d){SET[d.k]=+d.v;try{localStorage.setItem('cap270.set',JSON.stringify(SET))}catch(e){}applySet();showModal(settingsHTML(),'set');if(G&&!$('#game').hidden)render()},
- daily(){newGame(pickedSide,pickedDiff,hashStr('daily-'+dayStr()),dayStr());render();showBrief()},
+ daily(){newGame(pickedSide,pickedDiff,hashStr('daily-'+dayStr()),dayStr());render()},
  del(d){if(confirm(t('Supprimer cette partie ?','Delete this game?'))){dropSave(+d.slot);renderTitle()}},
  copycode(){copyText(codeOf(G.seed))},
  share(){if(navigator.share)navigator.share({text:UI.share}).catch(()=>{});else copyText(UI.share)},
@@ -545,12 +560,14 @@ const A={
  tutoSkip(){UI.tuto=null;tutoMark();render()},
  tutoRestart(){hideModal();tutoGo(0)},
  lang(d){setLang(d.l)},
+ pickc(d){G.cand=G.cands[+d.i];initPrim();G.phase='prim';save();render();window.scrollTo(0,0)},
+ pbase(){primAct('base')},pcenter(){primAct('center')},pads(){primAct('ads')},ptour(){primAct('tour')},pfund(){primAct('fund')},patk(d){primAct('attack',d)},pend(){endRound();window.scrollTo(0,0)},
  restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');renderTitle();$('#title').hidden=false}
 };
 
 function endWeek(){
   if(!can())return;
-  G.cash+=PARAM.income-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
+  G.cash+=PARAM.income+(trP().includes('funds')?1.5:0)-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
   G.cash=Math.max(0,G.cash);
   oppTurn();
   G.states.forEach(s=>{s.adsP*=.85;s.adsO*=.85;s.buzzP*=.5;s.buzzO*=.5;s.noise=randn()*1.2;s.internal=null;s.shock*=.88});
@@ -647,7 +664,7 @@ function statePanel(){
   <div class="acts">
    <button class="btn sm" data-act="ads" data-n="1" ${ok?'':'disabled'}>${t('Publicité','Ads')} ×1<small>${fM(adCost(s))}</small></button>
    <button class="btn sm" data-act="ads" data-n="3" ${ok?'':'disabled'}>${t('Publicité','Ads')} ×3<small>${fM(adCost(s)*3)}</small></button>
-   <button class="btn sm" data-act="field" ${ok&&s.fieldP<3?'':'disabled'}>${t('Bureau de terrain','Field office')}<small>1 action · ${fM(fieldCost(s))}</small></button>
+   <button class="btn sm" data-act="field" ${ok&&s.fieldP<3?'':'disabled'}>${t('Bureau de terrain','Field office')}<small>1 action · ${fM(fcost(s,true))}</small></button>
    <button class="btn sm" data-act="visit" ${ok?'':'disabled'}>${t('Visite','Visit')}<small>1 action · ${fm0(.3)}</small></button>
    <button class="btn sm alt" data-act="poll" ${ok&&s.internal===null?'':'disabled'} style="grid-column:1/-1">${t('Sondage interne','Internal poll')} · ${fm0(1)}</button>
   </div>${tb}</div>`;
@@ -687,13 +704,13 @@ function renderMain(){
     <div class="card"><div><h3>${t('Collecte de fonds','Fundraising')}</h3><p>${t('Rapporte environ 4 à 7 M$, plus si votre image est bonne.','Raises about $4M to $7M, more with a good image.')}</p></div><button class="btn sm" data-act="fund" ${ok?'':'disabled'}>1 action</button></div>
     <div class="card"><div><h3>${t('Grande interview','Major interview')}</h3><p>${t('Probablement bénéfique pour votre image, avec un risque de dérapage.','Likely to help your image, with a risk of a slip.')}</p></div><button class="btn sm" data-act="media" ${ok?'':'disabled'}>1 action</button></div>
     <div class="card"><div><h3>${t('Préparer le débat','Debate prep')}</h3><p>${t('Préparation','Preparation')} ${G.prep}/3. ${nd?t(`Prochain débat : semaine ${nd}.`,`Next debate: week ${nd}.`):t('Les débats sont terminés.','The debates are over.')}</p></div><button class="btn sm" data-act="prep" ${ok&&nd?'':'disabled'}>1 action</button></div>
-    <div class="panel"><h3 style="font-size:20px">${t('Votre ticket','Your ticket')}</h3><p style="margin:6px 0 0">${side()==='D'?'Elena Marsh':'Jack Holloway'} ${t('et','and')} ${G.vpName||t('colistier à choisir','running mate to be chosen')}.</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image')} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you')} · ${t('fonds adverses estimés','estimated opponent funds')} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code')} : <span class="mono">${codeOf(G.seed)}</span> <button class="btn sm alt" data-act="copycode" style="min-height:28px;padding:2px 8px">${t('Copier','Copy')}</button>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias')} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you')}`:''}</p></div>`;
+    <div class="panel"><h3 style="font-size:20px">${t('Votre ticket','Your ticket')}</h3><p style="margin:6px 0 0">${G.cand?G.cand.n:(side()==='D'?'Elena Marsh':'Jack Holloway')} ${t('et','and')} ${G.vpName||t('colistier à choisir','running mate to be chosen')}.</p>${G.cand?`<p class="muted" style="margin:4px 0 0;font-size:13px">${candLine(G.cand)}</p>`:''}${G.opp?`<p class="muted" style="margin:4px 0 0;font-size:13px">${t('Adversaire','Opponent')} : ${candLine(G.opp)}</p>`:''}<p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image')} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you')} · ${t('fonds adverses estimés','estimated opponent funds')} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code')} : <span class="mono">${codeOf(G.seed)}</span> <button class="btn sm alt" data-act="copycode" style="min-height:28px;padding:2px 8px">${t('Copier','Copy')}</button>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias')} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you')}`:''}</p></div>`;
   }else{
     h=`<div class="tog"><button class="btn sm alt" data-act="analyst">${G.analyst?t('Masquer les calculs détaillés','Hide detailed calculations'):t('Afficher les calculs détaillés','Show detailed calculations')}</button><span class="muted">${t('Mode analyste : décomposition de la marge de chaque État.','Analyst mode: breakdown of each state’s margin.')}</span></div><ul class="log">${G.log.map(e=>`<li class="${e.k}"><b>${t('S','W')}${e.w}</b><span>${t(e.t)}</span></li>`).join('')||`<li><b></b><span class="muted">${t('Rien à signaler pour l’instant.','Nothing to report yet.')}</span></li>`}</ul>`;
   }
   m.innerHTML=h;
 }
-function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
+function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;if(G.phase==='cand'||G.phase==='prim'){renderPrim();return}$('#tabsNav').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
 
 /* ---------- Modales ---------- */
 function showModal(h,k){if(SIM)return;UI.mk=k||null;const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.hidden=false}
@@ -707,9 +724,9 @@ function showEvent(){
   else showModal(`<h2>${title}</h2><div class="res">${t(G.ev.res)}</div><button class="btn full" data-act="evnext">${t('Continuer','Continue')}</button>`);
 }
 function showBrief(){
-  const o=G.me*(G.env-PARAM.neutral),mood=o>1?t('plutôt porteur pour votre camp','rather favorable to your side'):o<-1?t('plutôt difficile pour votre camp','rather difficult for your side'):t('incertain','uncertain');
+  const o=G.me*(G.env-PARAM.neutral),mood=o>1?t('plutôt porteuse pour votre camp','rather favorable to your side'):o<-1?t('plutôt difficile pour votre camp','rather difficult for your side'):t('incertaine','uncertain');
   const ec=G.econ>.6?t('tourne bien','is doing well'):G.econ<-.6?t('ralentit','is slowing'):t('est stable','is stable');
-  showModal(`<h2>${t('Novembre 2028','November 2028')}</h2><p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(40)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(40)} in the bank and 12 weeks ahead.`)}</p>${G.seed!=null?`<p class="muted" style="font-size:13px">${G.daily?t('Défi du jour','Daily challenge')+' · ':''}${t('Code de partie','Game code')} : <span class="mono">${codeOf(G.seed)}</span></p>`:''}<p><b>${t('Choisissez votre colistier.','Choose your running mate.')}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
+  showModal(`<h2>${t('Novembre 2028','November 2028')}</h2>${G.pr&&G.pr.won?`<p><b>${t('Investiture remportée','Nomination won')}</b> : ${G.cand.n}, ${Math.round(G.pr.final.you*100)} % ${t('des délégués','of delegates')}.</p>`:''}<p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(G.cash)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(G.cash)} in the bank and 12 weeks ahead.`)}</p>${G.seed!=null?`<p class="muted" style="font-size:13px">${G.daily?t('Défi du jour','Daily challenge')+' · ':''}${t('Code de partie','Game code')} : <span class="mono">${codeOf(G.seed)}</span></p>`:''}<p><b>${t('Choisissez votre colistier.','Choose your running mate.')}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
 }
 function election(){
   G.phase='over';const eN=randn()*1.5;
@@ -771,6 +788,12 @@ function helpHTML(canReplay){
   if(FR())return head+`
 <details open><summary>But et déroulé</summary><p>Vous menez une campagne présidentielle fictive de 12 semaines, du 14 août au 7 novembre 2028. Il faut au moins <b>270 des 538 grands électeurs</b>.</p>
 <ul><li>Chaque semaine, vous dépensez vos <b>3 actions</b> et votre argent.</li><li>Vous terminez la semaine : l’adversaire joue, l’économie évolue, un événement vous demande de choisir.</li><li>Le soir du scrutin, les résultats tombent État par État avec une part de hasard : les sondages peuvent se tromper.</li></ul></details>
+<details><summary>Candidats et primaires</summary><ul>
+<li>Vous choisissez parmi <b>3 candidats générés</b> : deux atouts et une faiblesse chacun (image, fonds, bureaux moins chers, débats, ancrage local ; interviews risquées, passé encombrant, faible notoriété).</li>
+<li>Les <b>primaires</b> comptent 4 scrutins (le Super Tuesday pèse le plus). Vous avez 2 actions par tour : mobiliser la base ou viser le centre, publicité (4 M$), tournée, collecte, attaque d’un rival.</li>
+<li>Les électeurs de primaire ont une <b>humeur</b> indiquée sous les sondages. Se placer près d’elle aide, mais votre positionnement déplace vos positions sur les enjeux à l’investiture.</li>
+<li>Attaquer affaiblit un rival mais coûte de l’image face à l’adversaire. L’argent restant passe en campagne générale.</li>
+<li>Si vous ne finissez pas premier aux délégués, la campagne s’arrête.</li></ul></details>
 <details><summary>Lire la carte et les sondages</summary><ul>
 <li><b>Couleurs :</b> bleu pour les démocrates, rouge pour les républicains. Plus c’est foncé, plus l’écart est grand. Hachuré : moins de 1,5 point, incertain.</li>
 <li><b>Sondages :</b> bruités, avec un biais commun à tout le pays. Un événement permet d’auditer ce biais.</li>
@@ -817,6 +840,12 @@ function helpHTML(canReplay){
   return head+`
 <details open><summary>Goal and flow</summary><p>You run a fictional 12-week presidential campaign, from August 14 to November 7, 2028. You need at least <b>270 of the 538 electoral votes</b>.</p>
 <ul><li>Each week, you spend your <b>3 actions</b> and your money.</li><li>You end the week: your opponent plays, the economy moves, and an event asks you to choose.</li><li>On election night, results come in state by state with some randomness: polls can be wrong.</li></ul></details>
+<details><summary>Candidates and primaries</summary><ul>
+<li>You choose among <b>3 generated candidates</b>: two strengths and one weakness each (image, funds, cheaper offices, debates, home turf; risky interviews, baggage, low name ID).</li>
+<li>The <b>primaries</b> are 4 contests (Super Tuesday counts the most). You get 2 actions per round: rally the base or court the center, ads ($4M), barnstorm, fundraise, attack a rival.</li>
+<li>Primary voters have a <b>mood</b>, shown under the polls. Positioning near it helps, but your stance shifts your issue positions once you are nominated.</li>
+<li>Attacking weakens a rival but costs image against your general-election opponent. Money left over carries into the general campaign.</li>
+<li>If you do not finish first in delegates, your campaign ends.</li></ul></details>
 <details><summary>Reading the map and polls</summary><ul>
 <li><b>Colors:</b> blue for Democrats, red for Republicans. The darker, the bigger the gap. Hatched: under 1.5 points, a toss-up.</li>
 <li><b>Polls:</b> noisy, with a bias shared across the whole country. One event lets you audit that bias.</li>
@@ -863,6 +892,174 @@ function helpHTML(canReplay){
 }
 
 
+
+/* ---------- Candidats générés ---------- */
+const FIRSTN={f:['Elena','Naomi','Carla','Joan','Maya','Priya','Rachel','Denise','Lucia','Hannah','Tamara','Grace','Irene','Nadia'],m:['Jack','Daniel','Tomas','Andre','Victor','Ethan','Raymond','Samuel','Julian','Curtis','Owen','Leo','Walter','Felix']};
+const LASTN=['Marsh','Holloway','Okafor','Brennan','Castellano','Nakamura','Prescott','Delgado','Hartmann','Abernathy','Voss','Kowalski','Tran','Sutherland','Mbeki','Ferreira','Quinn','Stratton','Alvarez','Mercer','Thorne','Bellamy','Ishikawa','Donnelly'];
+const MAYORS=[['Denver','CO'],['Houston','TX'],['Charlotte','NC'],['Phoenix','AZ'],['Cleveland','OH'],['Atlanta','GA'],['Milwaukee','WI'],['Detroit','MI'],['Las Vegas','NV'],['Pittsburgh','PA']];
+const ROLES={
+ gov:{f:B('Gouverneure','Governor'),m:B('Gouverneur','Governor'),st:1},
+ sen:{f:B('Sénatrice','Senator'),m:B('Sénateur','Senator'),st:1},
+ rep:{f:B('Députée fédérale','Congresswoman'),m:B('Député fédéral','Congressman'),st:1},
+ may:{f:B('Maire','Mayor'),m:B('Maire','Mayor')},
+ ceo:{f:B('Entrepreneuse','Entrepreneur'),m:B('Entrepreneur','Entrepreneur'),st:1},
+ gen:{f:B('Ancienne générale','Retired general'),m:B('Ancien général','Retired general'),st:1},
+ sec:{f:B('Ancienne secrétaire d’État','Former Secretary of State'),m:B('Ancien secrétaire d’État','Former Secretary of State'),st:1}
+};
+const TRAITS={
+ charm:{n:B('Charismatique','Charismatic'),d:B('Image +0,4 en campagne générale.','Image +0.4 in the general election.')},
+ funds:{n:B('Collecteur de fonds','Fundraiser'),d:B('+1,5 M$ par semaine, collectes plus fructueuses aux primaires.','+$1.5M per week, stronger fundraising in the primaries.')},
+ org:{n:B('Organisateur','Organizer'),d:B('Bureaux de terrain 25 % moins chers, tournées plus efficaces.','Field offices 25% cheaper, more effective tours.')},
+ debate:{n:B('Débatteur','Debater'),d:B('+0,3 aux débats.','+0.3 in debates.')},
+ home:{n:B('Ancrage local','Home turf'),d:B('+2,5 dans son État d’origine.','+2.5 in its home state.')}
+};
+const WEAKS={
+ gaffe:{n:B('Gaffeur','Gaffe-prone'),d:B('Les grandes interviews dérapent plus souvent.','Major interviews slip more often.')},
+ scandal:{n:B('Passé encombrant','Baggage'),d:B('Les révélations de dernière minute vous visent plus souvent.','Last-minute revelations hit you more often.')},
+ unknown:{n:B('Peu connu','Low name ID'),d:B('Image −0,4 au départ, plus difficile aux primaires.','Image −0.4 at the start, harder in the primaries.')}
+};
+const pickR=a=>a[Math.floor(rnd()*a.length)];
+function genCand(sd,used){
+  const g=rnd()<.5?'f':'m';let n;
+  do{n=pickR(FIRSTN[g])+' '+pickR(LASTN)}while(used.includes(n));used.push(n);
+  const k=pickR(['gov','gov','sen','sen','rep','may','ceo','gen','sec']),sg=sd==='D'?1:-1;
+  const okSt=ST_RAW.filter(r=>r[3]*sg>-12&&r[0]!=='DC').map(r=>r[0]);
+  let hs,city=null;
+  if(k==='may'){const m=pickR(MAYORS.filter(q=>okSt.includes(q[1])||sd==='D'));city=m[0];hs=m[1]}else hs=pickR(okSt);
+  const keys=Object.keys(TRAITS),tr=[];
+  while(tr.length<2){const q=pickR(keys);if(!tr.includes(q))tr.push(q)}
+  return{n,g,k,hs,city,tr,wk:pickR(Object.keys(WEAKS))};
+}
+const stNameOf=ab=>{const r=ST_RAW.find(q=>q[0]===ab);return FR()?r[1]:(EN_NAMES[ab]||r[1])};
+const roleTxt=c=>{const R=ROLES[c.k];return t(R[c.g])+(c.city?` · ${c.city}, ${c.hs}`:R.st?` · ${stNameOf(c.hs)}`:'')};
+const trP=()=>G.cand?G.cand.tr:[],trO=()=>G.opp?G.opp.tr:[];
+const wkP=()=>G.cand?G.cand.wk:null,wkO=()=>G.opp?G.opp.wk:null;
+const fcost=(s,mine)=>fieldCost(s)*((mine?trP():trO()).includes('org')?.75:1);
+function applyCand(c,mine){
+  if(!c)return;const sg=mine?G.me:-G.me;
+  if(c.tr.includes('charm'))G.img+=sg*.4;
+  if(c.wk==='unknown')G.img-=sg*.4;
+  if(c.tr.includes('home')){const q=ST(c.hs);if(q)q[mine?'vpP':'vpO']+=2.5}
+}
+function candCard(c,i){
+  return`<div class="panel"><h2 style="font-size:26px">${c.n}</h2><span class="muted">${roleTxt(c)}</span>
+  <ul class="trl">${c.tr.map(k=>`<li><b style="color:var(--good)">+ ${t(TRAITS[k].n)}</b><br><span class="muted">${t(TRAITS[k].d)}</span></li>`).join('')}<li><b style="color:var(--bad)">− ${t(WEAKS[c.wk].n)}</b><br><span class="muted">${t(WEAKS[c.wk].d)}</span></li></ul>
+  ${i!=null?`<button class="btn full" data-act="pickc" data-i="${i}">${t('Choisir ce candidat','Choose this candidate')}</button>`:''}</div>`;
+}
+const candLine=c=>`${c.n} (${roleTxt(c)}) : ${c.tr.map(k=>t(TRAITS[k].n)).join(', ')} · ${t(WEAKS[c.wk].n)}`;
+
+/* ---------- Primaires ---------- */
+const PRD=[{n:B('Premiers États','Early states'),m:B('févr.','Feb'),w:.2},{n:B('Super Tuesday','Super Tuesday'),m:B('mars','Mar'),w:.35},{n:B('Primaires du printemps','Spring primaries'),m:B('avr.-mai','Apr–May'),w:.25},{n:B('Dernières primaires','Final primaries'),m:B('juin','Jun'),w:.2}];
+const RIVC=['hsl(30 16% 52%)','hsl(200 14% 52%)'];
+function initPrim(){
+  const used=[G.cand.n,G.opp.n,...G.cands.map(c=>c.n)],sd=side();
+  G.pr={r:0,ap:2,x:0,e:clamp(.3+randn()*.5,-1,1),mom:0,sh:[],cash:26,negs:0,out:null,log:[],
+    riv:[2,-1].map(x=>({c:genCand(sd,used),x,b:randn()*.35+(G.diff-1)*.15,mom:0,out:false}))};
+  G.pr.hint=2*G.pr.e+randn()*.45;G.pr.pn=newPn();
+}
+function newPn(){const o={you:randn()*.15};G.pr&&G.pr.riv.forEach((q,i)=>o[i]=randn()*.15);return o}
+const primBase=()=>(trP().includes('charm')?.35:0)+(trP().includes('org')?.2:0)+(trP().includes('funds')?.15:0)-(wkP()==='unknown'?.4:0)-(wkP()==='gaffe'?.1:0);
+const pcands=()=>[{k:'you',x:G.pr.x,b:primBase(),mom:G.pr.mom},...G.pr.riv.map((q,i)=>({k:i,x:q.x,b:q.b,mom:q.mom,out:q.out}))].filter(q=>!q.out);
+function prShares(nz){
+  const xs=2*G.pr.e,L=pcands().map(q=>({k:q.k,v:Math.exp(PARAM.pk*(q.b+q.mom-.5*Math.abs(q.x-xs)+(nz?nz[q.k]||0:0)))})),T=L.reduce((a,q)=>a+q.v,0),o={};
+  L.forEach(q=>o[q.k]=q.v/T);return o;
+}
+function cumShares(upto){
+  const tot={you:0,0:0,1:0};let w=0;
+  G.pr.sh.slice(0,upto).forEach((r,i)=>{w+=PRD[i].w;['you',0,1].forEach(k=>tot[k]+=PRD[i].w*(r[k]||0))});
+  if(w)['you',0,1].forEach(k=>tot[k]/=w);return tot;
+}
+function shiftPos(sd,x){
+  if(!x)return;const dir=(x>0?1:-1)*(sd==='D'?1:-1);let n=Math.abs(x);
+  ISSUES.map((I,i)=>i).sort((a,b)=>ISSUES[b].s0-ISSUES[a].s0).forEach(i=>{
+    if(n<=0)return;const np=clamp(G.pos[sd][i]+dir,-2,2);if(np!==G.pos[sd][i]){G.pos[sd][i]=np;n--}});
+}
+const rivName=i=>G.pr.riv[i].c.n;
+function moodLabel(h){return h>1.3?t('très marqués à la base du parti','strongly rooted in the party base'):h>.5?t('plutôt attachés à la base','leaning toward the base'):h>-.3?t('partagés','divided'):t('plutôt tournés vers le centre','leaning toward the center')}
+function primAct(k,d){
+  const pr=G.pr;if(G.phase!=='prim')return;
+  if(pr.ap<1){toast(t('Plus d’actions ce tour.','No actions left this round.'));return}
+  if(k==='base'){if(pr.x>=2){toast(t('Déjà au maximum.','Already at the maximum.'));return}pr.x++;pr.mom+=.1}
+  else if(k==='center'){if(pr.x<=-2){toast(t('Déjà au maximum.','Already at the maximum.'));return}pr.x--;pr.mom+=.1}
+  else if(k==='ads'){if(pr.cash<4){toast(t('Fonds insuffisants.','Not enough funds.'));return}pr.cash-=4;pr.mom+=pr.mom>.7?PARAM.adG2:PARAM.adG}
+  else if(k==='fund'){pr.cash+=5+rnd()*2+(trP().includes('funds')?2:0)}
+  else if(k==='tour'){pr.mom+=.25+(trP().includes('org')?.15:0)}
+  else if(k==='attack'){const q=pr.riv[+d.i];if(q.out)return;q.mom-=.4;pr.negs++}
+  pr.ap--;save();render();
+}
+function endRound(){
+  const pr=G.pr;if(G.phase!=='prim')return;
+  const nz={};pcands().forEach(q=>nz[q.k]=randn()*.22);
+  const sh=prShares(nz);pr.sh.push(sh);
+  pr.mom*=PARAM.dec;pr.riv.forEach(q=>{if(!q.out){q.mom=q.mom*PARAM.dec+PARAM.rivM+rnd()*PARAM.rivR}});
+  if(rnd()<.3&&pr.riv.some(q=>!q.out))pr.mom-=.25;
+  pr.r++;pr.ap=2;
+  if(pr.r===2){
+    const cs=cumShares(2);const lead=Math.max(cs.you,cs[0],cs[1]);
+    pr.riv.forEach((q,i)=>{if(!q.out&&!pr.riv.some(z=>z.out)&&cs[i]<.16&&cs[i]<lead){q.out=true;
+      const rest=[{k:'you',x:pr.x},...pr.riv.map((z,j)=>({k:j,x:z.x,o:z.out}))].filter(z=>!z.o&&z.k!==i).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
+      if(rest.k==='you')pr.mom+=.3;else pr.riv[rest.k].mom+=.3;pr.out={n:q.c.n,to:rest.k==='you'?G.cand.n:pr.riv[rest.k].c.n,you:rest.k==='you'}}});
+  }
+  pr.pn=newPn();
+  if(pr.r>=4){finishPrim();return}
+  save();render();
+}
+function finishPrim(){
+  const pr=G.pr,cs=cumShares(4),order=[{k:'you',v:cs.you},{k:0,v:cs[0]},{k:1,v:cs[1]}].sort((a,b)=>b.v-a.v);
+  pr.final=cs;
+  if(order[0].k!=='you'){primLoss(order);return}
+  const tot=cs.you,gap=tot-order[1].v;
+  shiftPos(side(),pr.x);
+  if(pr.negs)H.img(-Math.min(.6,.15*pr.negs));
+  if(gap>.18)H.img(.25);else if(gap<.05)H.img(-.25);
+  G.cash=clamp(PARAM.pcash+pr.cash,16,46);
+  applyCand(G.cand,true);applyCand(G.opp,false);
+  shiftPos(oside(),(rnd()<.5?1:-1)*(rnd()<.5?1:2));
+  G.phase='vp';pr.won=true;
+  L('news',both(()=>t(`${G.cand.n} remporte l’investiture avec ${Math.round(tot*100)} % des délégués. L’adversaire : ${G.opp.n}.`,`${G.cand.n} wins the nomination with ${Math.round(tot*100)}% of delegates. The opponent: ${G.opp.n}.`)));
+  save();render();showBrief();
+}
+function primLoss(order){
+  const S=getStats(),sd=side();
+  S.g++;S.sd[sd][0]++;S.df[G.diff][0]++;S.st=0;if(G.daily){S.dl=S.dl||{};S.dl[G.daily]=0}
+  S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win:false,ev:0,op:0,pr:1,seed:G.seed,daily:G.daily});S.h=S.h.slice(0,30);
+  try{localStorage.setItem(STK,JSON.stringify(S))}catch(e){}
+  const w=order[0].k===0||order[0].k===1?G.pr.riv[order[0].k].c.n:'';
+  G.phase='over';G.rec=true;dropSave(G.slot);
+  showModal(`<h2>${t('Investiture perdue','Nomination lost')}</h2><div class="res">${t(`${w} remporte l’investiture avec ${Math.round(order[0].v*100)} % des délégués. Vous en avez ${Math.round(G.pr.final.you*100)} %. La campagne s’arrête ici.`,`${w} wins the nomination with ${Math.round(order[0].v*100)}% of delegates. You got ${Math.round(G.pr.final.you*100)}%. Your campaign ends here.`)}</div><p class="muted" style="font-size:13px">${t('Conseil : positionnez-vous près de l’humeur des électeurs de primaire, et ne négligez ni la publicité ni les tournées.','Tip: position yourself close to the mood of primary voters, and do not neglect ads or tours.')}</p><button class="btn full" data-act="restart">${t('Nouvelle partie','New game')}</button>`);
+}
+function renderPrim(){
+  $('#tabsNav').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');
+  const m=$('#main');
+  if(G.phase==='cand'){
+    $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Votre candidat','Your candidate')}</span><span class="rt"><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>`;
+    m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.')}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('');
+    return;
+  }
+  const pr=G.pr,r=Math.min(pr.r,3),rd=PRD[r],myCol=myC();
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries')} ${r+1}/4 <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>
+  <div class="aps" style="display:flex;gap:6px;align-items:center;margin-top:6px">${[0,1].map(i=>`<i class="${i<pr.ap?'on':''}" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);${i<pr.ap?'background:var(--gold)':''}"></i>`).join('')}<span class="muted" style="font-size:13px">${pr.ap} ${t('action(s) ce tour','action(s) this round')}</span></div>`;
+  const nz=pr.pn,sh=prShares(nz),rows=[{k:'you',n:G.cand.n,col:myCol,you:true},...pr.riv.map((q,i)=>({k:i,n:q.c.n,col:RIVC[i],out:q.out}))];
+  const cs=cumShares(pr.r);
+  const bars=rows.map(q=>`<div class="pbar${q.you?' you':''}"><span class="nm">${q.n}${q.out?' ✗':''}</span><span class="tr"><i style="width:${q.out?0:(sh[q.k]*100).toFixed(1)}%;background:${q.col}"></i></span><span class="v">${q.out?'—':Math.round(sh[q.k]*100)+'%'}</span></div>`).join('');
+  const hist=pr.sh.length?`<table class="hs" style="margin-top:6px"><tr><td></td>${rows.map(q=>`<td class="muted">${q.n.split(' ').pop()}</td>`).join('')}</tr>${pr.sh.map((x,i)=>`<tr><td>${t(PRD[i].n)}</td>${rows.map(q=>`<td class="mono">${x[q.k]!=null?Math.round(x[q.k]*100)+'%':'—'}</td>`).join('')}</tr>`).join('')}<tr><td><b>${t('Délégués','Delegates')}</b></td>${rows.map(q=>`<td class="mono"><b>${Math.round((cs[q.k]||0)*100)}%</b></td>`).join('')}</tr></table>`:'';
+  const st=[-2,-1,0,1,2].map(v=>`<div class="${v===pr.x?'on':''}">${v===-2?t('Centre','Center'):v===2?t('Base','Base'):''}${v===pr.x?'●':''}</div>`).join('');
+  const out=pr.out?`<div class="res" style="margin-top:10px">${pr.out.n} ${t('se retire et apporte son soutien à','drops out and endorses')} <b>${pr.out.to}</b>${pr.out.you?t(' : vous en profitez.',': you benefit.'):'.'}</div>`:'';
+  const rivBtn=pr.riv.map((q,i)=>q.out?'':`<button class="btn sm alt" data-act="patk" data-i="${i}"><b>${t('Attaquer','Attack')} ${q.c.n.split(' ').pop()}</b><small>${t('Adversaire −, image de fin −','Rival −, general image −')}</small></button>`).join('');
+  m.innerHTML=`${pr.r===0?`<div class="hint" style="margin-top:14px">${t('Pour gagner l’investiture, devancez vos deux rivaux sur l’ensemble des quatre scrutins (le Super Tuesday pèse le plus). Les électeurs de primaire ont une humeur : se placer près d’elle aide, mais ce positionnement vous suivra face à l’adversaire en novembre. Vous avez 2 actions par tour.','To win the nomination, beat your two rivals across the four contests (Super Tuesday counts the most). Primary voters have a mood: positioning near it helps, but that stance follows you into the general election. You have 2 actions per round.')}</div>`:''}
+  <h2 class="sect">${t('Sondages de primaire','Primary polls')}</h2><div class="panel">${bars}<p class="muted" style="font-size:13px;margin:8px 0 0">${t('Les électeurs de primaire semblent','Primary voters seem')} <b>${moodLabel(pr.hint)}</b>. ${t('Poids de ce scrutin','Weight of this contest')} : ${Math.round(rd.w*100)} %.</p>${hist}${out}</div>
+  <h3 class="sect" style="font-size:18px">${t('Votre positionnement','Your positioning')}</h3><div class="panel"><div class="stance">${st}</div><p class="muted" style="font-size:13px;margin:4px 0 0">${t('Aller vers la base conforte la ligne du parti ; aller vers le centre aide en novembre mais déplace vos positions sur les enjeux au moment de l’investiture.','Moving toward the base reinforces the party line; moving to the center helps in November but shifts your issue positions once you are nominated.')}</p></div>
+  <h3 class="sect" style="font-size:18px">${t('Actions','Actions')}</h3><div class="pg">
+   <button class="btn sm" data-act="pbase"><b>${t('Mobiliser la base','Rally the base')}</b><small>${t('Positionnement +1','Positioning +1')}</small></button>
+   <button class="btn sm" data-act="pcenter"><b>${t('Viser le centre','Court the center')}</b><small>${t('Positionnement −1','Positioning −1')}</small></button>
+   <button class="btn sm" data-act="pads"><b>${t('Publicité','Ads')}</b><small>${fm0(4)}</small></button>
+   <button class="btn sm" data-act="ptour"><b>${t('Tournée de terrain','Barnstorm')}</b><small>${t('Gratuit','Free')}</small></button>
+   <button class="btn sm" data-act="pfund"><b>${t('Collecte de fonds','Fundraise')}</b><small>${t('+5 à 7 M$','+$5M to $7M')}</small></button>
+   ${rivBtn}</div>
+  <div style="height:14px"></div><button class="btn full" data-act="pend">${r>=3?t('Clore la dernière primaire','Close the final primary'):t('Terminer le tour','End the round')}</button>
+  <p class="muted" style="font-size:12px;margin:10px 0 0">${candLine(G.cand)}</p>`;
+}
+
 /* ---------- Statistiques, succès, bilan ---------- */
 const STK='cap270.stats';
 function getStats(){const d={g:0,w:0,sd:{D:[0,0],R:[0,0]},df:[[0,0],[0,0],[0,0]],best:0,st:0,bst:0,ach:{},h:[],dl:{}};try{const o=JSON.parse(localStorage.getItem(STK));if(o)Object.assign(d,o)}catch(e){}return d}
@@ -880,7 +1077,7 @@ const ACH=[
 ];
 const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
 const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':'en-US',{day:'numeric',month:'short'});
-const slotLabel=sv=>`${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
+const slotLabel=sv=>`${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
 function finish(win,mine,theirs){
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
@@ -930,7 +1127,7 @@ function statsHTML(){
   <h3 class="sect" style="font-size:18px;margin-top:16px">${t('Succès','Achievements')} · ${Object.keys(S.ach).length}/${ACH.length}</h3>
   <ul class="ach">${ACH.map(a=>`<li class="${S.ach[a.id]?'':'off'}"><b>${S.ach[a.id]?'✓ ':''}${t(a.n)}</b>${t(a.d)}</li>`).join('')}</ul>
   <h3 class="sect" style="font-size:18px;margin-top:16px">${t('Dernières parties','Recent games')}</h3>
-  ${S.h.length?`<table class="hs">${S.h.slice(0,10).map(h=>`<tr><td>${fDate(h.t)}</td><td>${h.me===1?'D':'R'} · ${dn[h.df]}${h.daily?' ★':''}</td><td>${h.win?t('Victoire','Win'):t('Défaite','Loss')} ${h.ev}–${h.op}</td><td class="mono">${h.seed!=null?codeOf(h.seed):''}</td></tr>`).join('')}</table>`:`<p class="muted">${t('Aucune partie terminée pour l’instant.','No finished games yet.')}</p>`}
+  ${S.h.length?`<table class="hs">${S.h.slice(0,10).map(h=>`<tr><td>${fDate(h.t)}</td><td>${h.me===1?'D':'R'} · ${dn[h.df]}${h.daily?' ★':''}</td><td>${h.pr?t('Primaires perdues','Lost primaries'):(h.win?t('Victoire','Win'):t('Défaite','Loss'))+' '+h.ev+'–'+h.op}</td><td class="mono">${h.seed!=null?codeOf(h.seed):''}</td></tr>`).join('')}</table>`:`<p class="muted">${t('Aucune partie terminée pour l’instant.','No finished games yet.')}</p>`}
   <div class="irow" style="margin-top:12px"><button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
 }
 function settingsHTML(){
@@ -950,8 +1147,8 @@ function renderTitle(){
   <h1>${FR()?'Cap sur':'Road to'} <span>270</span></h1>
   <p class="lede">${t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.')}</p>
   <div class="pick" id="pickSide">
-    <button class="d" data-side="1" aria-pressed="${pickedSide===1}"><b>${t('Démocrate','Democrat')}</b><small>${t('Elena Marsh, gouverneure','Governor Elena Marsh')}</small></button>
-    <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican')}</b><small>${t('Jack Holloway, sénateur','Senator Jack Holloway')}</small></button>
+    <button class="d" data-side="1" aria-pressed="${pickedSide===1}"><b>${t('Démocrate','Democrat')}</b><small>${t('Candidat tiré au hasard','Randomly drawn candidate')}</small></button>
+    <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican')}</b><small>${t('Candidat tiré au hasard','Randomly drawn candidate')}</small></button>
   </div>
   <div class="pick three" id="pickDiff">
     <button data-diff="0" aria-pressed="${pickedDiff===0}"><b>${t('Facile','Easy')}</b><small>${t('Vent dans le dos','Tailwind')}</small></button>
@@ -964,6 +1161,7 @@ function renderTitle(){
   ${saves.map(sv=>`<div class="slot"><button class="btn alt" data-act="cont" data-slot="${sv.slot}">${t('Reprendre','Resume')} : ${slotLabel(sv)}</button><button class="x" data-act="del" data-slot="${sv.slot}" aria-label="${t('Supprimer','Delete')}">×</button></div>`).join('')}
   <div class="trio"><button class="btn alt sm" data-act="help">${t('Comment jouer','How to play')}</button><button class="btn alt sm" data-act="stats">${t('Statistiques','Stats')}</button><button class="btn alt sm" data-act="settings">${t('Réglages','Settings')}</button></div>
   <ul class="rules">
+    <li>${t('Vous choisissez parmi trois candidats générés, puis vous gagnez les primaires avant d’affronter l’adversaire.','You choose among three generated candidates, then win the primaries before facing your opponent.')}</li>
     <li>${t('Chaque semaine : 3 actions (visites, collecte, positions) et de l’argent (publicité, bureaux de terrain).','Each week: 3 actions (visits, fundraising, positions) and money (ads, field offices).')}</li>
     <li>${t('Les sondages sont bruités et peuvent se tromper dans le même sens partout. Un sondage interne coûte 1 M$ et donne la vraie marge.','Polls are noisy and can all miss in the same direction. An internal poll costs $1M and shows the true margin.')}</li>
     <li>${t('Vos positions sur les enjeux déplacent les États différemment : se recentrer gagne le Wisconsin et peut perdre la Californie.','Your positions on the issues move each state differently: moving to the center can win Wisconsin and lose California.')}</li>
@@ -976,7 +1174,7 @@ document.addEventListener('click',e=>{
   const sb=e.target.closest('#pickSide button');if(sb){pickedSide=+sb.dataset.side;document.querySelectorAll('#pickSide button').forEach(b=>b.setAttribute('aria-pressed',b===sb));return}
   const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
   const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
-  if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null);render();showBrief();return}
+  if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null);render();return}
   if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
   if(SET.vib&&['ads','field','visit','poll','pos','agenda','fund','media','prep','target','end','choose','vp'].includes(a))navigator.vibrate?.(a==='end'?20:8);
   A[a]&&A[a](x.dataset);
