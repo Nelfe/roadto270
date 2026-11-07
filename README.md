@@ -1,6 +1,6 @@
-# Cap sur 270
+# Road to 270 (Cap sur 270)
 
-Simulation de campagne présidentielle américaine en 12 semaines, jouable sur mobile (PWA installable, hors ligne).
+Simulation de campagne présidentielle américaine en 12 semaines, jouable sur mobile (PWA installable, hors ligne). Bilingue : anglais (par défaut) et français, avec un sélecteur de langue à l’écran titre et dans le manuel.
 
 - Carte des 51 États, grands électeurs, sondages bruités
 - Enjeux, 7 groupes d'électeurs, économie locale, événements, débats

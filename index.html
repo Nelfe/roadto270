@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14213a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Cap sur 270">
+<meta name="apple-mobile-web-app-title" content="Road to 270">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>:root{padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px);color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}</style>
-<title>Cap sur 270</title>
+<title>Road to 270</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -191,69 +191,55 @@ body.tuto{padding-block:0 330px}
 .score{display:flex;justify-content:space-between;align-items:flex-end;margin:6px 0 10px}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:99px;font-size:13px;z-index:50;max-width:90%}
 @media (prefers-reduced-motion:no-preference){.tile{transition:background .25s}}
+.langsw{display:flex;gap:6px;margin:0 0 14px}
+.langsw button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:36px;font-size:14px;color:var(--ink)}
+.langsw button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
+</head>
+<body>
 
-<div class="wrap" id="title">
-  <h1>Cap sur <span>270</span></h1>
-  <p class="lede">Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.</p>
-  <div class="pick" id="pickSide">
-    <button class="d" data-side="1" aria-pressed="true"><b>Démocrate</b><small>Elena Marsh, gouverneure</small></button>
-    <button class="r" data-side="-1" aria-pressed="false"><b>Républicain</b><small>Jack Holloway, sénateur</small></button>
-  </div>
-  <div class="pick three" id="pickDiff">
-    <button data-diff="0" aria-pressed="false"><b>Facile</b><small>Vent dans le dos</small></button>
-    <button data-diff="1" aria-pressed="true"><b>Normal</b><small>Course équilibrée</small></button>
-    <button data-diff="2" aria-pressed="false"><b>Difficile</b><small>Vent de face</small></button>
-  </div>
-  <button class="btn full" data-act="start">Lancer la campagne</button>
-  <button class="btn alt full" data-act="cont" id="contBtn" hidden style="margin-top:10px">Reprendre la partie</button>
-  <button class="btn alt full" data-act="help" style="margin-top:10px">Comment jouer</button>
-  <ul class="rules">
-    <li>Chaque semaine : 3 actions (visites, collecte, positions) et de l’argent (publicité, bureaux de terrain).</li>
-    <li>Les sondages sont bruités et peuvent se tromper dans le même sens partout. Un sondage interne coûte 1 M$ et donne la vraie marge.</li>
-    <li>Vos positions sur les enjeux déplacent les États différemment : se recentrer gagne le Wisconsin et peut perdre la Californie.</li>
-    <li>Sept groupes d’électeurs pèsent différemment selon les États, et l’économie locale joue en faveur ou contre le parti sortant.</li>
-    <li>Il faut 270 grands électeurs sur 538. Maine et Nebraska comptent chacun en bloc ici.</li>
-  </ul>
-  <p class="fine">Prototype jouable. Les marges de fond sont des approximations arrondies de 2024.</p>
-</div>
+<div class="wrap" id="title"></div>
 
 <div class="wrap" id="game" hidden>
   <header class="hud" id="hud"><div id="hudTop"></div>
-    <nav class="tabs" role="tablist" aria-label="Sections du jeu">
-      <button role="tab" data-act="tab" data-tab="map" aria-selected="true">Carte</button>
-      <button role="tab" data-act="tab" data-tab="issues" aria-selected="false">Enjeux</button>
-      <button role="tab" data-act="tab" data-tab="groups" aria-selected="false">Groupes</button>
-      <button role="tab" data-act="tab" data-tab="actions" aria-selected="false">Actions</button>
-      <button role="tab" data-act="tab" data-tab="log" aria-selected="false">Journal<span class="bdg" id="bdg" hidden></span></button>
-    </nav></header>
+    <nav class="tabs" id="tabsNav" role="tablist"></nav></header>
   <main id="main"></main>
 </div>
 <div class="dock" id="dock" hidden><div class="in">
-  <div class="go"><div class="aps" id="aps"></div><button class="btn" data-act="end" id="endBtn">Fin de semaine</button></div>
+  <div class="go"><div class="aps" id="aps"></div><button class="btn" data-act="end" id="endBtn"></button></div>
 </div></div>
 <div id="modal" hidden></div>
 <div id="toast" hidden></div>
-<div class="coach" id="coach" hidden role="dialog" aria-label="Tutoriel"></div>
+<div class="coach" id="coach" hidden role="dialog"></div>
 
 <script>
 'use strict';
 const $=(s,r=document)=>r.querySelector(s);
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const randn=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
-const f1=x=>x.toFixed(1).replace('.',',');
+
+/* ---------- Langue ---------- */
+let LANG='en';
+try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en')LANG=l}catch(e){}
+const FR=()=>LANG==='fr';
+const B=(fr,en)=>({fr,en});
+const t=(a,b)=>b===undefined?(a&&typeof a==='object'?a[LANG]:a):(LANG==='fr'?a:b);
+const both=fn=>{const o=LANG;LANG='fr';const a=fn();LANG='en';const b=fn();LANG=o;return B(a,b)};
+const f1=x=>{const s=x.toFixed(1);return FR()?s.replace('.',','):s};
 const fS=x=>(x>=0?'+':'−')+f1(Math.abs(x));
-const fM=x=>f1(x)+' M$';
+const fM=x=>FR()?f1(x)+' M$':'$'+f1(x)+'M';
+const fm0=x=>{const s=Number.isInteger(x)?String(x):f1(x);return FR()?s+' M$':'$'+s+'M'};
+const pct=s=>FR()?s+' %':s+'%';
 const fD=m=>(m>=0?'D+':'R+')+f1(Math.abs(m));
 
 const ISSUES=[
- {id:'eco',n:'Économie & inflation',lo:'Baisses d’impôts, dérégulation',hi:'Redistribution, plus d’État',own:-.3,s0:1.0,dD:1,dR:-1},
- {id:'imm',n:'Immigration',lo:'Fermeté aux frontières',hi:'Voies de régularisation',own:-.5,s0:.8,dD:1,dR:-2},
- {id:'san',n:'Santé',lo:'Marché et assurances privées',hi:'Assurance publique élargie',own:.7,s0:.55,dD:2,dR:-1},
- {id:'avo',n:'Avortement',lo:'Restrictions',hi:'Droit protégé au niveau fédéral',own:.5,s0:.5,dD:2,dR:-2},
- {id:'sec',n:'Sécurité & police',lo:'Fermeté, répression',hi:'Réformes, prévention',own:-.5,s0:.5,dD:1,dR:-1},
- {id:'cli',n:'Climat & énergie',lo:'Priorité aux énergies fossiles',hi:'Transition accélérée',own:.4,s0:.35,dD:1,dR:-2},
- {id:'com',n:'Commerce & alliances',lo:'« L’Amérique d’abord », droits de douane',hi:'Alliances et libre-échange',own:0,s0:.35,dD:1,dR:-1},
+ {id:'eco',n:B('Économie & inflation','Economy & inflation'),lo:B('Baisses d’impôts, dérégulation','Tax cuts, deregulation'),hi:B('Redistribution, plus d’État','Redistribution, bigger government'),own:-.3,s0:1.0,dD:1,dR:-1},
+ {id:'imm',n:B('Immigration','Immigration'),lo:B('Fermeté aux frontières','Tougher borders'),hi:B('Voies de régularisation','Paths to legal status'),own:-.5,s0:.8,dD:1,dR:-2},
+ {id:'san',n:B('Santé','Health care'),lo:B('Marché et assurances privées','Market and private insurance'),hi:B('Assurance publique élargie','Expanded public insurance'),own:.7,s0:.55,dD:2,dR:-1},
+ {id:'avo',n:B('Avortement','Abortion'),lo:B('Restrictions','Restrictions'),hi:B('Droit protégé au niveau fédéral','Federally protected right'),own:.5,s0:.5,dD:2,dR:-2},
+ {id:'sec',n:B('Sécurité & police','Crime & policing'),lo:B('Fermeté, répression','Tough enforcement'),hi:B('Réformes, prévention','Reform and prevention'),own:-.5,s0:.5,dD:1,dR:-1},
+ {id:'cli',n:B('Climat & énergie','Climate & energy'),lo:B('Priorité aux énergies fossiles','Fossil fuels first'),hi:B('Transition accélérée','Faster transition'),own:.4,s0:.35,dD:1,dR:-2},
+ {id:'com',n:B('Commerce & alliances','Trade & alliances'),lo:B('« L’Amérique d’abord », droits de douane','“America First”, tariffs'),hi:B('Alliances et libre-échange','Alliances and free trade'),own:0,s0:.35,dD:1,dR:-1},
 ];
 const S0=ISSUES.map(i=>i.s0);
 // ab, nom, grands électeurs, marge de fond (D+), ligne, colonne, tags
@@ -267,50 +253,52 @@ const ST_RAW=[
 ['OK','Oklahoma',7,-34,6,3,'energy evang'],['LA','Louisiane',8,-22,6,4,'energy evang'],['MS','Mississippi',6,-21,6,5,'evang'],['AL','Alabama',9,-30,6,6,'evang'],['GA','Géorgie',16,-2,6,7,'evang urban'],
 ['HI','Hawaï',4,25,7,0,''],['TX','Texas',40,-14,7,3,'border energy'],['FL','Floride',30,-13,7,8,'retire']
 ];
+const EN_NAMES={ND:'North Dakota',SD:'South Dakota',PA:'Pennsylvania',CA:'California',VA:'Virginia',WV:'West Virginia',NM:'New Mexico',NC:'North Carolina',SC:'South Carolina',DC:'District of Columbia',GA:'Georgia',HI:'Hawaii',FL:'Florida'};
+const sn=s=>FR()?s.name:(EN_NAMES[s.ab]||s.name);
 
 const GROUPS=[
- {id:'ouv',n:'Classes populaires',d:'Ouvriers et employés sans diplôme supérieur',ideal:[.5,-1.2,.8,-.3,-.8,-.8,-1],w:[1.3,1.1,.8,.6,1,.6,1.2]},
- {id:'dip',n:'Diplômés',d:'Cadres, professions intellectuelles, banlieues aisées',ideal:[.3,1.2,1,1.6,.5,1.4,1],w:[.8,.8,.9,1.3,.6,1.3,.9]},
- {id:'sen',n:'Seniors',d:'65 ans et plus, attachés à Medicare et aux retraites',ideal:[0,-.5,1.5,-.2,-.6,-.2,0],w:[1,.9,1.6,.6,1,.5,.6]},
- {id:'jeu',n:'Jeunes',d:'18 à 29 ans, étudiants et premiers emplois',ideal:[1,1,1.1,1.5,.6,1.5,.5],w:[1.1,.6,.8,1.3,.6,1.4,.4]},
- {id:'lat',n:'Latinos',d:'Électorat hispanique, très divers selon les États',ideal:[.6,.3,1,.4,-.2,.3,-.2],w:[1.4,1.1,.9,.7,.8,.5,.5]},
- {id:'noi',n:'Électorat noir',d:'Très mobilisé localement, sensible à la sécurité et à la santé',ideal:[1,.7,1.3,.8,.8,.5,.2],w:[1.2,.5,1.1,.8,1.4,.5,.4]},
- {id:'evg',n:'Évangéliques et ruraux',d:'Communautés religieuses et zones rurales',ideal:[-.6,-1.5,-.5,-1.7,-1,-1.2,-.6],w:[.8,1.1,.5,1.6,1,.4,.6]},
+ {id:'ouv',n:B('Classes populaires','Working class'),d:B('Ouvriers et employés sans diplôme supérieur','Workers and employees without a college degree'),ideal:[.5,-1.2,.8,-.3,-.8,-.8,-1],w:[1.3,1.1,.8,.6,1,.6,1.2]},
+ {id:'dip',n:B('Diplômés','College graduates'),d:B('Cadres, professions intellectuelles, banlieues aisées','Managers, professionals, affluent suburbs'),ideal:[.3,1.2,1,1.6,.5,1.4,1],w:[.8,.8,.9,1.3,.6,1.3,.9]},
+ {id:'sen',n:B('Seniors','Seniors'),d:B('65 ans et plus, attachés à Medicare et aux retraites','Ages 65 and up, attached to Medicare and pensions'),ideal:[0,-.5,1.5,-.2,-.6,-.2,0],w:[1,.9,1.6,.6,1,.5,.6]},
+ {id:'jeu',n:B('Jeunes','Young voters'),d:B('18 à 29 ans, étudiants et premiers emplois','Ages 18 to 29, students and first jobs'),ideal:[1,1,1.1,1.5,.6,1.5,.5],w:[1.1,.6,.8,1.3,.6,1.4,.4]},
+ {id:'lat',n:B('Latinos','Latino voters'),d:B('Électorat hispanique, très divers selon les États','Hispanic electorate, very diverse across states'),ideal:[.6,.3,1,.4,-.2,.3,-.2],w:[1.4,1.1,.9,.7,.8,.5,.5]},
+ {id:'noi',n:B('Électorat noir','Black voters'),d:B('Très mobilisé localement, sensible à la sécurité et à la santé','Highly mobilized locally, sensitive to policing and health care'),ideal:[1,.7,1.3,.8,.8,.5,.2],w:[1.2,.5,1.1,.8,1.4,.5,.4]},
+ {id:'evg',n:B('Évangéliques et ruraux','Evangelicals & rural'),d:B('Communautés religieuses et zones rurales','Religious communities and rural areas'),ideal:[-.6,-1.5,-.5,-1.7,-1,-1.2,-.6],w:[.8,1.1,.5,1.6,1,.4,.6]},
 ];
 const GCOL=['hsl(28 62% 48%)','hsl(200 56% 45%)','hsl(268 40% 56%)','hsl(150 48% 38%)','hsl(46 76% 48%)','hsl(338 52% 50%)','hsl(95 40% 38%)'];
 const DEMO={AL:[26,5],AK:[3,7],AZ:[5,32],AR:[15,8],CA:[6,40],CO:[4,22],CT:[10,17],DE:[22,11],DC:[45,11],FL:[15,27],GA:[31,10],HI:[2,11],ID:[1,13],IL:[14,18],IN:[9,8],IA:[4,6],KS:[6,13],KY:[8,4],LA:[32,6],ME:[1,2],MD:[30,11],MA:[8,13],MI:[14,6],MN:[6,6],MS:[38,3],MO:[12,5],MT:[1,4],NE:[5,12],NV:[10,29],NH:[2,4],NJ:[14,21],NM:[3,49],NY:[16,20],NC:[22,11],ND:[3,4],OH:[13,4],OK:[7,12],OR:[2,14],PA:[12,8],RI:[8,17],SC:[27,6],SD:[2,5],TN:[16,6],TX:[12,40],UT:[1,15],VT:[1,2],VA:[19,11],WA:[4,14],WV:[4,2],WI:[6,7],WY:[1,10]};
-const K_ISS=1.2;
 const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4};
 let SIM=false;
 let G=null,UI={tab:'map',sel:null,night:null};
-const KEY='cap270.save.v2';
+const KEY='cap270.save.v3';
 const ST=ab=>G.states.find(s=>s.ab===ab);
 const side=()=>G.me===1?'D':'R', oside=()=>G.me===1?'R':'D';
 function save(){if(SIM)return;try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}}
-function loadSave(){try{const t=localStorage.getItem(KEY);return t?JSON.parse(t):null}catch(e){return null}}
-function L(kind,txt){G.log.unshift({w:G.wk,k:kind,t:txt})}
-function toast(t){if(SIM)return;const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
+function loadSave(){try{const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
+function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
+function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
+const incName=()=>t(G.inc==='D'?'démocrate':'républicain',G.inc==='D'?'Democratic':'Republican');
 
 /* ---------- Modèle ---------- */
 function mixOf(s){
-  const[b,l]=DEMO[s.ab],t=s.tags,rem=1-(b+l)/100;
-  let evg=t.includes('evang')?.34:t.includes('ag')?.2:.12;if(s.ab==='UT')evg=.35;
-  const dip=(t.includes('urban')?.3:.2)+(s.lean>10?.05:0)-(s.lean<-25?.04:0);
-  const sen=t.includes('retire')?.3:.21,jeu=t.includes('urban')?.17:.14;
-  const ouv=Math.max(.1,1-evg-dip-sen-jeu)*(t.includes('rust')?1.25:1);
+  const[b,l]=DEMO[s.ab],tg=s.tags,rem=1-(b+l)/100;
+  let evg=tg.includes('evang')?.34:tg.includes('ag')?.2:.12;if(s.ab==='UT')evg=.35;
+  const dip=(tg.includes('urban')?.3:.2)+(s.lean>10?.05:0)-(s.lean<-25?.04:0);
+  const sen=tg.includes('retire')?.3:.21,jeu=tg.includes('urban')?.17:.14;
+  const ouv=Math.max(.1,1-evg-dip-sen-jeu)*(tg.includes('rust')?1.25:1);
   const k=rem/(evg+dip+sen+jeu+ouv);
   return[ouv*k,dip*k,sen*k,jeu*k,l/100,b/100,evg*k];
 }
 function adjOf(s){
-  const a=ISSUES.map(()=>s.lean/30),t=s.tags,add=(id,v)=>{a[ISSUES.findIndex(i=>i.id===id)]+=v};
-  if(t.includes('energy'))add('cli',-.6);if(t.includes('border'))add('imm',-.4);if(t.includes('rust')){add('com',-.3);add('imm',-.2)}
+  const a=ISSUES.map(()=>s.lean/30),tg=s.tags,add=(id,v)=>{a[ISSUES.findIndex(i=>i.id===id)]+=v};
+  if(tg.includes('energy'))add('cli',-.6);if(tg.includes('border'))add('imm',-.4);if(tg.includes('rust')){add('com',-.3);add('imm',-.2)}
   return a;
 }
-function sectorOf(s){const t=s.tags;return t.includes('energy')?'Énergie':t.includes('rust')?'Industrie':t.includes('ag')?'Agriculture':t.includes('retire')?'Retraités et tourisme':t.includes('urban')?'Services et technologies':'Services'}
+function sectorOf(s){const g=s.tags;return g.includes('energy')?t('Énergie','Energy'):g.includes('rust')?t('Industrie','Manufacturing'):g.includes('ag')?t('Agriculture','Agriculture'):g.includes('retire')?t('Retraités et tourisme','Retirees & tourism'):g.includes('urban')?t('Services et technologies','Services & technology'):t('Services','Services')}
 const ecoOf=s=>s.eco0+s.beta*G.econ*.5+s.shock;
 const unemp=s=>clamp(4.2-.55*ecoOf(s)+(s.tags.includes('rust')?.3:0),2.4,8);
 const econSign=()=>G.inc==='D'?1:-1;
-function tgtEff(s){let t=0;for(let g=0;g<GROUPS.length;g++)t+=s.mix[g]*(G.tgtP[g]-G.tgtO[g]);return PARAM.tgtCoef*G.me*t}
+function tgtEff(s){let x=0;for(let g=0;g<GROUPS.length;g++)x+=s.mix[g]*(G.tgtP[g]-G.tgtO[g]);return PARAM.tgtCoef*G.me*x}
 function groupPref(g,sd){
   const m=sd==='D'?G.pos.D:G.pos.R,o=sd==='D'?G.pos.R:G.pos.D,Q=GROUPS[g];let a=0,n=0;
   for(let i=0;i<ISSUES.length;i++){a+=Q.w[i]*G.sal[i]*(Math.abs(o[i]-Q.ideal[i])-Math.abs(m[i]-Q.ideal[i]));n+=Q.w[i]*G.sal[i]}
@@ -321,28 +309,31 @@ const adsEff=(a,ev)=>3*(1-Math.exp(-a/(2+ev*.15)));
 const fieldEff=n=>.55*Math.pow(n,.85);
 function dev(sd){const d=ISSUES.map(i=>sd==='D'?i.dD:i.dR);return ISSUES.reduce((a,i,k)=>a+i.s0*Math.abs(G.pos[sd][k]-d[k]),0)}
 function ownEff(){return 5*ISSUES.reduce((a,i,k)=>a+(G.sal[k]-i.s0)*i.own,0)}
-function issueEff(s,pD,pR){let t=0;
+function issueEff(s,pD,pR){let x=0;
   for(let g=0;g<GROUPS.length;g++){const Q=GROUPS[g];let u=0;
     for(let i=0;i<ISSUES.length;i++){const id=clamp(Q.ideal[i]+s.adj[i],-2,2),I=ISSUES[i];
       u+=Q.w[i]*G.sal[i]*((Math.abs(pR[i]-id)-Math.abs(pD[i]-id))-(Math.abs(I.dR-id)-Math.abs(I.dD-id)))}
-    t+=s.mix[g]*u}
-  return PARAM.kIss*t}
+    x+=s.mix[g]*u}
+  return PARAM.kIss*x}
+const PL={base:B('Tendance de fond','Baseline lean'),env:B('Climat national','National mood'),eco:B('Économie locale','Local economy'),iss:B('Positions sur les enjeux','Issue positions'),
+  enth:B('Mobilisation de la base','Base turnout'),img:B('Image des candidats','Candidate image'),tgt:B('Ciblage des groupes','Group outreach'),ads:B('Publicité nette','Net advertising'),
+  fld:B('Bureaux de terrain','Field offices'),bz:B('Visites et buzz','Visits & buzz'),vp:B('Colistiers','Running mates')};
 function parts(s){const me=G.me;return[
- ['Tendance de fond',s.lean],['Climat national',G.env+ownEff()],['Économie locale',econSign()*.8*ecoOf(s)],['Positions sur les enjeux',issueEff(s,G.pos.D,G.pos.R)],
- ['Mobilisation de la base',-.25*dev('D')+.25*dev('R')],['Image des candidats',G.img],['Ciblage des groupes',tgtEff(s)],
- ['Publicité nette',me*(adsEff(s.adsP,s.ev)-adsEff(s.adsO,s.ev))],['Bureaux de terrain',me*(fieldEff(s.fieldP)-fieldEff(s.fieldO))],
- ['Visites et buzz',me*(s.buzzP-s.buzzO)],['Colistiers',me*(s.vpP-s.vpO)]]}
+ [PL.base,s.lean],[PL.env,G.env+ownEff()],[PL.eco,econSign()*.8*ecoOf(s)],[PL.iss,issueEff(s,G.pos.D,G.pos.R)],
+ [PL.enth,-.25*dev('D')+.25*dev('R')],[PL.img,G.img],[PL.tgt,tgtEff(s)],
+ [PL.ads,me*(adsEff(s.adsP,s.ev)-adsEff(s.adsO,s.ev))],[PL.fld,me*(fieldEff(s.fieldP)-fieldEff(s.fieldO))],
+ [PL.bz,me*(s.buzzP-s.buzzO)],[PL.vp,me*(s.vpP-s.vpO)]]}
 const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise;
 
 function newGame(me,diff){
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
     adsP:0,adsO:0,fieldP:0,fieldO:0,buzzP:0,buzzO:0,vpP:0,vpO:0,pb:randn()*2,noise:randn()*1.2,spP:0,internal:null,shock:0,eco0:randn()*.5};
-    const t=s.tags;s.beta=t.includes('energy')?1.4:t.includes('rust')?1.2:t.includes('urban')?.9:t.includes('retire')?.6:t.includes('ag')?.8:1;
+    const g=s.tags;s.beta=g.includes('energy')?1.4:g.includes('rust')?1.2:g.includes('urban')?.9:g.includes('retire')?.6:g.includes('ag')?.8:1;
     s.mix=mixOf(s);s.adj=adjOf(s);return s});
   const raw=randn()*1.6+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral;
   const inc=raw<0?(Math.random()<.7?'D':'R'):(Math.random()<.7?'R':'D');
-  G={v:2,me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
+  G={v:3,me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
      pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'vp',spentP:0,spentO:0,analyst:true,hint:null,vpName:''};
   UI={tab:'map',sel:null,night:null};
@@ -358,14 +349,15 @@ function oppTurn(){
   const top=sc.slice(0,7).filter(x=>x.w>0),tw=top.reduce((a,x)=>a+x.w,0)||1;
   const budget=Math.max(0,Math.min(G.cashO-1,G.cashO/wl*1.25));let spent=0;const ads=[];
   top.forEach(x=>{const share=budget*x.w/tw,u=share/adCost(x.s);if(u>.2){x.s.adsO+=u;spent+=share;ads.push([x.s,share])}});
-  if(ads.length){ads.sort((a,b)=>b[1]-a[1]);pub.push(`Campagne TV adverse (≈ ${fM(ads.reduce((a,x)=>a+x[1],0))}) surtout en ${ads.slice(0,3).map(x=>x[0].name).join(', ')}.`)}
-  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fieldCost(x.s)+5){x.s.fieldO++;spent+=fieldCost(x.s);pub.push(`L’adversaire ouvre un bureau de campagne en ${x.s.name}.`)}});
+  if(ads.length){ads.sort((a,b)=>b[1]-a[1]);const tot=ads.reduce((a,x)=>a+x[1],0),names=ads.slice(0,3).map(x=>x[0]);
+    pub.push(both(()=>t(`Campagne TV adverse (≈ ${fM(tot)}) surtout en ${names.map(sn).join(', ')}.`,`Opposing TV campaign (≈ ${fM(tot)}) mainly in ${names.map(sn).join(', ')}.`)))}
+  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fieldCost(x.s)+5){x.s.fieldO++;spent+=fieldCost(x.s);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`)))}});
   const v=top.slice(0,4).sort(()=>Math.random()-.5).slice(0,2);
-  v.forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+1.3);spent+=.3;pub.push(`Meeting de l’adversaire en ${x.s.name}.`)});
+  v.forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+1.3);spent+=.3;pub.push(both(()=>t(`Meeting de l’adversaire en ${sn(x.s)}.`,`Opponent rally in ${sn(x.s)}.`)))});
   G.cashO=Math.max(0,G.cashO-spent-.08*G.states.reduce((a,s)=>a+s.fieldO*fieldCost(s),0));G.spentO+=spent;
-  if(Math.random()<.5&&G.cashO-spent>3){const gi=bestGroup(oside(),true);G.tgtO[gi]=Math.min(2,G.tgtO[gi]+1);spent+=1.5;if(Math.random()<.5)pub.push(`Campagne de l’adversaire auprès des ${GROUPS[gi].n.toLowerCase()}.`)}
+  if(Math.random()<.5&&G.cashO-spent>3){const gi=bestGroup(oside(),true);G.tgtO[gi]=Math.min(2,G.tgtO[gi]+1);spent+=1.5;if(Math.random()<.5)pub.push(both(()=>t(`Campagne de l’adversaire auprès des ${t(GROUPS[gi].n).toLowerCase()}.`,`Opponent outreach to ${t(GROUPS[gi].n).toLowerCase()}.`)))}
   if(PARAM.pivotWeeks.includes(G.wk))oppPivot(pub);
-  pub.forEach(t=>L('opp',t));
+  pub.forEach(x=>L('opp',x));
 }
 function bestShift(sd){
   const pos=G.pos[sd].slice();
@@ -384,13 +376,13 @@ function bestGroup(sd,rnd){
 }
 function oppPivot(pub){
   const osd=oside(),best=bestShift(osd);
-  if(best&&best.g>PARAM.pivotMin){G.pos[osd][best.i]=best.np;pub.push(`L’adversaire ajuste sa position sur « ${ISSUES[best.i].n} ».`)}
+  if(best&&best.g>PARAM.pivotMin){G.pos[osd][best.i]=best.np;const nm=ISSUES[best.i].n;pub.push(B(`L’adversaire ajuste sa position sur « ${nm.fr} ».`,`Your opponent adjusts its position on “${nm.en}”.`))}
 }
 
 /* ---------- Événements ---------- */
 const H={
  img(x){G.img+=G.me*x},incHit(x){G.env+=(G.inc==='D'?-x:x)},
- shock(l,v){l.forEach(a=>{const t=ST(a);if(t)t.shock+=v})},
+ shock(l,v){l.forEach(a=>{const s=ST(a);if(s)s.shock+=v})},
  target(id,v){const i=GROUPS.findIndex(g=>g.id===id);G.tgtP[i]=clamp(G.tgtP[i]+v,-2,2)},
  sal(id,dv){const i=ISSUES.findIndex(q=>q.id===id);G.sal[i]=clamp(G.sal[i]+dv,.1,1.6)},
  buzz(ab,v){const s=ST(ab);if(s)s.buzzP=Math.min(2.4,s.buzzP+v)},
@@ -398,79 +390,81 @@ const H={
  pay(x){G.cash=Math.max(0,G.cash-x)},
  best(){let b=0;ISSUES.forEach((q,i)=>{if(G.me*q.own>G.me*ISSUES[b].own)b=i});return ISSUES[b]}
 };
-const incName=()=>G.inc==='D'?'démocrate':'républicain';
+const FREE=B('Gratuit','Free'),GAMBLE=B('Pari','Gamble'),IMGP=B('Image +','Image +'),ISSP=B('Enjeu +','Issue +'),M1A=B('−1 action','−1 action'),M1AN=B('−1 action la semaine prochaine','−1 action next week');
 const EVENTS=[
-{id:'jobs',t:'Rapport sur l’emploi décevant',x:()=>`Les créations d’emplois sont très en dessous des attentes. L’économie redevient la première préoccupation du pays, et l’administration ${incName()} est sur la défensive.`,
+{id:'jobs',t:B('Rapport sur l’emploi décevant','Disappointing jobs report'),
+ x:()=>t(`Les créations d’emplois sont très en dessous des attentes. L’économie redevient la première préoccupation du pays, et l’administration ${incName()} est sur la défensive.`,`Job creation came in far below expectations. The economy is back as the country’s top concern, and the ${incName()} administration is on the defensive.`),
  pre(){H.sal('eco',.2);G.econ=clamp(G.econ-.7,-3,3)},ch:[
- {t:'Mettre l’économie au centre',d:'Enjeu +',fx(){H.sal('eco',.15);return'L’économie domine les débats. Celui qui sort du lot sur ce terrain en profite.'}},
- {t:'Revenir à votre thème fort',d:'Détourner l’attention',fx(){const b=H.best();H.sal(b.id,.2);return`Vous ramenez la conversation sur « ${b.n} ».`}}]},
-{id:'storm',t:'Ouragan sur le Golfe',x:()=>'Un ouragan majeur touche la côte. Des images de dévastation tournent en boucle.',ch:[
- {t:'Aller sur place',d:'−1 action la semaine prochaine',fx(){H.ap(0);G.apNext-=1;H.img(.4);H.buzz('FL',1.4);H.buzz('LA',1);return'Vos images de réconfort sont bien reçues.'}},
- {t:'Envoyer 2 M$ d’aide et continuer',d:'−2 M$',fx(){H.pay(2);H.img(.15);return'Un geste apprécié, sans plus.'}},
- {t:'Poursuivre la campagne',d:'Risque d’image',fx(){H.img(-.3);return'On vous reproche de faire de la politique pendant le drame.'}}]},
-{id:'gaffe',t:'Micro resté ouvert',x:()=>'Une phrase du candidat captée en coulisses devient virale en quelques heures.',ch:[
- {t:'Présenter des excuses',d:'Dégâts limités',fx(){H.img(-.1);return'L’affaire retombe vite.'}},
- {t:'Assumer et contre-attaquer',d:'Pari',fx(){if(Math.random()<.45){H.img(.5);return'Votre base applaudit, les indépendants aussi.'}H.img(-.9);return'Le pari échoue. Les chaînes d’info en font leur ouverture.'}},
- {t:'Envoyer le colistier au front',d:'−1 action',fx(){if(G.ap>=1){G.ap--;H.img(-.15)}else H.img(-.35);return'Le colistier prend la parole, la polémique faiblit.'}}]},
-{id:'scandal',t:'Un ancien collaborateur est mis en cause',x:()=>'Un article met en cause un ancien conseiller du candidat. La presse réclame une réaction.',ch:[
- {t:'Prendre ses distances',d:'Sûr',fx(){H.img(-.25);return'Vous coupez court. Le coût est modéré.'}},
- {t:'Défendre à tout prix',d:'Pari',fx(){if(Math.random()<.4){H.img(-1.3);return'L’affaire enfle et vous colle à la peau.'}return'L’affaire s’éteint d’elle-même.'}},
- {t:'Enquête indépendante',d:'−2 M$',fx(){H.pay(2);H.img(-.1);return'Vous gagnez en crédibilité pour un coût raisonnable.'}}]},
-{id:'endorse',t:'Un poids lourd propose son soutien',x:()=>'Un ancien gouverneur très populaire dans le Midwest propose de vous soutenir publiquement.',ch:[
- {t:'Accepter avec un meeting commun',d:'−1 action',fx(){if(G.ap>=1)G.ap--;H.img(.4);['WI','MI','PA','MN'].forEach(a=>H.buzz(a,.8));return'Le meeting fait la une des journaux régionaux.'}},
- {t:'Accepter discrètement',d:'Gratuit',fx(){H.img(.15);return'Un soutien utile.'}},
- {t:'Décliner',d:'Rester indépendant',fx(){H.img(.05);return'Votre base apprécie, l’occasion est passée.'}}]},
-{id:'donor',t:'Un méga-donateur se manifeste',x:()=>'Un super PAC propose 10 M$ de publicité en soutien. Les conditions sont floues.',ch:[
- {t:'Accepter',d:'+10 M$, image −',fx(){G.cash+=10;H.img(-.35);return'La presse dénonce l’influence de l’argent, mais vos caisses se remplissent.'}},
- {t:'Refuser',d:'Image +',fx(){H.img(.2);return'Beau geste, mais les caisses restent maigres.'}}]},
-{id:'crime',t:'Vague de faits divers',x:()=>'Une série de faits divers violents nourrit le débat sur la sécurité.',pre(){H.sal('sec',.2)},ch:[
- {t:'Parler sécurité',d:'Enjeu +',fx(){H.sal('sec',.1);return'La sécurité s’installe dans le débat.'}},
- {t:'Appeler à l’apaisement',d:'Image +',fx(){H.img(.2);return'Votre ton mesuré est remarqué.'}}]},
-{id:'court',t:'Décision de la Cour suprême',x:()=>'Un arrêt sur l’avortement ravive un débat que beaucoup croyaient tranché.',pre(){H.sal('avo',.25)},ch:[
- {t:'Réagir vivement',d:'Enjeu +',fx(){H.sal('avo',.1);return'Vous mobilisez vos partisans.'}},
- {t:'Rester sobre',d:'Image +',fx(){H.img(.1);return'Vous évitez la surenchère.'}}]},
-{id:'foreign',t:'Crise internationale',x:()=>'Une crise éclate à l’étranger. Le pays se range d’abord derrière l’exécutif.',pre(){H.sal('com',.25);H.incHit(-.4)},ch:[
- {t:'Appeler à l’union nationale',d:'Image +',fx(){H.img(.2);return'Votre ton rassembleur est bien accueilli.'}},
- {t:'Critiquer la gestion',d:'Selon votre camp',fx(){if(G.inc===side()){H.img(-.3);return'Critiquer votre propre camp surprend.'}H.incHit(.5);return'Votre critique fait mouche.'}}]},
-{id:'poll',t:'Écart entre sondages et terrain',x:()=>'Vos responsables locaux sentent un décalage avec les sondages publics.',ch:[
- {t:'Commander un audit',d:'−1,5 M$',fx(){H.pay(1.5);const v=G.me*G.pbNat+randn()*.4;G.hint=v;return`Vos analystes estiment que les sondages publics sont décalés de ${fS(v)} point en votre faveur (marge d’erreur ±0,5).`}},
- {t:'Faire confiance aux sondages',d:'Gratuit',fx(){return'Vous gardez le cap.'}}]},
-{id:'deepfake',t:'Vidéo truquée en circulation',x:()=>'Une vidéo manipulée du candidat circule sur les réseaux.',ch:[
- {t:'Dénoncer publiquement',d:'Gratuit',fx(){if(Math.random()<.7){H.img(.1);return'Les médias relaient votre démenti.'}H.img(-.2);return'Votre démenti donne plus d’écho à la vidéo.'}},
- {t:'Riposte juridique',d:'−2 M$',fx(){H.pay(2);H.img(.05);return'La vidéo est retirée rapidement.'}},
- {t:'Ignorer',d:'Pari',fx(){if(Math.random()<.5){H.img(-.6);return'La vidéo s’est largement propagée.'}return'Elle passe inaperçue.'}}]},
-{id:'union',t:'Grève dans l’automobile',x:()=>'Un conflit social touche le Michigan et l’Ohio. Chaque camp est attendu sur les piquets.',ch:[
- {t:'Rejoindre le piquet de grève',d:'−1 action la semaine prochaine',fx(){G.apNext-=1;['MI','OH','PA','WI'].forEach(a=>H.buzz(a,1.2));H.img(.1);return'Des images fortes dans quatre États clés.'}},
- {t:'Rester à l’écart',d:'Gratuit',fx(){return'Vous évitez le sujet.'}}]},
-{id:'plant',t:'Fermeture d’une grande usine',x:()=>'Un constructeur annonce la fermeture d’un site majeur. Des milliers d’emplois sont menacés dans la Rust Belt.',
+ {t:B('Mettre l’économie au centre','Put the economy front and center'),d:ISSP,fx(){H.sal('eco',.15);return B('L’économie domine les débats. Celui qui sort du lot sur ce terrain en profite.','The economy dominates the debate. Whichever side owns the issue benefits.')}},
+ {t:B('Revenir à votre thème fort','Return to your strongest theme'),d:B('Détourner l’attention','Change the subject'),fx(){const b=H.best();H.sal(b.id,.2);return B(`Vous ramenez la conversation sur « ${b.n.fr} ».`,`You steer the conversation back to “${b.n.en}”.`)}}]},
+{id:'storm',t:B('Ouragan sur le Golfe','Hurricane on the Gulf Coast'),x:()=>t('Un ouragan majeur touche la côte. Des images de dévastation tournent en boucle.','A major hurricane hits the coast. Images of devastation play on a loop.'),ch:[
+ {t:B('Aller sur place','Go to the scene'),d:M1AN,fx(){H.ap(0);G.apNext-=1;H.img(.4);H.buzz('FL',1.4);H.buzz('LA',1);return B('Vos images de réconfort sont bien reçues.','Your comforting images are well received.')}},
+ {t:B('Envoyer 2 M$ d’aide et continuer','Send $2M in aid and keep campaigning'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.img(.15);return B('Un geste apprécié, sans plus.','A gesture that is appreciated, no more.')}},
+ {t:B('Poursuivre la campagne','Keep campaigning'),d:B('Risque d’image','Image risk'),fx(){H.img(-.3);return B('On vous reproche de faire de la politique pendant le drame.','You are accused of playing politics during the tragedy.')}}]},
+{id:'gaffe',t:B('Micro resté ouvert','Hot mic'),x:()=>t('Une phrase du candidat captée en coulisses devient virale en quelques heures.','A remark the candidate made backstage goes viral within hours.'),ch:[
+ {t:B('Présenter des excuses','Apologize'),d:B('Dégâts limités','Limited damage'),fx(){H.img(-.1);return B('L’affaire retombe vite.','The story fades quickly.')}},
+ {t:B('Assumer et contre-attaquer','Own it and hit back'),d:GAMBLE,fx(){if(Math.random()<.45){H.img(.5);return B('Votre base applaudit, les indépendants aussi.','Your base cheers, and so do independents.')}H.img(-.9);return B('Le pari échoue. Les chaînes d’info en font leur ouverture.','The gamble fails. Cable news leads with it.')}},
+ {t:B('Envoyer le colistier au front','Send your running mate out'),d:M1A,fx(){if(G.ap>=1){G.ap--;H.img(-.15)}else H.img(-.35);return B('Le colistier prend la parole, la polémique faiblit.','Your running mate steps up and the controversy cools.')}}]},
+{id:'scandal',t:B('Un ancien collaborateur est mis en cause','A former aide is under fire'),x:()=>t('Un article met en cause un ancien conseiller du candidat. La presse réclame une réaction.','An article implicates a former adviser to the candidate. The press demands a response.'),ch:[
+ {t:B('Prendre ses distances','Distance yourself'),d:B('Sûr','Safe'),fx(){H.img(-.25);return B('Vous coupez court. Le coût est modéré.','You cut it short. The cost is moderate.')}},
+ {t:B('Défendre à tout prix','Defend at all costs'),d:GAMBLE,fx(){if(Math.random()<.4){H.img(-1.3);return B('L’affaire enfle et vous colle à la peau.','The story snowballs and sticks to you.')}return B('L’affaire s’éteint d’elle-même.','The story dies down on its own.')}},
+ {t:B('Enquête indépendante','Independent inquiry'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.img(-.1);return B('Vous gagnez en crédibilité pour un coût raisonnable.','You gain credibility at a reasonable cost.')}}]},
+{id:'endorse',t:B('Un poids lourd propose son soutien','A heavyweight offers an endorsement'),x:()=>t('Un ancien gouverneur très populaire dans le Midwest propose de vous soutenir publiquement.','A former governor, very popular in the Midwest, offers to endorse you publicly.'),ch:[
+ {t:B('Accepter avec un meeting commun','Accept with a joint rally'),d:M1A,fx(){if(G.ap>=1)G.ap--;H.img(.4);['WI','MI','PA','MN'].forEach(a=>H.buzz(a,.8));return B('Le meeting fait la une des journaux régionaux.','The rally makes front pages across the region.')}},
+ {t:B('Accepter discrètement','Accept quietly'),d:FREE,fx(){H.img(.15);return B('Un soutien utile.','A useful endorsement.')}},
+ {t:B('Décliner','Decline'),d:B('Rester indépendant','Stay independent'),fx(){H.img(.05);return B('Votre base apprécie, l’occasion est passée.','Your base approves, but the opportunity is gone.')}}]},
+{id:'donor',t:B('Un méga-donateur se manifeste','A mega-donor steps forward'),x:()=>t('Un super PAC propose 10 M$ de publicité en soutien. Les conditions sont floues.','A super PAC offers $10M in supportive advertising. The terms are vague.'),ch:[
+ {t:B('Accepter','Accept'),d:B('+10 M$, image −','+$10M, image −'),fx(){G.cash+=10;H.img(-.35);return B('La presse dénonce l’influence de l’argent, mais vos caisses se remplissent.','The press denounces the influence of money, but your coffers fill up.')}},
+ {t:B('Refuser','Refuse'),d:IMGP,fx(){H.img(.2);return B('Beau geste, mais les caisses restent maigres.','A fine gesture, but the coffers stay thin.')}}]},
+{id:'crime',t:B('Vague de faits divers','Wave of violent crime stories'),x:()=>t('Une série de faits divers violents nourrit le débat sur la sécurité.','A string of violent crimes feeds the debate on public safety.'),pre(){H.sal('sec',.2)},ch:[
+ {t:B('Parler sécurité','Talk public safety'),d:ISSP,fx(){H.sal('sec',.1);return B('La sécurité s’installe dans le débat.','Public safety settles into the debate.')}},
+ {t:B('Appeler à l’apaisement','Call for calm'),d:IMGP,fx(){H.img(.2);return B('Votre ton mesuré est remarqué.','Your measured tone is noticed.')}}]},
+{id:'court',t:B('Décision de la Cour suprême','Supreme Court ruling'),x:()=>t('Un arrêt sur l’avortement ravive un débat que beaucoup croyaient tranché.','A ruling on abortion reignites a debate many thought settled.'),pre(){H.sal('avo',.25)},ch:[
+ {t:B('Réagir vivement','React strongly'),d:ISSP,fx(){H.sal('avo',.1);return B('Vous mobilisez vos partisans.','You rally your supporters.')}},
+ {t:B('Rester sobre','Stay measured'),d:IMGP,fx(){H.img(.1);return B('Vous évitez la surenchère.','You avoid escalating.')}}]},
+{id:'foreign',t:B('Crise internationale','International crisis'),x:()=>t('Une crise éclate à l’étranger. Le pays se range d’abord derrière l’exécutif.','A crisis erupts abroad. The country first rallies behind the executive.'),pre(){H.sal('com',.25);H.incHit(-.4)},ch:[
+ {t:B('Appeler à l’union nationale','Call for national unity'),d:IMGP,fx(){H.img(.2);return B('Votre ton rassembleur est bien accueilli.','Your unifying tone is well received.')}},
+ {t:B('Critiquer la gestion','Criticize the handling'),d:B('Selon votre camp','Depends on your side'),fx(){if(G.inc===side()){H.img(-.3);return B('Critiquer votre propre camp surprend.','Criticizing your own side comes as a surprise.')}H.incHit(.5);return B('Votre critique fait mouche.','Your criticism hits home.')}}]},
+{id:'poll',t:B('Écart entre sondages et terrain','Polls and ground game disagree'),x:()=>t('Vos responsables locaux sentent un décalage avec les sondages publics.','Your local organizers sense a gap with the public polls.'),ch:[
+ {t:B('Commander un audit','Commission an audit'),d:B('−1,5 M$','−$1.5M'),fx(){H.pay(1.5);const v=G.me*G.pbNat+randn()*.4;G.hint=v;return both(()=>t(`Vos analystes estiment que les sondages publics sont décalés de ${fS(v)} point en votre faveur (marge d’erreur ±0,5).`,`Your analysts estimate that public polls are shifted ${fS(v)} points in your favor (margin of error ±0.5).`))}},
+ {t:B('Faire confiance aux sondages','Trust the polls'),d:FREE,fx(){return B('Vous gardez le cap.','You stay the course.')}}]},
+{id:'deepfake',t:B('Vidéo truquée en circulation','Doctored video in circulation'),x:()=>t('Une vidéo manipulée du candidat circule sur les réseaux.','A manipulated video of the candidate is circulating on social media.'),ch:[
+ {t:B('Dénoncer publiquement','Denounce it publicly'),d:FREE,fx(){if(Math.random()<.7){H.img(.1);return B('Les médias relaient votre démenti.','The media relay your denial.')}H.img(-.2);return B('Votre démenti donne plus d’écho à la vidéo.','Your denial gives the video more reach.')}},
+ {t:B('Riposte juridique','Take legal action'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.img(.05);return B('La vidéo est retirée rapidement.','The video is quickly taken down.')}},
+ {t:B('Ignorer','Ignore it'),d:GAMBLE,fx(){if(Math.random()<.5){H.img(-.6);return B('La vidéo s’est largement propagée.','The video spread widely.')}return B('Elle passe inaperçue.','It goes unnoticed.')}}]},
+{id:'union',t:B('Grève dans l’automobile','Auto industry strike'),x:()=>t('Un conflit social touche le Michigan et l’Ohio. Chaque camp est attendu sur les piquets.','A labor dispute hits Michigan and Ohio. Both sides are expected on the picket lines.'),ch:[
+ {t:B('Rejoindre le piquet de grève','Join the picket line'),d:M1AN,fx(){G.apNext-=1;['MI','OH','PA','WI'].forEach(a=>H.buzz(a,1.2));H.img(.1);return B('Des images fortes dans quatre États clés.','Powerful images in four key states.')}},
+ {t:B('Rester à l’écart','Stay out of it'),d:FREE,fx(){return B('Vous évitez le sujet.','You avoid the topic.')}}]},
+{id:'plant',t:B('Fermeture d’une grande usine','Major plant closing'),x:()=>t('Un constructeur annonce la fermeture d’un site majeur. Des milliers d’emplois sont menacés dans la Rust Belt.','A manufacturer announces the closing of a major plant. Thousands of jobs are at risk in the Rust Belt.'),
  pre(){H.shock(['MI','OH','PA','WI','IN'],-.7)},ch:[
- {t:'Aller à la rencontre des salariés',d:'−1 action la semaine prochaine',fx(){G.apNext-=1;['MI','OH','PA','WI'].forEach(a=>H.buzz(a,1));H.img(.1);return'Vos images avec les ouvriers sont reprises par la presse locale.'}},
- {t:'Annoncer un plan industriel',d:'−3 M$',fx(){H.pay(3);if(G.inc===side())H.shock(['MI','OH','PA','WI','IN'],.4);H.target('ouv',.6);return'Le plan rassure en partie les classes populaires.'}},
- {t:'Ne pas commenter',d:'Gratuit',fx(){return'Vous évitez un terrain miné.'}}]},
-{id:'gas',t:'Flambée du prix de l’essence',x:()=>'Les prix à la pompe s’envolent. Les États producteurs en profitent, les automobilistes grondent.',
+ {t:B('Aller à la rencontre des salariés','Meet the workers'),d:M1AN,fx(){G.apNext-=1;['MI','OH','PA','WI'].forEach(a=>H.buzz(a,1));H.img(.1);return B('Vos images avec les ouvriers sont reprises par la presse locale.','Your images with the workers are picked up by the local press.')}},
+ {t:B('Annoncer un plan industriel','Announce an industrial plan'),d:B('−3 M$','−$3M'),fx(){H.pay(3);if(G.inc===side())H.shock(['MI','OH','PA','WI','IN'],.4);H.target('ouv',.6);return B('Le plan rassure en partie les classes populaires.','The plan partly reassures working-class voters.')}},
+ {t:B('Ne pas commenter','Stay silent'),d:FREE,fx(){return B('Vous évitez un terrain miné.','You avoid a minefield.')}}]},
+{id:'gas',t:B('Flambée du prix de l’essence','Gas price spike'),x:()=>t('Les prix à la pompe s’envolent. Les États producteurs en profitent, les automobilistes grondent.','Pump prices soar. Producing states benefit while drivers grumble.'),
  pre(){G.econ=clamp(G.econ-.3,-3,3);H.shock(['TX','ND','OK','LA','WV','AK','NM'],.5);H.sal('eco',.1)},ch:[
- {t:'Défendre la production nationale',d:'Climat −',fx(){H.sal('cli',-.08);H.target('ouv',.5);return'Votre message plaît aux automobilistes.'}},
- {t:'Pousser la transition',d:'Climat +',fx(){H.sal('cli',.12);H.target('jeu',.6);return'Les jeunes électeurs retiennent votre discours.'}}]},
-{id:'latino',t:'Le vote latino se fragmente',x:()=>'Une étude montre un électorat latino plus volatil que prévu, surtout en Arizona, au Nevada, en Floride et au Texas.',ch:[
- {t:'Lancer une campagne en espagnol',d:'−2 M$',fx(){H.pay(2);H.target('lat',1.2);return'Vos spots en espagnol passent bien.'}},
- {t:'Parler pouvoir d’achat',d:'Gratuit',fx(){H.target('lat',.5);H.sal('eco',.08);return'Le message sur le budget des ménages fait écho.'}}]},
-{id:'seniors',t:'Débat sur la Sécurité sociale',x:()=>'Un rapport alerte sur l’équilibre des retraites. Les seniors scrutent chaque mot.',pre(){H.sal('san',.12)},ch:[
- {t:'Promettre de ne rien toucher',d:'Seniors +',fx(){H.target('sen',1);return'Les seniors apprécient la garantie.'}},
- {t:'Parler de réforme',d:'Risqué',fx(){if(Math.random()<.5){H.img(.3);return'Votre sérieux est salué.'}H.target('sen',-.8);return'Les seniors s’inquiètent.'}}]},
-{id:'campus',t:'Mobilisation étudiante',x:()=>'Des campus se mobilisent pour le climat et le coût des études. Les jeunes pèsent surtout dans les États universitaires.',ch:[
- {t:'Organiser un rassemblement',d:'−1 M$',fx(){H.pay(1);H.target('jeu',1);return'Beaucoup de jeunes répondent à l’appel.'}},
- {t:'Rester en retrait',d:'Gratuit',fx(){return'Le sujet passe sans vous.'}}]},
-{id:'debate',t:'Débat présidentiel',x:()=>`Face à face télévisé devant des dizaines de millions de personnes. Préparation : ${G.prep}/3.`,ch:[
- {t:'Offensif',d:'Fort risque, fort gain',fx(){return debate(.1,1.6)}},
- {t:'Pédagogue',d:'Équilibré',fx(){return debate(.2,1.0)}},
- {t:'Prudent',d:'Peu de risque',fx(){return debate(0,.6)}}]},
-{id:'surprise',t:'Révélation de dernière minute',x:()=>G.ev.hit==='you'?'Une enquête de presse met votre campagne en difficulté à dix jours du vote.':'Une enquête de presse met l’adversaire en difficulté à dix jours du vote.',
+ {t:B('Défendre la production nationale','Defend domestic production'),d:B('Climat −','Climate −'),fx(){H.sal('cli',-.08);H.target('ouv',.5);return B('Votre message plaît aux automobilistes.','Your message appeals to drivers.')}},
+ {t:B('Pousser la transition','Push the energy transition'),d:B('Climat +','Climate +'),fx(){H.sal('cli',.12);H.target('jeu',.6);return B('Les jeunes électeurs retiennent votre discours.','Young voters take note of your message.')}}]},
+{id:'latino',t:B('Le vote latino se fragmente','The Latino vote fragments'),x:()=>t('Une étude montre un électorat latino plus volatil que prévu, surtout en Arizona, au Nevada, en Floride et au Texas.','A study shows a more volatile Latino electorate than expected, especially in Arizona, Nevada, Florida and Texas.'),ch:[
+ {t:B('Lancer une campagne en espagnol','Launch a Spanish-language campaign'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.target('lat',1.2);return B('Vos spots en espagnol passent bien.','Your Spanish-language ads land well.')}},
+ {t:B('Parler pouvoir d’achat','Talk cost of living'),d:FREE,fx(){H.target('lat',.5);H.sal('eco',.08);return B('Le message sur le budget des ménages fait écho.','The message on household budgets resonates.')}}]},
+{id:'seniors',t:B('Débat sur la Sécurité sociale','Social Security debate'),x:()=>t('Un rapport alerte sur l’équilibre des retraites. Les seniors scrutent chaque mot.','A report warns about the balance of pensions. Seniors scrutinize every word.'),pre(){H.sal('san',.12)},ch:[
+ {t:B('Promettre de ne rien toucher','Promise to leave it untouched'),d:B('Seniors +','Seniors +'),fx(){H.target('sen',1);return B('Les seniors apprécient la garantie.','Seniors appreciate the guarantee.')}},
+ {t:B('Parler de réforme','Talk reform'),d:B('Risqué','Risky'),fx(){if(Math.random()<.5){H.img(.3);return B('Votre sérieux est salué.','Your seriousness is praised.')}H.target('sen',-.8);return B('Les seniors s’inquiètent.','Seniors grow worried.')}}]},
+{id:'campus',t:B('Mobilisation étudiante','Student mobilization'),x:()=>t('Des campus se mobilisent pour le climat et le coût des études. Les jeunes pèsent surtout dans les États universitaires.','Campuses mobilize over climate and the cost of college. Young voters matter most in university states.'),ch:[
+ {t:B('Organiser un rassemblement','Hold a rally'),d:B('−1 M$','−$1M'),fx(){H.pay(1);H.target('jeu',1);return B('Beaucoup de jeunes répondent à l’appel.','Many young people answer the call.')}},
+ {t:B('Rester en retrait','Stay on the sidelines'),d:FREE,fx(){return B('Le sujet passe sans vous.','The topic passes you by.')}}]},
+{id:'debate',t:B('Débat présidentiel','Presidential debate'),x:()=>t(`Face à face télévisé devant des dizaines de millions de personnes. Préparation : ${G.prep}/3.`,`A televised face-off before tens of millions of viewers. Preparation: ${G.prep}/3.`),ch:[
+ {t:B('Offensif','Aggressive'),d:B('Fort risque, fort gain','High risk, high reward'),fx(){return debate(.1,1.6)}},
+ {t:B('Pédagogue','Explainer'),d:B('Équilibré','Balanced'),fx(){return debate(.2,1.0)}},
+ {t:B('Prudent','Cautious'),d:B('Peu de risque','Low risk'),fx(){return debate(0,.6)}}]},
+{id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation'),
+ x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.'):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.'),
  pre(){G.ev.hit=Math.random()<.5?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
- {t:'Contre-attaque médiatique',d:'−3 M$',fx(){H.pay(3);if(G.ev.hit==='you'){H.img(.5);return'Vous limitez les dégâts.'}H.img(.2);return'Vous enfoncez le clou.'}},
- {t:'Laisser passer',d:'Gratuit',fx(){return'La campagne se poursuit.'}}]}
+ {t:B('Contre-attaque médiatique','Media counterattack'),d:B('−3 M$','−$3M'),fx(){H.pay(3);if(G.ev.hit==='you'){H.img(.5);return B('Vous limitez les dégâts.','You limit the damage.')}H.img(.2);return B('Vous enfoncez le clou.','You drive the point home.')}},
+ {t:B('Laisser passer','Let it pass'),d:FREE,fx(){return B('La campagne se poursuit.','The campaign goes on.')}}]}
 ];
 function debate(mean,sd){const r=PARAM.prep*G.prep+mean+randn()*sd;G.prep=0;H.img(clamp(r*.8,-1.4,1.4));
-  return r>.7?'Vous dominez le débat. Les éditorialistes sont unanimes.':r>-.5?'Un débat sans vainqueur net.':'Vous perdez le débat. Les images tournent en boucle.'}
+  return r>.7?B('Vous dominez le débat. Les éditorialistes sont unanimes.','You dominate the debate. Pundits are unanimous.'):r>-.5?B('Un débat sans vainqueur net.','A debate with no clear winner.'):B('Vous perdez le débat. Les images tournent en boucle.','You lose the debate. The clips play on a loop.')}
 function nextEvent(){
   let id;
   if(G.wk===5||G.wk===9)id='debate';else if(G.wk===11)id='surprise';
@@ -481,25 +475,26 @@ function nextEvent(){
 
 /* ---------- Actions ---------- */
 const can=()=>G.phase==='play';
-function needAP(n){if(G.ap<n){toast('Plus assez d’actions cette semaine.');return false}G.ap-=n;return true}
-function needCash(c){if(G.cash<c-1e-9){toast('Fonds insuffisants.');return false}G.cash-=c;G.spentP+=c;return true}
+function needAP(n){if(G.ap<n){toast(t('Plus assez d’actions cette semaine.','Not enough actions this week.'));return false}G.ap-=n;return true}
+function needCash(c){if(G.cash<c-1e-9){toast(t('Fonds insuffisants.','Not enough funds.'));return false}G.cash-=c;G.spentP+=c;return true}
+const noAP=()=>toast(t('Plus assez d’actions.','Not enough actions.'));
 const A={
  sel(d){UI.sel=d.ab;render()},
  tab(d){UI.tab=d.tab;if(d.tab==='log')G.seen=G.log.length;render();window.scrollTo(0,0)},
  ads(d){if(!can())return;const s=ST(UI.sel),n=+d.n,c=adCost(s)*n;if(!needCash(c))return;s.adsP+=adCost(s)*n;s.spP+=c;save();render()},
- field(){if(!can())return;const s=ST(UI.sel);if(s.fieldP>=3){toast('Maximum de 3 bureaux.');return}if(G.ap<1){toast('Plus assez d’actions.');return}if(!needCash(fieldCost(s)))return;G.ap--;s.fieldP++;s.spP+=fieldCost(s);L('you',`Bureau de campagne ouvert en ${s.name}.`);save();render()},
- visit(){if(!can())return;const s=ST(UI.sel);if(G.ap<1){toast('Plus assez d’actions.');return}if(!needCash(.3))return;G.ap--;s.buzzP=Math.min(2.4,s.buzzP+1.3);L('you',`Visite en ${s.name}.`);save();render()},
+ field(){if(!can())return;const s=ST(UI.sel);if(s.fieldP>=3){toast(t('Maximum de 3 bureaux.','Maximum of 3 offices.'));return}if(G.ap<1){noAP();return}if(!needCash(fieldCost(s)))return;G.ap--;s.fieldP++;s.spP+=fieldCost(s);L('you',both(()=>t(`Bureau de campagne ouvert en ${sn(s)}.`,`Campaign office opened in ${sn(s)}.`)));save();render()},
+ visit(){if(!can())return;const s=ST(UI.sel);if(G.ap<1){noAP();return}if(!needCash(.3))return;G.ap--;s.buzzP=Math.min(2.4,s.buzzP+1.3);L('you',both(()=>t(`Visite en ${sn(s)}.`,`Visit to ${sn(s)}.`)));save();render()},
  poll(){if(!can())return;const s=ST(UI.sel);if(s.internal!==null)return;if(!needCash(1))return;s.internal=margin(s)+randn()*.4;save();render()},
- pos(d){if(!can())return;const i=+d.i,sd=side(),np=clamp(G.pos[sd][i]+ +d.d,-2,2);if(np===G.pos[sd][i])return;if(!needAP(1))return;G.pos[sd][i]=np;L('you',`Nouvelle position sur « ${ISSUES[i].n} ».`);save();render()},
- agenda(d){if(!can())return;const i=+d.i;if(!needAP(1))return;G.sal[i]=clamp(G.sal[i]+.14,.1,1.6);G.sal=G.sal.map((v,k)=>k===i?v:Math.max(.1,v-.02));L('you',`Vous mettez « ${ISSUES[i].n} » à l’agenda.`);save();render()},
- fund(){if(!can()||!needAP(1))return;const r=4+Math.random()*3+Math.max(0,G.me*G.img)*1.5;G.cash+=r;L('you',`Collecte de fonds : ${fM(r)}.`);save();render()},
- media(){if(!can()||!needAP(1))return;const r=Math.random();if(r<.6){H.img(.25);L('you','Grande interview : bien reçue.')}else if(r<.85)L('you','Grande interview : sans effet notable.');else{H.img(-.5);L('you','Grande interview : un dérapage fait polémique.')}save();render()},
- prep(){if(!can())return;if(G.prep>=3){toast('Préparation au maximum.');return}if(!needAP(1))return;G.prep++;L('you',`Préparation du débat (${G.prep}/3).`);save();render()},
+ pos(d){if(!can())return;const i=+d.i,sd=side(),np=clamp(G.pos[sd][i]+ +d.d,-2,2);if(np===G.pos[sd][i])return;if(!needAP(1))return;G.pos[sd][i]=np;const nm=ISSUES[i].n;L('you',B(`Nouvelle position sur « ${nm.fr} ».`,`New position on “${nm.en}”.`));save();render()},
+ agenda(d){if(!can())return;const i=+d.i;if(!needAP(1))return;G.sal[i]=clamp(G.sal[i]+.14,.1,1.6);G.sal=G.sal.map((v,k)=>k===i?v:Math.max(.1,v-.02));const nm=ISSUES[i].n;L('you',B(`Vous mettez « ${nm.fr} » à l’agenda.`,`You put “${nm.en}” on the agenda.`));save();render()},
+ fund(){if(!can()||!needAP(1))return;const r=4+Math.random()*3+Math.max(0,G.me*G.img)*1.5;G.cash+=r;L('you',both(()=>t(`Collecte de fonds : ${fM(r)}.`,`Fundraising: ${fM(r)}.`)));save();render()},
+ media(){if(!can()||!needAP(1))return;const r=Math.random();if(r<.6){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<.85)L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
+ prep(){if(!can())return;if(G.prep>=3){toast(t('Préparation au maximum.','Preparation already at maximum.'));return}if(!needAP(1))return;G.prep++;L('you',B(`Préparation du débat (${G.prep}/3).`,`Debate prep (${G.prep}/3).`));save();render()},
  end(){endWeek()},
- choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);G.ev.res=e.ch[+d.i].fx();L('news',`${e.t} : ${G.ev.res}`);save();showEvent()},
+ choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`));save();showEvent()},
  evnext(){G.ev=null;G.phase='play';hideModal();save();render()},
  analyst(){G.analyst=!G.analyst;save();render()},
- target(d){if(!can())return;const i=+d.i;if(G.ap<1){toast('Plus assez d’actions.');return}if(!needCash(1.5))return;G.ap--;G.tgtP[i]=Math.min(2,G.tgtP[i]+1);L('you',`Campagne ciblée auprès des ${GROUPS[i].n.toLowerCase()}.`);save();render()},
+ target(d){if(!can())return;const i=+d.i;if(G.ap<1){noAP();return}if(!needCash(1.5))return;G.ap--;G.tgtP[i]=Math.min(2,G.tgtP[i]+1);const nm=GROUPS[i].n;L('you',B(`Campagne ciblée auprès des ${nm.fr.toLowerCase()}.`,`Targeted outreach to ${nm.en.toLowerCase()}.`));save();render()},
  vp(d){pickVP(+d.i)},
  skip(){UI.night.idx=G.order.length;nightTick()},
  help(){showModal(helpHTML(!!G&&G.phase==='play'))},
@@ -507,7 +502,8 @@ const A={
  tutoNext(){if(UI.tuto>=TUTO.length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  tutoSkip(){UI.tuto=null;tutoMark();render()},
  tutoRestart(){hideModal();tutoGo(0)},
- restart(){hideModal();$('#game').hidden=true;$('#dock').hidden=true;$('#title').hidden=false;try{localStorage.removeItem(KEY)}catch(e){}$('#contBtn').hidden=true}
+ lang(d){setLang(d.l)},
+ restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');try{localStorage.removeItem(KEY)}catch(e){}renderTitle();$('#title').hidden=false}
 };
 
 function endWeek(){
@@ -527,44 +523,59 @@ function endWeek(){
 
 /* ---------- Colistier ---------- */
 const VPS={D:[
- {n:'Dana Whitfield',r:'Sénatrice de Pennsylvanie',k:'region',st:'PA',ne:['OH','MI','NJ'],d:'+2,0 en Pennsylvanie, +0,6 autour'},
- {n:'Tara Lindqvist',r:'Ancienne secrétaire d’État',k:'image',d:'Image nationale +0,5'},
- {n:'Marcus Reyes',r:'Gouverneur et ancien banquier',k:'funds',d:'+8 M$ de fonds de départ'}],
+ {n:'Dana Whitfield',r:B('Sénatrice de Pennsylvanie','Senator from Pennsylvania'),k:'region',st:'PA',ne:['OH','MI','NJ'],d:B('+2,0 en Pennsylvanie, +0,6 autour','+2.0 in Pennsylvania, +0.6 nearby')},
+ {n:'Tara Lindqvist',r:B('Ancienne secrétaire d’État','Former Secretary of State'),k:'image',d:B('Image nationale +0,5','National image +0.5')},
+ {n:'Marcus Reyes',r:B('Gouverneur et ancien banquier','Governor and former banker'),k:'funds',d:B('+8 M$ de fonds de départ','+$8M in starting funds')}],
  R:[
- {n:'Ryan Calloway',r:'Gouverneur de Géorgie',k:'region',st:'GA',ne:['NC','SC','AL'],d:'+2,0 en Géorgie, +0,6 autour'},
- {n:'Beth Aldridge',r:'Ancienne ambassadrice',k:'image',d:'Image nationale +0,5'},
- {n:'Tom Vasquez',r:'Entrepreneur et donateur',k:'funds',d:'+8 M$ de fonds de départ'}]};
+ {n:'Ryan Calloway',r:B('Gouverneur de Géorgie','Governor of Georgia'),k:'region',st:'GA',ne:['NC','SC','AL'],d:B('+2,0 en Géorgie, +0,6 autour','+2.0 in Georgia, +0.6 nearby')},
+ {n:'Beth Aldridge',r:B('Ancienne ambassadrice','Former ambassador'),k:'image',d:B('Image nationale +0,5','National image +0.5')},
+ {n:'Tom Vasquez',r:B('Entrepreneur et donateur','Entrepreneur and donor'),k:'funds',d:B('+8 M$ de fonds de départ','+$8M in starting funds')}]};
 function pickVP(i){
   const v=VPS[side()][i];G.vpName=v.n;
   if(v.k==='region'){ST(v.st).vpP+=2;v.ne.forEach(a=>ST(a).vpP+=.6)}else if(v.k==='image')G.img+=G.me*.5;else G.cash+=8;
-  const ov=['PA','AZ','GA','WI','MI','NC'][Math.floor(Math.random()*6)];ST(ov).vpO+=2;
-  G.phase='play';L('news',`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${ST(ov).name}.`);
+  const ov=ST(['PA','AZ','GA','WI','MI','NC'][Math.floor(Math.random()*6)]);ov.vpO+=2;
+  G.phase='play';L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`)));
   hideModal();save();if(!SIM&&!tutoSeen())UI.tuto=0;render();if(UI.tuto===0)tutoGo(0);
 }
 
 /* ---------- Rendu ---------- */
-const isDark=()=>{const t=document.documentElement.dataset.theme;return t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
+const isDark=()=>{const th=document.documentElement.dataset.theme;return th==='dark'||(th!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
 function tileStyle(m){
-  const dk=isDark(),t=clamp(Math.abs(m)/18,0,1);
+  const dk=isDark(),k=clamp(Math.abs(m)/18,0,1);
   if(Math.abs(m)<1.5)return{bg:dk?'#3a4354':'#c9ccd3',fg:dk?'#e7ebf3':'#14213a',tu:true};
-  const l=dk?32+t*22:88-t*50;
+  const l=dk?32+k*22:88-k*50;
   return{bg:`hsl(${m>=0?218:4} ${dk?52:62}% ${l}%)`,fg:(dk||l<62)?'#fff':'#14213a',tu:false};
 }
 function proj(){let ys=0,yl=0,c=0,ol=0,os=0;
   G.states.forEach(s=>{const p=G.me*pollOf(s);if(p>=4)ys+=s.ev;else if(p>=1.5)yl+=s.ev;else if(p>-1.5)c+=s.ev;else if(p>-4)ol+=s.ev;else os+=s.ev});
   return{ys,yl,c,ol,os,you:ys+yl,opp:os+ol}}
 const myC=()=>G.me===1?'var(--dem)':'var(--rep)', opC=()=>G.me===1?'var(--rep)':'var(--dem)';
-const ratingOf=p=>p>=8?'Acquis':p>=4?'Probable':p>=1.5?'Avantage':p>-1.5?'Incertain':p>-4?'Désavantage':p>-8?'Improbable':'Perdu';
-function wkLabel(w){const d=new Date(Date.UTC(2028,7,14+7*(w-1)));return d.getUTCDate()+' '+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getUTCMonth()]}
+const ratingOf=p=>p>=8?t('Acquis','Locked'):p>=4?t('Probable','Likely'):p>=1.5?t('Avantage','Leaning'):p>-1.5?t('Incertain','Toss-up'):p>-4?t('Désavantage','Trailing'):p>-8?t('Improbable','Unlikely'):t('Perdu','Lost');
+const MONTHS_FR=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'],MONTHS_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function wkLabel(w){const d=new Date(Date.UTC(2028,7,14+7*(w-1)));return FR()?d.getUTCDate()+' '+MONTHS_FR[d.getUTCMonth()]:MONTHS_EN[d.getUTCMonth()]+' '+d.getUTCDate()}
 function daysLeft(w){return Math.round((Date.UTC(2028,10,7)-Date.UTC(2028,7,14+7*(w-1)))/864e5)}
+
+function tabsHTML(){return [['map',t('Carte','Map')],['issues',t('Enjeux','Issues')],['groups',t('Groupes','Groups')],['actions','Actions'],['log',t('Journal','Log')]]
+  .map(([k,l])=>`<button role="tab" data-act="tab" data-tab="${k}" aria-selected="false">${l}${k==='log'?'<span class="bdg" id="bdg" hidden></span>':''}</button>`).join('')}
+function applyStatic(){
+  document.documentElement.lang=LANG;document.title=t('Cap sur 270','Road to 270');
+  $('#tabsNav').innerHTML=tabsHTML();$('#tabsNav').setAttribute('aria-label',t('Sections du jeu','Game sections'));
+  $('#endBtn').textContent=t('Fin de semaine','End week');$('#coach').setAttribute('aria-label',t('Tutoriel','Tutorial'));
+}
+function setLang(l){
+  LANG=l==='fr'?'fr':'en';try{localStorage.setItem('cap270.lang',LANG)}catch(e){}
+  applyStatic();
+  if(!$('#modal').hidden&&$('#modal .man'))showModal(helpHTML(!!G&&G.phase==='play'));
+  if(G&&!$('#game').hidden)render();else renderTitle();
+}
 
 function renderHud(){
   const p=proj();let nat=0;G.states.forEach(s=>nat+=s.ev*pollOf(s));nat/=538;
-  const pc=v=>(v/538*100)+'%';
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">Semaine ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · J−${daysLeft(G.wk)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span><button class="help" data-act="help" aria-label="Ouvrir le manuel">?</button></span></div>
-  <div class="evbar" role="img" aria-label="Projection : vous ${p.you}, incertain ${p.c}, adversaire ${p.opp}">
+  const pc=v=>(v/538*100)+'%',dl=daysLeft(G.wk);
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Semaine','Week')} ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · ${t(`J−${dl}`,`${dl} days left`)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>
+  <div class="evbar" role="img" aria-label="${t('Projection','Projection')} : ${t('vous','you')} ${p.you}, ${t('incertain','toss-up')} ${p.c}, ${t('adversaire','opponent')} ${p.opp}">
    <i style="width:${pc(p.ys)};background:${myC()}"></i><i style="width:${pc(p.yl)};background:${myC()};opacity:.55"></i><i style="width:${pc(p.c)};background:var(--tu)"></i><i style="width:${pc(p.ol)};background:${opC()};opacity:.55"></i><i style="width:${pc(p.os)};background:${opC()}"></i><span class="mark"></span></div>
-  <div class="evleg"><span style="color:${myC()}"><b>Vous ${p.you}</b></span><span class="muted">Incertain ${p.c} · national ${fD(nat)}</span><span style="color:${opC()}"><b>Adv. ${p.opp}</b></span></div>`;
+  <div class="evleg"><span style="color:${myC()}"><b>${t('Vous','You')} ${p.you}</b></span><span class="muted">${t('Incertain','Toss-up')} ${p.c} · ${t('national','national')} ${fD(nat)}</span><span style="color:${opC()}"><b>${t('Adv.','Opp.')} ${p.opp}</b></span></div>`;
   $('#aps').innerHTML=Array.from({length:3},(_,i)=>`<i class="${i<G.ap?'on':''}"></i>`).join('')+`<span>${G.ap} action${G.ap>1?'s':''}</span>`;
   $('#endBtn').disabled=!can();
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===UI.tab));
@@ -575,69 +586,68 @@ function mapHTML(mode,rev){
   let h='<div class="map">';
   for(let r=0;r<8;r++)for(let c=0;c<11;c++){const s=grid[r][c];if(!s){h+='<span></span>';continue}
     const fin=mode==='final',shown=!fin||rev.has(s.ab),m=fin?s.final:pollOf(s);
-    const t=shown?tileStyle(m):{bg:isDark()?'#232b3a':'#dde1e9',fg:'var(--muted)',tu:false};
-    h+=`<button class="tile${!fin&&UI.sel===s.ab?' sel':''}${t.tu?' tu':''}" ${fin?'tabindex="-1"':`data-act="sel" data-ab="${s.ab}"`} style="background:${t.bg};color:${t.fg}" aria-label="${s.name}, ${s.ev} grands électeurs${shown?', '+fD(m):''}"><b>${s.ab}</b><small>${s.ev}</small>${!fin&&s.fieldP?'<i class="pip"></i>':''}</button>`}
+    const ts=shown?tileStyle(m):{bg:isDark()?'#232b3a':'#dde1e9',fg:'var(--muted)',tu:false};
+    h+=`<button class="tile${!fin&&UI.sel===s.ab?' sel':''}${ts.tu?' tu':''}" ${fin?'tabindex="-1"':`data-act="sel" data-ab="${s.ab}"`} style="background:${ts.bg};color:${ts.fg}" aria-label="${sn(s)}, ${s.ev} ${t('grands électeurs','electoral votes')}${shown?', '+fD(m):''}"><b>${s.ab}</b><small>${s.ev}</small>${!fin&&s.fieldP?'<i class="pip"></i>':''}</button>`}
   return h+'</div>';
 }
 function statePanel(){
-  const s=ST(UI.sel);if(!s)return'<div class="hint">Touchez un État pour voir le détail, acheter de la publicité, ouvrir un bureau ou y faire campagne.</div>';
+  const s=ST(UI.sel);if(!s)return`<div class="hint">${t('Touchez un État pour voir le détail, acheter de la publicité, ouvrir un bureau ou y faire campagne.','Tap a state to see details, buy ads, open an office or campaign there.')}</div>`;
   const pl=pollOf(s),p=G.me*pl,show=G.analyst||s.internal!==null,ok=can();
   const chip=p>1.5?'gd':p<-1.5?'bd':'you';
   let tb='';
-  if(show)tb=`<table class="bd">${parts(s).map(x=>{const v=G.me*x[1];return`<tr><td>${x[0]}</td><td class="${Math.abs(v)<.05?'':v>0?'pos':'neg'}">${x[0]==='Tendance de fond'?fD(x[1]):fS(v)}</td></tr>`}).join('')}<tr><td><b>Marge réelle du modèle</b></td><td><b>${fD(margin(s))}</b></td></tr></table>`;
-  return`<div class="panel"><div class="top"><div><h2>${s.name}</h2><span class="muted">${s.ev} grands électeurs · fond ${fD(s.lean)}</span></div><span class="chip ${chip}">${ratingOf(p)}</span></div>
-  <p style="margin:8px 0 0">Moyenne des sondages : <b class="mono">${fD(pl)}</b>${s.internal!==null?` · sondage interne : <b class="mono">${fD(s.internal)}</b>`:''}</p>
-  <div class="mixbar" role="img" aria-label="Composition de l’électorat">${s.mix.map((v,i)=>`<i style="width:${v*100}%;background:${GCOL[i]}"></i>`).join('')}</div>
-  <div class="mixleg">${s.mix.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(([v,i])=>`<span style="--c:${GCOL[i]}">${GROUPS[i].n} ${Math.round(v*100)} %</span>`).join('')}</div>
-  <p class="muted" style="margin:8px 0 0;font-size:13px">Économie : ${sectorOf(s)} · chômage ${f1(unemp(s))} %</p>
-  <p class="muted" style="margin:2px 0 0;font-size:13px">Publicité ${f1(s.adsP)} · bureaux ${s.fieldP}/3 · buzz ${f1(s.buzzP)} · investi ${fM(s.spP)}</p>
+  if(show)tb=`<table class="bd">${parts(s).map(x=>{const v=G.me*x[1];return`<tr><td>${t(x[0])}</td><td class="${Math.abs(v)<.05?'':v>0?'pos':'neg'}">${x[0]===PL.base?fD(x[1]):fS(v)}</td></tr>`}).join('')}<tr><td><b>${t('Marge réelle du modèle','True model margin')}</b></td><td><b>${fD(margin(s))}</b></td></tr></table>`;
+  return`<div class="panel"><div class="top"><div><h2>${sn(s)}</h2><span class="muted">${s.ev} ${t('grands électeurs','electoral votes')} · ${t('fond','baseline')} ${fD(s.lean)}</span></div><span class="chip ${chip}">${ratingOf(p)}</span></div>
+  <p style="margin:8px 0 0">${t('Moyenne des sondages','Poll average')} : <b class="mono">${fD(pl)}</b>${s.internal!==null?` · ${t('sondage interne','internal poll')} : <b class="mono">${fD(s.internal)}</b>`:''}</p>
+  <div class="mixbar" role="img" aria-label="${t('Composition de l’électorat','Electorate makeup')}">${s.mix.map((v,i)=>`<i style="width:${v*100}%;background:${GCOL[i]}"></i>`).join('')}</div>
+  <div class="mixleg">${s.mix.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(([v,i])=>`<span style="--c:${GCOL[i]}">${t(GROUPS[i].n)} ${pct(String(Math.round(v*100)))}</span>`).join('')}</div>
+  <p class="muted" style="margin:8px 0 0;font-size:13px">${t('Économie','Economy')} : ${sectorOf(s)} · ${t('chômage','unemployment')} ${pct(f1(unemp(s)))}</p>
+  <p class="muted" style="margin:2px 0 0;font-size:13px">${t('Publicité','Ads')} ${f1(s.adsP)} · ${t('bureaux','offices')} ${s.fieldP}/3 · buzz ${f1(s.buzzP)} · ${t('investi','invested')} ${fM(s.spP)}</p>
   <div class="acts">
-   <button class="btn sm" data-act="ads" data-n="1" ${ok?'':'disabled'}>Publicité ×1<small>${fM(adCost(s))}</small></button>
-   <button class="btn sm" data-act="ads" data-n="3" ${ok?'':'disabled'}>Publicité ×3<small>${fM(adCost(s)*3)}</small></button>
-   <button class="btn sm" data-act="field" ${ok&&s.fieldP<3?'':'disabled'}>Bureau de terrain<small>1 action · ${fM(fieldCost(s))}</small></button>
-   <button class="btn sm" data-act="visit" ${ok?'':'disabled'}>Visite<small>1 action · 0,3 M$</small></button>
-   <button class="btn sm alt" data-act="poll" ${ok&&s.internal===null?'':'disabled'} style="grid-column:1/-1">Sondage interne · 1 M$</button>
+   <button class="btn sm" data-act="ads" data-n="1" ${ok?'':'disabled'}>${t('Publicité','Ads')} ×1<small>${fM(adCost(s))}</small></button>
+   <button class="btn sm" data-act="ads" data-n="3" ${ok?'':'disabled'}>${t('Publicité','Ads')} ×3<small>${fM(adCost(s)*3)}</small></button>
+   <button class="btn sm" data-act="field" ${ok&&s.fieldP<3?'':'disabled'}>${t('Bureau de terrain','Field office')}<small>1 action · ${fM(fieldCost(s))}</small></button>
+   <button class="btn sm" data-act="visit" ${ok?'':'disabled'}>${t('Visite','Visit')}<small>1 action · ${fm0(.3)}</small></button>
+   <button class="btn sm alt" data-act="poll" ${ok&&s.internal===null?'':'disabled'} style="grid-column:1/-1">${t('Sondage interne','Internal poll')} · ${fm0(1)}</button>
   </div>${tb}</div>`;
 }
 function renderMain(){
   const m=$('#main');let h='';
   if(UI.tab==='map'){
-    h=mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">Démocrate</span><span style="--c:hsl(4 62% 40%)">Républicain</span><span style="--c:#c9ccd3">Incertain (moins de 1,5)</span></div>`+statePanel();
+    h=mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">${t('Démocrate','Democrat')}</span><span style="--c:hsl(4 62% 40%)">${t('Républicain','Republican')}</span><span style="--c:#c9ccd3">${t('Incertain (moins de 1,5)','Toss-up (under 1.5)')}</span></div>`+statePanel();
   }else if(UI.tab==='issues'){
     const sd=side(),os=oside(),ok=can();
-    h=`<p class="muted" style="margin:14px 0 10px">Chaque changement de position ou mise à l’agenda coûte 1 action. Le point plein est votre position, le cercle celle de l’adversaire.</p>`+ISSUES.map((I,i)=>{
+    h=`<p class="muted" style="margin:14px 0 10px">${t('Chaque changement de position ou mise à l’agenda coûte 1 action. Le point plein est votre position, le cercle celle de l’adversaire.','Each position change or agenda push costs 1 action. The filled dot is your position, the ring is your opponent’s.')}</p>`+ISSUES.map((I,i)=>{
       const mine=G.pos[sd][i],opp=G.pos[os][i];
       const cells=[-2,-1,0,1,2].map(v=>`<div>${v===mine?'<span class="dot me"></span>':''}${v===opp?'<span class="dot op"></span>':''}</div>`).join('');
-      const adv=I.own===0?'Aucun camp n’a l’avantage':(I.own>0)===(G.me===1)?'Avantage pour vous':'Avantage pour l’adversaire';
-      return`<div class="issue" style="--me:${myC()};--op:${opC()}"><h3>${I.n}</h3><div class="meta"><span>Importance ${f1(G.sal[i])}</span><span>${adv}</span></div>
+      const adv=I.own===0?t('Aucun camp n’a l’avantage','Neither side has the edge'):(I.own>0)===(G.me===1)?t('Avantage pour vous','Edge: you'):t('Avantage pour l’adversaire','Edge: your opponent');
+      return`<div class="issue" style="--me:${myC()};--op:${opC()}"><h3>${t(I.n)}</h3><div class="meta"><span>${t('Importance','Importance')} ${f1(G.sal[i])}</span><span>${adv}</span></div>
       <div class="sal"><i style="width:${G.sal[i]/1.6*100}%"></i></div><div class="track">${cells}</div>
-      <div class="ends"><span>${I.lo}</span><span>${I.hi}</span></div>
-      <div class="irow"><button class="btn sm alt" data-act="pos" data-i="${i}" data-d="-1" ${ok&&mine>-2?'':'disabled'}>◀ Plus à gauche</button><button class="btn sm alt" data-act="pos" data-i="${i}" data-d="1" ${ok&&mine<2?'':'disabled'}>Plus à droite ▶</button><button class="btn sm" data-act="agenda" data-i="${i}" ${ok?'':'disabled'}>Mettre à l’agenda</button></div></div>`}).join('');
-    h=h.replace(/Plus à gauche/g,'Vers −').replace(/Plus à droite/g,'Vers +');
+      <div class="ends"><span>${t(I.lo)}</span><span>${t(I.hi)}</span></div>
+      <div class="irow"><button class="btn sm alt" data-act="pos" data-i="${i}" data-d="-1" ${ok&&mine>-2?'':'disabled'}>◀ ${t('Vers','Toward')} −</button><button class="btn sm alt" data-act="pos" data-i="${i}" data-d="1" ${ok&&mine<2?'':'disabled'}>${t('Vers','Toward')} + ▶</button><button class="btn sm" data-act="agenda" data-i="${i}" ${ok?'':'disabled'}>${t('Mettre à l’agenda','Put on agenda')}</button></div></div>`}).join('');
   }else if(UI.tab==='groups'){
     const sd=side(),ok=can();
-    h=`<p class="muted" style="margin:14px 0 10px">Part de chaque groupe dans l’électorat (pondérée par les grands électeurs), ses priorités et sa préférence actuelle. Cibler un groupe coûte 1 action et 1,5 M$, et pèse dans chaque État selon le poids local du groupe.</p>`+GROUPS.map((q,gi)=>{
-      const share=G.states.reduce((a,t)=>a+t.ev*t.mix[gi],0)/538,pref=groupPref(gi,sd),pw=clamp(Math.abs(pref)/2.2,0,1)*100;
-      const conc=q.w.map((w,i)=>[w*G.sal[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,2).map(x=>ISSUES[x[1]].n).join(' · ');
+    h=`<p class="muted" style="margin:14px 0 10px">${t('Part de chaque groupe dans l’électorat (pondérée par les grands électeurs), ses priorités et sa préférence actuelle. Cibler un groupe coûte 1 action et 1,5 M$, et pèse dans chaque État selon le poids local du groupe.','Each group’s share of the electorate (weighted by electoral votes), its priorities and its current preference. Targeting a group costs 1 action and $1.5M, and counts in each state according to the group’s local weight.')}</p>`+GROUPS.map((q,gi)=>{
+      const share=G.states.reduce((a,x)=>a+x.ev*x.mix[gi],0)/538,pref=groupPref(gi,sd),pw=clamp(Math.abs(pref)/2.2,0,1)*100;
+      const conc=q.w.map((w,i)=>[w*G.sal[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,2).map(x=>t(ISSUES[x[1]].n)).join(' · ');
       const bar=pref>=0?`<i class="l" style="width:0"></i><i style="width:${pw}%;background:${myC()}"></i>`:`<i class="l" style="width:${pw}%;background:${opC()}"></i><i style="width:0"></i>`;
-      return`<div class="issue grp"><h3>${q.n} <span class="muted mono" style="font-size:13px;text-transform:none">${Math.round(share*100)} %</span></h3><p class="muted" style="margin:2px 0 6px;font-size:13px">${q.d}</p>
-      <div class="kv"><span>Priorités</span><span style="font-family:var(--f-body)">${conc}</span></div>
-      <div class="pref" role="img" aria-label="Préférence du groupe">${bar}</div><div class="ends"><span>Préfère l’adversaire</span><span>Vous préfère</span></div>
-      <div class="irow"><button class="btn sm" data-act="target" data-i="${gi}" ${ok?'':'disabled'}>Cibler · 1 action · 1,5 M$</button><span class="muted" style="align-self:center;font-size:12px">Ciblage en cours : ${f1(G.tgtP[gi])}</span></div></div>`}).join('');
-    const w=G.states.reduce((a,t)=>a+t.ev*unemp(t),0)/538;
-    const lab=G.econ>1.2?'Forte croissance':G.econ>.4?'Solide':G.econ>-.4?'Stable':G.econ>-1.2?'Fragile':'Récession';
-    h+=`<h2 class="sect">Économie</h2><div class="panel"><div class="kv" style="border:0"><span>Conjoncture nationale</span><span>${lab} (${fS(G.econ)})</span></div><div class="kv"><span>Chômage moyen</span><span>${f1(w)} %</span></div><div class="kv"><span>Parti sortant</span><span>${G.inc==='D'?'Démocrate':'Républicain'}, ${G.inc===side()?'votre camp':'l’adversaire'}</span></div><p class="muted" style="margin:8px 0 0;font-size:13px">Une bonne conjoncture profite au parti sortant, une mauvaise à son challenger. L’effet varie selon les secteurs : énergie et industrie réagissent plus fort que les services.</p></div>`;
-    const bgs=G.states.filter(t=>Math.abs(pollOf(t))<8).sort((a,b)=>b.ev-a.ev).slice(0,10);
-    h+=`<h3 class="sect" style="font-size:18px">États clés</h3><div class="panel">`+bgs.map((t,k)=>{const e=G.me*econSign()*.8*ecoOf(t);return`<div class="kv" ${k?'':'style="border:0"'}><span>${t.name} · ${sectorOf(t)}</span><span>${f1(unemp(t))} %${G.analyst?' · '+fS(e):''}</span></div>`}).join('')+`</div>`;
+      return`<div class="issue grp"><h3>${t(q.n)} <span class="muted mono" style="font-size:13px;text-transform:none">${pct(String(Math.round(share*100)))}</span></h3><p class="muted" style="margin:2px 0 6px;font-size:13px">${t(q.d)}</p>
+      <div class="kv"><span>${t('Priorités','Priorities')}</span><span style="font-family:var(--f-body)">${conc}</span></div>
+      <div class="pref" role="img" aria-label="${t('Préférence du groupe','Group preference')}">${bar}</div><div class="ends"><span>${t('Préfère l’adversaire','Prefers your opponent')}</span><span>${t('Vous préfère','Prefers you')}</span></div>
+      <div class="irow"><button class="btn sm" data-act="target" data-i="${gi}" ${ok?'':'disabled'}>${t('Cibler','Target')} · 1 action · ${fm0(1.5)}</button><span class="muted" style="align-self:center;font-size:12px">${t('Ciblage en cours','Current outreach')} : ${f1(G.tgtP[gi])}</span></div></div>`}).join('');
+    const w=G.states.reduce((a,x)=>a+x.ev*unemp(x),0)/538;
+    const lab=G.econ>1.2?t('Forte croissance','Booming'):G.econ>.4?t('Solide','Solid'):G.econ>-.4?t('Stable','Stable'):G.econ>-1.2?t('Fragile','Fragile'):t('Récession','Recession');
+    h+=`<h2 class="sect">${t('Économie','Economy')}</h2><div class="panel"><div class="kv" style="border:0"><span>${t('Conjoncture nationale','National conditions')}</span><span>${lab} (${fS(G.econ)})</span></div><div class="kv"><span>${t('Chômage moyen','Average unemployment')}</span><span>${pct(f1(w))}</span></div><div class="kv"><span>${t('Parti sortant','Incumbent party')}</span><span>${G.inc==='D'?t('Démocrate','Democratic'):t('Républicain','Republican')}, ${G.inc===side()?t('votre camp','your side'):t('l’adversaire','your opponent')}</span></div><p class="muted" style="margin:8px 0 0;font-size:13px">${t('Une bonne conjoncture profite au parti sortant, une mauvaise à son challenger. L’effet varie selon les secteurs : énergie et industrie réagissent plus fort que les services.','Good conditions help the incumbent party, bad ones help its challenger. The effect varies by sector: energy and manufacturing react more strongly than services.')}</p></div>`;
+    const bgs=G.states.filter(x=>Math.abs(pollOf(x))<8).sort((a,b)=>b.ev-a.ev).slice(0,10);
+    h+=`<h3 class="sect" style="font-size:18px">${t('États clés','Key states')}</h3><div class="panel">`+bgs.map((x,k)=>{const e=G.me*econSign()*.8*ecoOf(x);return`<div class="kv" ${k?'':'style="border:0"'}><span>${sn(x)} · ${sectorOf(x)}</span><span>${pct(f1(unemp(x)))}${G.analyst?' · '+fS(e):''}</span></div>`}).join('')+`</div>`;
   }else if(UI.tab==='actions'){
     const ok=can(),nd=G.wk<=5?5:G.wk<=9?9:null;
     h=`<div style="height:14px"></div>
-    <div class="card"><div><h3>Collecte de fonds</h3><p>Rapporte environ 4 à 7 M$, plus si votre image est bonne.</p></div><button class="btn sm" data-act="fund" ${ok?'':'disabled'}>1 action</button></div>
-    <div class="card"><div><h3>Grande interview</h3><p>Probablement bénéfique pour votre image, avec un risque de dérapage.</p></div><button class="btn sm" data-act="media" ${ok?'':'disabled'}>1 action</button></div>
-    <div class="card"><div><h3>Préparer le débat</h3><p>Préparation ${G.prep}/3. ${nd?`Prochain débat : semaine ${nd}.`:'Les débats sont terminés.'}</p></div><button class="btn sm" data-act="prep" ${ok&&nd?'':'disabled'}>1 action</button></div>
-    <div class="panel"><h3 style="font-size:20px">Votre ticket</h3><p style="margin:6px 0 0">${side()==='D'?'Elena Marsh':'Jack Holloway'} et ${G.vpName||'colistier à choisir'}.</p><p class="muted" style="margin:6px 0 0;font-size:13px">Image nette : <span class="mono">${fS(G.me*G.img)}</span> pour vous · fonds adverses estimés : <span class="mono">${fM(G.cashO)}</span>${G.hint!=null?` · biais des sondages estimé : <span class="mono">${fS(G.hint)}</span> pour vous`:''}</p></div>`;
+    <div class="card"><div><h3>${t('Collecte de fonds','Fundraising')}</h3><p>${t('Rapporte environ 4 à 7 M$, plus si votre image est bonne.','Raises about $4M to $7M, more with a good image.')}</p></div><button class="btn sm" data-act="fund" ${ok?'':'disabled'}>1 action</button></div>
+    <div class="card"><div><h3>${t('Grande interview','Major interview')}</h3><p>${t('Probablement bénéfique pour votre image, avec un risque de dérapage.','Likely to help your image, with a risk of a slip.')}</p></div><button class="btn sm" data-act="media" ${ok?'':'disabled'}>1 action</button></div>
+    <div class="card"><div><h3>${t('Préparer le débat','Debate prep')}</h3><p>${t('Préparation','Preparation')} ${G.prep}/3. ${nd?t(`Prochain débat : semaine ${nd}.`,`Next debate: week ${nd}.`):t('Les débats sont terminés.','The debates are over.')}</p></div><button class="btn sm" data-act="prep" ${ok&&nd?'':'disabled'}>1 action</button></div>
+    <div class="panel"><h3 style="font-size:20px">${t('Votre ticket','Your ticket')}</h3><p style="margin:6px 0 0">${side()==='D'?'Elena Marsh':'Jack Holloway'} ${t('et','and')} ${G.vpName||t('colistier à choisir','running mate to be chosen')}.</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image')} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you')} · ${t('fonds adverses estimés','estimated opponent funds')} : <span class="mono">${fM(G.cashO)}</span>${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias')} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you')}`:''}</p></div>`;
   }else{
-    h=`<div class="tog"><button class="btn sm alt" data-act="analyst">${G.analyst?'Masquer':'Afficher'} les calculs détaillés</button><span class="muted">Mode analyste : décomposition de la marge de chaque État.</span></div><ul class="log">${G.log.map(e=>`<li class="${e.k}"><b>S${e.w}</b><span>${e.t}</span></li>`).join('')||'<li><b></b><span class="muted">Rien à signaler pour l’instant.</span></li>'}</ul>`;
+    h=`<div class="tog"><button class="btn sm alt" data-act="analyst">${G.analyst?t('Masquer les calculs détaillés','Hide detailed calculations'):t('Afficher les calculs détaillés','Show detailed calculations')}</button><span class="muted">${t('Mode analyste : décomposition de la marge de chaque État.','Analyst mode: breakdown of each state’s margin.')}</span></div><ul class="log">${G.log.map(e=>`<li class="${e.k}"><b>${t('S','W')}${e.w}</b><span>${t(e.t)}</span></li>`).join('')||`<li><b></b><span class="muted">${t('Rien à signaler pour l’instant.','Nothing to report yet.')}</span></li>`}</ul>`;
   }
   m.innerHTML=h;
 }
@@ -650,13 +660,14 @@ function showEvent(){
   if(SIM)return;
   if(!G.ev||G.phase!=='event'){hideModal();return}
   const e=EVENTS.find(q=>q.id===G.ev.id);
-  const title=e.id==='debate'?(G.wk===5?'Premier débat':'Second débat'):e.t;
-  if(G.ev.res===null)showModal(`<h2>${title}</h2><p>${e.x()}</p>${e.ch.map((c,i)=>`<button class="ch" data-act="choose" data-i="${i}"><b>${c.t}</b><small>${c.d}</small></button>`).join('')}`);
-  else showModal(`<h2>${title}</h2><div class="res">${G.ev.res}</div><button class="btn full" data-act="evnext">Continuer</button>`);
+  const title=e.id==='debate'?(G.wk===5?t('Premier débat','First debate'):t('Second débat','Second debate')):t(e.t);
+  if(G.ev.res===null)showModal(`<h2>${title}</h2><p>${e.x()}</p>${e.ch.map((c,i)=>`<button class="ch" data-act="choose" data-i="${i}"><b>${t(c.t)}</b><small>${t(c.d)}</small></button>`).join('')}`);
+  else showModal(`<h2>${title}</h2><div class="res">${t(G.ev.res)}</div><button class="btn full" data-act="evnext">${t('Continuer','Continue')}</button>`);
 }
 function showBrief(){
-  const o=G.me*(G.env-PARAM.neutral),mood=o>1?'plutôt porteur pour votre camp':o<-1?'plutôt difficile pour votre camp':'incertain';
-  showModal(`<h2>Novembre 2028</h2><p>Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${G.econ>.6?'tourne bien':G.econ<-.6?'ralentit':'est stable'}. Vous avez 40 M$ en caisse et 12 semaines devant vous.</p><p><b>Choisissez votre colistier.</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${v.r}. ${v.d}.</small></button>`).join('')}`);
+  const o=G.me*(G.env-PARAM.neutral),mood=o>1?t('plutôt porteur pour votre camp','rather favorable to your side'):o<-1?t('plutôt difficile pour votre camp','rather difficult for your side'):t('incertain','uncertain');
+  const ec=G.econ>.6?t('tourne bien','is doing well'):G.econ<-.6?t('ralentit','is slowing'):t('est stable','is stable');
+  showModal(`<h2>${t('Novembre 2028','November 2028')}</h2><p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(40)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(40)} in the bank and 12 weeks ahead.`)}</p><p><b>${t('Choisissez votre colistier.','Choose your running mate.')}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
 }
 function election(){
   G.phase='over';const eN=randn()*1.5;
@@ -669,15 +680,16 @@ function nightTick(first){
   const n=UI.night;let dEV=0,rEV=0;const rev=new Set(G.order.slice(0,n.idx));
   rev.forEach(a=>{const s=ST(a);if(s.final>0)dEV+=s.ev;else rEV+=s.ev});
   const mine=G.me===1?dEV:rEV,theirs=G.me===1?rEV:dEV,done=n.idx>=G.order.length;
-  let body=`<h2>Soirée électorale</h2><div class="score"><div><span class="muted">Vous</span><div class="big" style="color:${myC()}">${mine}</div></div><div style="text-align:right"><span class="muted">Adversaire</span><div class="big" style="color:${opC()}">${theirs}</div></div></div>${mapHTML('final',rev)}`;
-  if(!done)body+=`<button class="btn alt full" data-act="skip">Passer au résultat</button>`;
+  let body=`<h2>${t('Soirée électorale','Election night')}</h2><div class="score"><div><span class="muted">${t('Vous','You')}</span><div class="big" style="color:${myC()}">${mine}</div></div><div style="text-align:right"><span class="muted">${t('Adversaire','Opponent')}</span><div class="big" style="color:${opC()}">${theirs}</div></div></div>${mapHTML('final',rev)}`;
+  if(!done)body+=`<button class="btn alt full" data-act="skip">${t('Passer au résultat','Skip to the result')}</button>`;
   else{
     const tie=mine===269&&theirs===269,win=mine>=270||(tie&&Math.random()<.5);
-    const close=G.states.filter(s=>Math.abs(s.final)<1).map(s=>`${s.ab} (${s.final*G.me>0?'vous':'adv.'})`).join(', ');
+    const close=G.states.filter(s=>Math.abs(s.final)<1).map(s=>`${s.ab} (${s.final*G.me>0?t('vous','you'):t('adv.','opp.')})`).join(', ');
     const flips=G.states.filter(s=>Math.sign(s.final)!==Math.sign(s.lean)).map(s=>`${s.ab} (${s.final>0?'D':'R'})`).join(', ');
     const waste=G.states.filter(s=>G.me*s.final<-10&&s.spP>3).reduce((a,s)=>a+s.spP,0);
     let pop=0;G.states.forEach(s=>pop+=s.ev*s.final);pop/=538;
-    body+=`<div class="res"><b>${win?(tie?'Égalité 269–269 : la Chambre des représentants vous donne la victoire.':'Victoire. Vous êtes élu(e) président(e).'):(tie?'Égalité 269–269 : la Chambre des représentants choisit l’adversaire.':'Défaite. L’adversaire l’emporte.')}</b><br>Marge nationale approximative : ${fD(pop)}. ${close?`États à moins d’un point : ${close}.`:'Aucun État à moins d’un point.'} ${flips?`Basculés par rapport à la tendance de fond : ${flips}.`:''} ${waste>0?`Argent dépensé dans des États perdus de plus de 10 points : ${fM(waste)}.`:''}</div><button class="btn full" data-act="restart">Nouvelle partie</button>`;
+    const head=win?(tie?t('Égalité 269–269 : la Chambre des représentants vous donne la victoire.','Tie at 269–269: the House of Representatives gives you the victory.'):t('Victoire. Vous êtes élu(e) président(e).','Victory. You are elected president.')):(tie?t('Égalité 269–269 : la Chambre des représentants choisit l’adversaire.','Tie at 269–269: the House of Representatives chooses your opponent.'):t('Défaite. L’adversaire l’emporte.','Defeat. Your opponent wins.'));
+    body+=`<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div><button class="btn full" data-act="restart">${t('Nouvelle partie','New game')}</button>`;
     try{localStorage.removeItem(KEY)}catch(e){}
   }
   showModal(body);
@@ -686,14 +698,14 @@ function nightTick(first){
 
 /* ---------- Tutoriel et manuel ---------- */
 const TUTO=[
- {tab:'map',hl:'#hudTop .evbar',t:'Votre objectif',x:'Il faut 270 grands électeurs sur 538 en 12 semaines. Cette barre projette le résultat d’après les sondages : votre couleur à gauche, l’adversaire à droite, le trait marque 270.'},
- {tab:'map',sel:'PA',hl:'.map',t:'La carte',x:'Chaque case est un État, colorée selon la moyenne des sondages. Les cases hachurées sont trop serrées pour trancher. Touchez un État : son détail s’affiche en dessous.'},
- {tab:'map',sel:'PA',hl:'.acts',t:'Agir sur un État',x:'La publicité coûte de l’argent, le bureau de terrain de l’argent et 1 action (effet durable), la visite 1 action (effet court). Le sondage interne coûte 1 M$ et révèle la vraie marge.'},
- {tab:'map',hl:'#aps',t:'Votre temps',x:'Vous avez 3 actions par semaine (les pastilles). Votre budget est en haut à droite et se reconstitue chaque semaine. Les États serrés et riches en grands électeurs sont les plus rentables.'},
- {tab:'issues',hl:'.issue',t:'Les enjeux',x:'Votre position (point plein) face à celle de l’adversaire (cercle). Chaque État réagit selon sa population : se recentrer gagne des États serrés mais en fait perdre dans vos bastions. Chaque changement coûte 1 action.'},
- {tab:'groups',hl:'.grp',t:'Les groupes d’électeurs',x:'Sept groupes pèsent différemment selon les États. La barre montre qui ils préfèrent d’après vos positions. Cibler un groupe (1 action, 1,5 M$) donne un bonus partout où il est nombreux.'},
- {tab:'actions',hl:'.card',t:'Campagne nationale',x:'Collecte de fonds, grande interview et préparation du débat (semaines 5 et 9) se font ici. Pensez à collecter régulièrement : l’argent est le nerf de la guerre.'},
- {tab:'map',hl:'#endBtn',t:'Terminer la semaine',x:'L’adversaire joue, l’économie bouge, puis un événement vous demande de choisir. Le bouton ? en haut à droite rouvre le manuel à tout moment. Bonne campagne.'}
+ {tab:'map',hl:'#hudTop .evbar',t:B('Votre objectif','Your goal'),x:B('Il faut 270 grands électeurs sur 538 en 12 semaines. Cette barre projette le résultat d’après les sondages : votre couleur à gauche, l’adversaire à droite, le trait marque 270.','You need 270 of 538 electoral votes in 12 weeks. This bar projects the result from the polls: your color on the left, your opponent on the right, the line marks 270.')},
+ {tab:'map',sel:'PA',hl:'.map',t:B('La carte','The map'),x:B('Chaque case est un État, colorée selon la moyenne des sondages. Les cases hachurées sont trop serrées pour trancher. Touchez un État : son détail s’affiche en dessous.','Each tile is a state, colored by its poll average. Hatched tiles are too close to call. Tap a state: its details appear below.')},
+ {tab:'map',sel:'PA',hl:'.acts',t:B('Agir sur un État','Acting in a state'),x:B('La publicité coûte de l’argent, le bureau de terrain de l’argent et 1 action (effet durable), la visite 1 action (effet court). Le sondage interne coûte 1 M$ et révèle la vraie marge.','Ads cost money, a field office costs money and 1 action (lasting effect), a visit costs 1 action (short-lived effect). An internal poll costs $1M and reveals the true margin.')},
+ {tab:'map',hl:'#aps',t:B('Votre temps','Your time'),x:B('Vous avez 3 actions par semaine (les pastilles). Votre budget est en haut à droite et se reconstitue chaque semaine. Les États serrés et riches en grands électeurs sont les plus rentables.','You have 3 actions per week (the dots). Your budget is at the top right and refills every week. Close states with many electoral votes are the best value.')},
+ {tab:'issues',hl:'.issue',t:B('Les enjeux','The issues'),x:B('Votre position (point plein) face à celle de l’adversaire (cercle). Chaque État réagit selon sa population : se recentrer gagne des États serrés mais en fait perdre dans vos bastions. Chaque changement coûte 1 action.','Your position (filled dot) against your opponent’s (ring). Each state reacts according to its population: moving to the center wins close states but loses ground in your strongholds. Each change costs 1 action.')},
+ {tab:'groups',hl:'.grp',t:B('Les groupes d’électeurs','Voter groups'),x:B('Sept groupes pèsent différemment selon les États. La barre montre qui ils préfèrent d’après vos positions. Cibler un groupe (1 action, 1,5 M$) donne un bonus partout où il est nombreux.','Seven groups weigh differently from state to state. The bar shows who they prefer given your positions. Targeting a group (1 action, $1.5M) gives a bonus wherever it is large.')},
+ {tab:'actions',hl:'.card',t:B('Campagne nationale','National campaign'),x:B('Collecte de fonds, grande interview et préparation du débat (semaines 5 et 9) se font ici. Pensez à collecter régulièrement : l’argent est le nerf de la guerre.','Fundraising, major interviews and debate prep (weeks 5 and 9) happen here. Fundraise regularly: money is the lifeblood of a campaign.')},
+ {tab:'map',hl:'#endBtn',t:B('Terminer la semaine','End the week'),x:B('L’adversaire joue, l’économie bouge, puis un événement vous demande de choisir. Le bouton ? en haut à droite rouvre le manuel à tout moment. Bonne campagne.','Your opponent plays, the economy moves, then an event asks you to choose. The ? button at the top right reopens the manual at any time. Good luck.')}
 ];
 const tutoSeen=()=>{try{return localStorage.getItem('cap270.tuto')==='1'}catch(e){return false}};
 const tutoMark=()=>{try{localStorage.setItem('cap270.tuto','1')}catch(e){}};
@@ -706,11 +718,15 @@ function renderCoach(){
   const on=!SIM&&G&&UI.tuto!=null&&G.phase==='play';
   c.hidden=!on;document.body.classList.toggle('tuto',!!on);if(!on)return;
   const st=TUTO[UI.tuto],last=UI.tuto===TUTO.length-1;
-  c.innerHTML=`<div class="cn">Tutoriel · étape ${UI.tuto+1}/${TUTO.length}</div><h3>${st.t}</h3><p>${st.x}</p><div class="cb">${last?'':'<button class="btn sm alt" data-act="tutoSkip">Passer</button>'}<button class="btn sm" data-act="tutoNext">${last?'Commencer':'Suivant'}</button></div>`;
+  c.innerHTML=`<div class="cn">${t('Tutoriel · étape','Tutorial · step')} ${UI.tuto+1}/${TUTO.length}</div><h3>${t(st.t)}</h3><p>${t(st.x)}</p><div class="cb">${last?'':`<button class="btn sm alt" data-act="tutoSkip">${t('Passer','Skip')}</button>`}<button class="btn sm" data-act="tutoNext">${last?t('Commencer','Start'):t('Suivant','Next')}</button></div>`;
   const e=document.querySelector(st.hl);if(e)e.classList.add('hl');
 }
+function langSw(){return`<div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-l="en" aria-pressed="${LANG==='en'}">English</button><button data-act="lang" data-l="fr" aria-pressed="${LANG==='fr'}">Français</button></div>`}
 function helpHTML(canReplay){
-  return`<div class="man"><div class="mhead"><h2>Manuel</h2><button class="btn sm alt" data-act="closeHelp">Fermer</button></div>
+  const replay=canReplay?`<button class="btn alt" data-act="tutoRestart">${t('Rejouer le tutoriel','Replay the tutorial')}</button>`:'';
+  const head=`<div class="man"><div class="mhead"><h2>${t('Manuel','Manual')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}`;
+  const foot=`<div class="irow" style="margin-top:12px">${replay}<button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
+  if(FR())return head+`
 <details open><summary>But et déroulé</summary><p>Vous menez une campagne présidentielle fictive de 12 semaines, du 14 août au 7 novembre 2028. Il faut au moins <b>270 des 538 grands électeurs</b>.</p>
 <ul><li>Chaque semaine, vous dépensez vos <b>3 actions</b> et votre argent.</li><li>Vous terminez la semaine : l’adversaire joue, l’économie évolue, un événement vous demande de choisir.</li><li>Le soir du scrutin, les résultats tombent État par État avec une part de hasard : les sondages peuvent se tromper.</li></ul></details>
 <details><summary>Lire la carte et les sondages</summary><ul>
@@ -755,22 +771,93 @@ function helpHTML(canReplay){
 <li>Payez un sondage interne avant un gros investissement.</li>
 <li>Surveillez le Journal : les actions publiques de l’adversaire y apparaissent.</li>
 <li>Dans le Journal, « Afficher les calculs » détaille la marge de chaque État.</li></ul></details>
-<details><summary>Difficulté</summary><p>En Facile, le climat national vous est favorable. En Difficile, il vous est défavorable et l’adversaire dispose de plus de fonds.</p></details>
-<div class="irow" style="margin-top:12px">${canReplay?'<button class="btn alt" data-act="tutoRestart">Rejouer le tutoriel</button>':''}<button class="btn" data-act="closeHelp">Fermer</button></div></div>`;
+<details><summary>Difficulté</summary><p>En Facile, le climat national vous est favorable. En Difficile, il vous est défavorable et l’adversaire dispose de plus de fonds.</p></details>`+foot;
+  return head+`
+<details open><summary>Goal and flow</summary><p>You run a fictional 12-week presidential campaign, from August 14 to November 7, 2028. You need at least <b>270 of the 538 electoral votes</b>.</p>
+<ul><li>Each week, you spend your <b>3 actions</b> and your money.</li><li>You end the week: your opponent plays, the economy moves, and an event asks you to choose.</li><li>On election night, results come in state by state with some randomness: polls can be wrong.</li></ul></details>
+<details><summary>Reading the map and polls</summary><ul>
+<li><b>Colors:</b> blue for Democrats, red for Republicans. The darker, the bigger the gap. Hatched: under 1.5 points, a toss-up.</li>
+<li><b>Polls:</b> noisy, with a bias shared across the whole country. One event lets you audit that bias.</li>
+<li><b>Internal poll ($1M):</b> gives the state’s true margin for the week.</li>
+<li><b>Top bar:</b> projection for your side, your opponent and toss-up states. The line marks 270.</li>
+<li><b>Gold dot on a tile:</b> you have a campaign office there.</li>
+<li>Starting margins come from the 2024 results, recalibrated so that the race is open.</li></ul></details>
+<details><summary>Actions in a state</summary><ul>
+<li><b>Ads:</b> cost $0.8M plus $0.1M per electoral vote. Up to about +3 points, with diminishing returns. The effect fades 15% each week.</li>
+<li><b>Field office:</b> 1 action and money. Up to 3 per state, about +0.6, +1.0 then +1.4 points in total. Lasting effect, but upkeep costs money every week.</li>
+<li><b>Visit:</b> 1 action and $0.3M. +1.3 points of buzz, halved each week.</li>
+<li>Your opponent has the same levers: what matters is the net gap between you.</li></ul></details>
+<details><summary>National actions</summary><ul>
+<li><b>Fundraising:</b> 1 action for $4M to $7M, a bit more with a good image.</li>
+<li><b>Major interview:</b> most often good for your image, sometimes no effect, rarely a slip.</li>
+<li><b>Debate prep:</b> up to 3 levels, used at the week 5 and week 9 debates, then reset to zero.</li>
+<li><b>Running mate:</b> chosen at the start, brings a regional bonus, image or funds.</li></ul></details>
+<details><summary>Issues and positions</summary><ul>
+<li>Seven issues, each with an <b>importance</b> (gold bar) and a <b>position</b> from −2 to +2.</li>
+<li>Changing a position or putting an issue on the agenda costs 1 action.</li>
+<li>Each state reacts according to its population. Moving toward a state’s voters wins you points there but costs you elsewhere.</li>
+<li>Moving away from your party’s line demobilizes your base a little, everywhere.</li>
+<li>When an issue gains importance, it favors the side associated with it: health care, abortion and climate lean Democratic; immigration, crime and the economy lean Republican.</li></ul></details>
+<details><summary>Voter groups</summary><ul>
+<li>Seven groups. Each state has its own makeup, shown in its panel.</li>
+<li>Each group has its priorities and prefers a side depending on your positions (Groups tab).</li>
+<li><b>Targeting a group:</b> 1 action and $1.5M. The bonus applies in each state according to the group’s local weight, then fades 25% per week. Your opponent does it too.</li></ul></details>
+<details><summary>Economy</summary><ul>
+<li>National conditions and each state’s economy (sector, unemployment) both matter.</li>
+<li>A good economy helps the <b>incumbent party</b>, a bad one helps its challenger. The incumbent party is shown in the Groups tab.</li>
+<li>Energy and manufacturing react more strongly than services. Events can hit a sector.</li></ul></details>
+<details><summary>Events, image, debates</summary><ul>
+<li>Each week, an event asks for a choice, often with a cost or a risk.</li>
+<li>Your <b>image</b> against your opponent moves every state a little.</li>
+<li>Two debates (weeks 5 and 9) and a last-minute revelation (week 11).</li></ul></details>
+<details><summary>Tips</summary><ul>
+<li>Focus on 6 to 8 close states, weighted by electoral votes.</li>
+<li>Avoid investing in states that are locked or lost by more than 10 points.</li>
+<li>Fundraise regularly and spend everything before election day.</li>
+<li>Pay for an internal poll before a big investment.</li>
+<li>Watch the Log: your opponent’s public actions appear there.</li>
+<li>In the Log, “Show detailed calculations” breaks down each state’s margin.</li></ul></details>
+<details><summary>Difficulty</summary><p>On Easy, the national mood favors you. On Hard, it works against you and your opponent has more money.</p></details>`+foot;
 }
 
-/* ---------- Démarrage ---------- */
+/* ---------- Écran titre et démarrage ---------- */
 let pickedSide=1,pickedDiff=1;
+function renderTitle(){
+  const hasSave=!!loadSave();
+  $('#title').innerHTML=`${langSw()}
+  <h1>${FR()?'Cap sur':'Road to'} <span>270</span></h1>
+  <p class="lede">${t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.')}</p>
+  <div class="pick" id="pickSide">
+    <button class="d" data-side="1" aria-pressed="${pickedSide===1}"><b>${t('Démocrate','Democrat')}</b><small>${t('Elena Marsh, gouverneure','Governor Elena Marsh')}</small></button>
+    <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican')}</b><small>${t('Jack Holloway, sénateur','Senator Jack Holloway')}</small></button>
+  </div>
+  <div class="pick three" id="pickDiff">
+    <button data-diff="0" aria-pressed="${pickedDiff===0}"><b>${t('Facile','Easy')}</b><small>${t('Vent dans le dos','Tailwind')}</small></button>
+    <button data-diff="1" aria-pressed="${pickedDiff===1}"><b>Normal</b><small>${t('Course équilibrée','Even race')}</small></button>
+    <button data-diff="2" aria-pressed="${pickedDiff===2}"><b>${t('Difficile','Hard')}</b><small>${t('Vent de face','Headwind')}</small></button>
+  </div>
+  <button class="btn full" data-act="start">${t('Lancer la campagne','Start the campaign')}</button>
+  ${hasSave?`<button class="btn alt full" data-act="cont" style="margin-top:10px">${t('Reprendre la partie','Resume game')}</button>`:''}
+  <button class="btn alt full" data-act="help" style="margin-top:10px">${t('Comment jouer','How to play')}</button>
+  <ul class="rules">
+    <li>${t('Chaque semaine : 3 actions (visites, collecte, positions) et de l’argent (publicité, bureaux de terrain).','Each week: 3 actions (visits, fundraising, positions) and money (ads, field offices).')}</li>
+    <li>${t('Les sondages sont bruités et peuvent se tromper dans le même sens partout. Un sondage interne coûte 1 M$ et donne la vraie marge.','Polls are noisy and can all miss in the same direction. An internal poll costs $1M and shows the true margin.')}</li>
+    <li>${t('Vos positions sur les enjeux déplacent les États différemment : se recentrer gagne le Wisconsin et peut perdre la Californie.','Your positions on the issues move each state differently: moving to the center can win Wisconsin and lose California.')}</li>
+    <li>${t('Sept groupes d’électeurs pèsent différemment selon les États, et l’économie locale joue en faveur ou contre le parti sortant.','Seven voter groups weigh differently from state to state, and the local economy helps or hurts the incumbent party.')}</li>
+    <li>${t('Il faut 270 grands électeurs sur 538. Maine et Nebraska comptent chacun en bloc ici.','You need 270 of 538 electoral votes. Maine and Nebraska each count as a single block here.')}</li>
+  </ul>
+  <p class="fine">${t('Prototype jouable. Les marges de fond sont des approximations arrondies de 2024. Tous les candidats sont fictifs.','Playable prototype. Baseline margins are rounded approximations of 2024. All candidates are fictional.')}</p>`;
+}
 document.addEventListener('click',e=>{
   const sb=e.target.closest('#pickSide button');if(sb){pickedSide=+sb.dataset.side;document.querySelectorAll('#pickSide button').forEach(b=>b.setAttribute('aria-pressed',b===sb));return}
   const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
-  const t=e.target.closest('[data-act]');if(!t)return;const a=t.dataset.act;
+  const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
   if(a==='start'){newGame(pickedSide,pickedDiff);render();showBrief();return}
   if(a==='cont'){const s=loadSave();if(s){G=s;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
-  A[a]&&A[a](t.dataset);
+  A[a]&&A[a](x.dataset);
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(G)render()});
-if(loadSave())$('#contBtn').hidden=false;
+applyStatic();renderTitle();
 </script>
 
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>

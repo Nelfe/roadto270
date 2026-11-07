@@ -1,8 +1,8 @@
 {
-  "name": "Cap sur 270",
-  "short_name": "Cap sur 270",
-  "description": "Simulation de campagne présidentielle américaine en 12 semaines.",
-  "lang": "fr",
+  "name": "Road to 270",
+  "short_name": "Road to 270",
+  "description": "12-week US presidential campaign simulation. / Simulation de campagne présidentielle américaine en 12 semaines.",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
