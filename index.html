@@ -194,6 +194,22 @@ body.tuto{padding-block:0 330px}
 .langsw{display:flex;gap:6px;margin:0 0 14px}
 .langsw button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:36px;font-size:14px;color:var(--ink)}
 .langsw button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+:root[data-cb="1"]{--rep:#c4620f;--bad:#c4620f}
+@media (prefers-color-scheme: dark){:root[data-cb="1"]:not([data-theme="light"]){--rep:#f0a04b;--bad:#f0a04b}}
+:root[data-cb="1"][data-theme="dark"]{--rep:#f0a04b;--bad:#f0a04b}
+.btn.alt[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.codein{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 12px;min-height:44px;font-family:var(--f-mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.slot{display:flex;gap:8px;margin-top:10px}.slot .btn{flex:1;text-align:left;font-size:14px}
+.slot .x{width:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;font-size:20px}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.segm{display:flex;gap:6px}
+.chart{width:100%;height:auto;display:block;margin:10px 0 6px}
+.ach{display:grid;gap:6px;margin:6px 0 0;padding:0;list-style:none}
+.ach li{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+.ach li.off{opacity:.5}.ach b{display:block;font-weight:600}
+.hs{width:100%;border-collapse:collapse;font-size:13px}.hs td{padding:4px 6px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -216,12 +232,22 @@ body.tuto{padding-block:0 330px}
 'use strict';
 const $=(s,r=document)=>r.querySelector(s);
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const randn=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+let _s=1;
+const rnd=()=>{_s=(_s+0x6D2B79F5)>>>0;let z=_s;z=Math.imul(z^z>>>15,z|1);z^=z+Math.imul(z^z>>>7,z|61);return((z^z>>>14)>>>0)/4294967296};
+const SEEDS=2176782336;
+const codeOf=n=>(n>>>0).toString(36).toUpperCase().padStart(6,'0');
+const hashStr=x=>{let h=2166136261;for(const c of x){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0)%SEEDS};
+const seedFrom=x=>{x=x.trim().toUpperCase();return/^[0-9A-Z]{1,6}$/.test(x)?parseInt(x,36):hashStr(x)};
+const dayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const randn=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
 
 /* ---------- Langue ---------- */
 let LANG='en';
 try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en')LANG=l}catch(e){}
 const FR=()=>LANG==='fr';
+let SET={cb:0,txt:0,vib:1};
+try{Object.assign(SET,JSON.parse(localStorage.getItem('cap270.set')||'{}'))}catch(e){}
+function applySet(){const r=document.documentElement;r.dataset.cb=SET.cb?'1':'0';r.style.zoom=[1,1.12,1.25][SET.txt]||1}
 const B=(fr,en)=>({fr,en});
 const t=(a,b)=>b===undefined?(a&&typeof a==='object'?a[LANG]:a):(LANG==='fr'?a:b);
 const both=fn=>{const o=LANG;LANG='fr';const a=fn();LANG='en';const b=fn();LANG=o;return B(a,b)};
@@ -270,11 +296,18 @@ const DEMO={AL:[26,5],AK:[3,7],AZ:[5,32],AR:[15,8],CA:[6,40],CO:[4,22],CT:[10,17
 const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4};
 let SIM=false;
 let G=null,UI={tab:'map',sel:null,night:null};
-const KEY='cap270.save.v3';
+const KEY='cap270.save.v3',slotKey=n=>KEY+'.'+n;
 const ST=ab=>G.states.find(s=>s.ab===ab);
 const side=()=>G.me===1?'D':'R', oside=()=>G.me===1?'R':'D';
-function save(){if(SIM)return;try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}}
-function loadSave(){try{const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
+function save(){if(SIM||!G)return;G.rs=_s;G.t=Date.now();try{localStorage.setItem(slotKey(G.slot),JSON.stringify(G))}catch(e){}}
+function loadSaves(){
+  try{const leg=localStorage.getItem(KEY);if(leg){if(!localStorage.getItem(slotKey(1)))localStorage.setItem(slotKey(1),leg);localStorage.removeItem(KEY)}}catch(e){}
+  const out=[];for(let n=1;n<=3;n++){try{const r=localStorage.getItem(slotKey(n));if(r){const o=JSON.parse(r);o.slot=n;out.push(o)}}catch(e){}}return out}
+function dropSave(n){try{localStorage.removeItem(slotKey(n))}catch(e){}}
+function pickSlot(){const ss=loadSaves();for(let n=1;n<=3;n++)if(!ss.find(q=>q.slot===n))return n;return ss.sort((a,b)=>(a.t||0)-(b.t||0))[0].slot}
+function copyText(x){try{navigator.clipboard.writeText(x).then(()=>toast(t('Copié','Copied')),()=>toast(x))}catch(e){toast(x)}}
+function mkDeck(){const a=EVENTS.filter(e=>!['debate','surprise'].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
 const incName=()=>t(G.inc==='D'?'démocrate':'républicain',G.inc==='D'?'Democratic':'Republican');
@@ -326,16 +359,18 @@ function parts(s){const me=G.me;return[
 const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise;
 
-function newGame(me,diff){
+function newGame(me,diff,seed,daily){
+  const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
     adsP:0,adsO:0,fieldP:0,fieldO:0,buzzP:0,buzzO:0,vpP:0,vpO:0,pb:randn()*2,noise:randn()*1.2,spP:0,internal:null,shock:0,eco0:randn()*.5};
     const g=s.tags;s.beta=g.includes('energy')?1.4:g.includes('rust')?1.2:g.includes('urban')?.9:g.includes('retire')?.6:g.includes('ag')?.8:1;
     s.mix=mixOf(s);s.adj=adjOf(s);return s});
   const raw=randn()*1.6+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral;
-  const inc=raw<0?(Math.random()<.7?'D':'R'):(Math.random()<.7?'R':'D');
+  const inc=raw<0?(rnd()<.7?'D':'R'):(rnd()<.7?'R':'D');
   G={v:3,me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
-     pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'vp',spentP:0,spentO:0,analyst:true,hint:null,vpName:''};
+     pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'vp',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
+  G.deck=mkDeck();
   UI={tab:'map',sel:null,night:null};
   save();
 }
@@ -343,7 +378,7 @@ function newGame(me,diff){
 /* ---------- Adversaire ---------- */
 function oppTurn(){
   const o=-G.me,wl=12-G.wk+1,pub=[];
-  G.cashO+=7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+Math.random()*3;
+  G.cashO+=7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+rnd()*3;
   const sc=G.states.map(s=>{const adv=o*margin(s)+randn()*2;
     return{s,adv,w:(adv>-14&&adv<9)?s.ev/(1+Math.pow(Math.max(0,Math.abs(adv)-1)/5,2)):0}}).sort((a,b)=>b.w-a.w);
   const top=sc.slice(0,7).filter(x=>x.w>0),tw=top.reduce((a,x)=>a+x.w,0)||1;
@@ -352,10 +387,10 @@ function oppTurn(){
   if(ads.length){ads.sort((a,b)=>b[1]-a[1]);const tot=ads.reduce((a,x)=>a+x[1],0),names=ads.slice(0,3).map(x=>x[0]);
     pub.push(both(()=>t(`Campagne TV adverse (≈ ${fM(tot)}) surtout en ${names.map(sn).join(', ')}.`,`Opposing TV campaign (≈ ${fM(tot)}) mainly in ${names.map(sn).join(', ')}.`)))}
   if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fieldCost(x.s)+5){x.s.fieldO++;spent+=fieldCost(x.s);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`)))}});
-  const v=top.slice(0,4).sort(()=>Math.random()-.5).slice(0,2);
+  const v=top.slice(0,4).sort(()=>rnd()-.5).slice(0,2);
   v.forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+1.3);spent+=.3;pub.push(both(()=>t(`Meeting de l’adversaire en ${sn(x.s)}.`,`Opponent rally in ${sn(x.s)}.`)))});
   G.cashO=Math.max(0,G.cashO-spent-.08*G.states.reduce((a,s)=>a+s.fieldO*fieldCost(s),0));G.spentO+=spent;
-  if(Math.random()<.5&&G.cashO-spent>3){const gi=bestGroup(oside(),true);G.tgtO[gi]=Math.min(2,G.tgtO[gi]+1);spent+=1.5;if(Math.random()<.5)pub.push(both(()=>t(`Campagne de l’adversaire auprès des ${t(GROUPS[gi].n).toLowerCase()}.`,`Opponent outreach to ${t(GROUPS[gi].n).toLowerCase()}.`)))}
+  if(rnd()<.5&&G.cashO-spent>3){const gi=bestGroup(oside(),true);G.tgtO[gi]=Math.min(2,G.tgtO[gi]+1);spent+=1.5;if(rnd()<.5)pub.push(both(()=>t(`Campagne de l’adversaire auprès des ${t(GROUPS[gi].n).toLowerCase()}.`,`Opponent outreach to ${t(GROUPS[gi].n).toLowerCase()}.`)))}
   if(PARAM.pivotWeeks.includes(G.wk))oppPivot(pub);
   pub.forEach(x=>L('opp',x));
 }
@@ -370,8 +405,8 @@ function bestShift(sd){
     if(!best||g>best.g)best={i,np,g}}));
   return best;
 }
-function bestGroup(sd,rnd){
-  const bg=G.states.filter(s=>Math.abs(margin(s))<8),sc=GROUPS.map((q,gi)=>({gi,v:bg.reduce((a,s)=>a+s.ev*s.mix[gi],0)*(1+Math.max(0,groupPref(gi,sd)))*(1+(rnd?Math.random()*.4:0))}));
+function bestGroup(sd,rr){
+  const bg=G.states.filter(s=>Math.abs(margin(s))<8),sc=GROUPS.map((q,gi)=>({gi,v:bg.reduce((a,s)=>a+s.ev*s.mix[gi],0)*(1+Math.max(0,groupPref(gi,sd)))*(1+(rr?rnd()*.4:0))}));
   return sc.sort((a,b)=>b.v-a.v)[0].gi;
 }
 function oppPivot(pub){
@@ -403,11 +438,11 @@ const EVENTS=[
  {t:B('Poursuivre la campagne','Keep campaigning'),d:B('Risque d’image','Image risk'),fx(){H.img(-.3);return B('On vous reproche de faire de la politique pendant le drame.','You are accused of playing politics during the tragedy.')}}]},
 {id:'gaffe',t:B('Micro resté ouvert','Hot mic'),x:()=>t('Une phrase du candidat captée en coulisses devient virale en quelques heures.','A remark the candidate made backstage goes viral within hours.'),ch:[
  {t:B('Présenter des excuses','Apologize'),d:B('Dégâts limités','Limited damage'),fx(){H.img(-.1);return B('L’affaire retombe vite.','The story fades quickly.')}},
- {t:B('Assumer et contre-attaquer','Own it and hit back'),d:GAMBLE,fx(){if(Math.random()<.45){H.img(.5);return B('Votre base applaudit, les indépendants aussi.','Your base cheers, and so do independents.')}H.img(-.9);return B('Le pari échoue. Les chaînes d’info en font leur ouverture.','The gamble fails. Cable news leads with it.')}},
+ {t:B('Assumer et contre-attaquer','Own it and hit back'),d:GAMBLE,fx(){if(rnd()<.45){H.img(.5);return B('Votre base applaudit, les indépendants aussi.','Your base cheers, and so do independents.')}H.img(-.9);return B('Le pari échoue. Les chaînes d’info en font leur ouverture.','The gamble fails. Cable news leads with it.')}},
  {t:B('Envoyer le colistier au front','Send your running mate out'),d:M1A,fx(){if(G.ap>=1){G.ap--;H.img(-.15)}else H.img(-.35);return B('Le colistier prend la parole, la polémique faiblit.','Your running mate steps up and the controversy cools.')}}]},
 {id:'scandal',t:B('Un ancien collaborateur est mis en cause','A former aide is under fire'),x:()=>t('Un article met en cause un ancien conseiller du candidat. La presse réclame une réaction.','An article implicates a former adviser to the candidate. The press demands a response.'),ch:[
  {t:B('Prendre ses distances','Distance yourself'),d:B('Sûr','Safe'),fx(){H.img(-.25);return B('Vous coupez court. Le coût est modéré.','You cut it short. The cost is moderate.')}},
- {t:B('Défendre à tout prix','Defend at all costs'),d:GAMBLE,fx(){if(Math.random()<.4){H.img(-1.3);return B('L’affaire enfle et vous colle à la peau.','The story snowballs and sticks to you.')}return B('L’affaire s’éteint d’elle-même.','The story dies down on its own.')}},
+ {t:B('Défendre à tout prix','Defend at all costs'),d:GAMBLE,fx(){if(rnd()<.4){H.img(-1.3);return B('L’affaire enfle et vous colle à la peau.','The story snowballs and sticks to you.')}return B('L’affaire s’éteint d’elle-même.','The story dies down on its own.')}},
  {t:B('Enquête indépendante','Independent inquiry'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.img(-.1);return B('Vous gagnez en crédibilité pour un coût raisonnable.','You gain credibility at a reasonable cost.')}}]},
 {id:'endorse',t:B('Un poids lourd propose son soutien','A heavyweight offers an endorsement'),x:()=>t('Un ancien gouverneur très populaire dans le Midwest propose de vous soutenir publiquement.','A former governor, very popular in the Midwest, offers to endorse you publicly.'),ch:[
  {t:B('Accepter avec un meeting commun','Accept with a joint rally'),d:M1A,fx(){if(G.ap>=1)G.ap--;H.img(.4);['WI','MI','PA','MN'].forEach(a=>H.buzz(a,.8));return B('Le meeting fait la une des journaux régionaux.','The rally makes front pages across the region.')}},
@@ -429,9 +464,9 @@ const EVENTS=[
  {t:B('Commander un audit','Commission an audit'),d:B('−1,5 M$','−$1.5M'),fx(){H.pay(1.5);const v=G.me*G.pbNat+randn()*.4;G.hint=v;return both(()=>t(`Vos analystes estiment que les sondages publics sont décalés de ${fS(v)} point en votre faveur (marge d’erreur ±0,5).`,`Your analysts estimate that public polls are shifted ${fS(v)} points in your favor (margin of error ±0.5).`))}},
  {t:B('Faire confiance aux sondages','Trust the polls'),d:FREE,fx(){return B('Vous gardez le cap.','You stay the course.')}}]},
 {id:'deepfake',t:B('Vidéo truquée en circulation','Doctored video in circulation'),x:()=>t('Une vidéo manipulée du candidat circule sur les réseaux.','A manipulated video of the candidate is circulating on social media.'),ch:[
- {t:B('Dénoncer publiquement','Denounce it publicly'),d:FREE,fx(){if(Math.random()<.7){H.img(.1);return B('Les médias relaient votre démenti.','The media relay your denial.')}H.img(-.2);return B('Votre démenti donne plus d’écho à la vidéo.','Your denial gives the video more reach.')}},
+ {t:B('Dénoncer publiquement','Denounce it publicly'),d:FREE,fx(){if(rnd()<.7){H.img(.1);return B('Les médias relaient votre démenti.','The media relay your denial.')}H.img(-.2);return B('Votre démenti donne plus d’écho à la vidéo.','Your denial gives the video more reach.')}},
  {t:B('Riposte juridique','Take legal action'),d:B('−2 M$','−$2M'),fx(){H.pay(2);H.img(.05);return B('La vidéo est retirée rapidement.','The video is quickly taken down.')}},
- {t:B('Ignorer','Ignore it'),d:GAMBLE,fx(){if(Math.random()<.5){H.img(-.6);return B('La vidéo s’est largement propagée.','The video spread widely.')}return B('Elle passe inaperçue.','It goes unnoticed.')}}]},
+ {t:B('Ignorer','Ignore it'),d:GAMBLE,fx(){if(rnd()<.5){H.img(-.6);return B('La vidéo s’est largement propagée.','The video spread widely.')}return B('Elle passe inaperçue.','It goes unnoticed.')}}]},
 {id:'union',t:B('Grève dans l’automobile','Auto industry strike'),x:()=>t('Un conflit social touche le Michigan et l’Ohio. Chaque camp est attendu sur les piquets.','A labor dispute hits Michigan and Ohio. Both sides are expected on the picket lines.'),ch:[
  {t:B('Rejoindre le piquet de grève','Join the picket line'),d:M1AN,fx(){G.apNext-=1;['MI','OH','PA','WI'].forEach(a=>H.buzz(a,1.2));H.img(.1);return B('Des images fortes dans quatre États clés.','Powerful images in four key states.')}},
  {t:B('Rester à l’écart','Stay out of it'),d:FREE,fx(){return B('Vous évitez le sujet.','You avoid the topic.')}}]},
@@ -449,7 +484,7 @@ const EVENTS=[
  {t:B('Parler pouvoir d’achat','Talk cost of living'),d:FREE,fx(){H.target('lat',.5);H.sal('eco',.08);return B('Le message sur le budget des ménages fait écho.','The message on household budgets resonates.')}}]},
 {id:'seniors',t:B('Débat sur la Sécurité sociale','Social Security debate'),x:()=>t('Un rapport alerte sur l’équilibre des retraites. Les seniors scrutent chaque mot.','A report warns about the balance of pensions. Seniors scrutinize every word.'),pre(){H.sal('san',.12)},ch:[
  {t:B('Promettre de ne rien toucher','Promise to leave it untouched'),d:B('Seniors +','Seniors +'),fx(){H.target('sen',1);return B('Les seniors apprécient la garantie.','Seniors appreciate the guarantee.')}},
- {t:B('Parler de réforme','Talk reform'),d:B('Risqué','Risky'),fx(){if(Math.random()<.5){H.img(.3);return B('Votre sérieux est salué.','Your seriousness is praised.')}H.target('sen',-.8);return B('Les seniors s’inquiètent.','Seniors grow worried.')}}]},
+ {t:B('Parler de réforme','Talk reform'),d:B('Risqué','Risky'),fx(){if(rnd()<.5){H.img(.3);return B('Votre sérieux est salué.','Your seriousness is praised.')}H.target('sen',-.8);return B('Les seniors s’inquiètent.','Seniors grow worried.')}}]},
 {id:'campus',t:B('Mobilisation étudiante','Student mobilization'),x:()=>t('Des campus se mobilisent pour le climat et le coût des études. Les jeunes pèsent surtout dans les États universitaires.','Campuses mobilize over climate and the cost of college. Young voters matter most in university states.'),ch:[
  {t:B('Organiser un rassemblement','Hold a rally'),d:B('−1 M$','−$1M'),fx(){H.pay(1);H.target('jeu',1);return B('Beaucoup de jeunes répondent à l’appel.','Many young people answer the call.')}},
  {t:B('Rester en retrait','Stay on the sidelines'),d:FREE,fx(){return B('Le sujet passe sans vous.','The topic passes you by.')}}]},
@@ -459,7 +494,7 @@ const EVENTS=[
  {t:B('Prudent','Cautious'),d:B('Peu de risque','Low risk'),fx(){return debate(0,.6)}}]},
 {id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation'),
  x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.'):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.'),
- pre(){G.ev.hit=Math.random()<.5?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
+ pre(){G.ev.hit=rnd()<.5?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
  {t:B('Contre-attaque médiatique','Media counterattack'),d:B('−3 M$','−$3M'),fx(){H.pay(3);if(G.ev.hit==='you'){H.img(.5);return B('Vous limitez les dégâts.','You limit the damage.')}H.img(.2);return B('Vous enfoncez le clou.','You drive the point home.')}},
  {t:B('Laisser passer','Let it pass'),d:FREE,fx(){return B('La campagne se poursuit.','The campaign goes on.')}}]}
 ];
@@ -468,7 +503,7 @@ function debate(mean,sd){const r=PARAM.prep*G.prep+mean+randn()*sd;G.prep=0;H.im
 function nextEvent(){
   let id;
   if(G.wk===5||G.wk===9)id='debate';else if(G.wk===11)id='surprise';
-  else{const pool=EVENTS.filter(e=>!['debate','surprise'].includes(e.id)&&!G.used.includes(e.id));const e=pool[Math.floor(Math.random()*pool.length)];id=e.id;G.used.push(id)}
+  else{if(!G.deck||!G.deck.length)G.deck=mkDeck();id=G.deck.shift();G.used.push(id)}
   G.ev={id,res:null};G.phase='event';
   EVENTS.find(e=>e.id===id).pre?.();
 }
@@ -487,8 +522,8 @@ const A={
  poll(){if(!can())return;const s=ST(UI.sel);if(s.internal!==null)return;if(!needCash(1))return;s.internal=margin(s)+randn()*.4;save();render()},
  pos(d){if(!can())return;const i=+d.i,sd=side(),np=clamp(G.pos[sd][i]+ +d.d,-2,2);if(np===G.pos[sd][i])return;if(!needAP(1))return;G.pos[sd][i]=np;const nm=ISSUES[i].n;L('you',B(`Nouvelle position sur « ${nm.fr} ».`,`New position on “${nm.en}”.`));save();render()},
  agenda(d){if(!can())return;const i=+d.i;if(!needAP(1))return;G.sal[i]=clamp(G.sal[i]+.14,.1,1.6);G.sal=G.sal.map((v,k)=>k===i?v:Math.max(.1,v-.02));const nm=ISSUES[i].n;L('you',B(`Vous mettez « ${nm.fr} » à l’agenda.`,`You put “${nm.en}” on the agenda.`));save();render()},
- fund(){if(!can()||!needAP(1))return;const r=4+Math.random()*3+Math.max(0,G.me*G.img)*1.5;G.cash+=r;L('you',both(()=>t(`Collecte de fonds : ${fM(r)}.`,`Fundraising: ${fM(r)}.`)));save();render()},
- media(){if(!can()||!needAP(1))return;const r=Math.random();if(r<.6){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<.85)L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
+ fund(){if(!can()||!needAP(1))return;const r=4+rnd()*3+Math.max(0,G.me*G.img)*1.5;G.cash+=r;L('you',both(()=>t(`Collecte de fonds : ${fM(r)}.`,`Fundraising: ${fM(r)}.`)));save();render()},
+ media(){if(!can()||!needAP(1))return;const r=rnd();if(r<.6){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<.85)L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
  prep(){if(!can())return;if(G.prep>=3){toast(t('Préparation au maximum.','Preparation already at maximum.'));return}if(!needAP(1))return;G.prep++;L('you',B(`Préparation du débat (${G.prep}/3).`,`Debate prep (${G.prep}/3).`));save();render()},
  end(){endWeek()},
  choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`));save();showEvent()},
@@ -497,13 +532,20 @@ const A={
  target(d){if(!can())return;const i=+d.i;if(G.ap<1){noAP();return}if(!needCash(1.5))return;G.ap--;G.tgtP[i]=Math.min(2,G.tgtP[i]+1);const nm=GROUPS[i].n;L('you',B(`Campagne ciblée auprès des ${nm.fr.toLowerCase()}.`,`Targeted outreach to ${nm.en.toLowerCase()}.`));save();render()},
  vp(d){pickVP(+d.i)},
  skip(){UI.night.idx=G.order.length;nightTick()},
- help(){showModal(helpHTML(!!G&&G.phase==='play'))},
+ help(){showModal(helpHTML(!!G&&G.phase==='play'),'help')},
+ settings(){showModal(settingsHTML(),'set')},
+ stats(){showModal(statsHTML(),'stats')},
+ set(d){SET[d.k]=+d.v;try{localStorage.setItem('cap270.set',JSON.stringify(SET))}catch(e){}applySet();showModal(settingsHTML(),'set');if(G&&!$('#game').hidden)render()},
+ daily(){newGame(pickedSide,pickedDiff,hashStr('daily-'+dayStr()),dayStr());render();showBrief()},
+ del(d){if(confirm(t('Supprimer cette partie ?','Delete this game?'))){dropSave(+d.slot);renderTitle()}},
+ copycode(){copyText(codeOf(G.seed))},
+ share(){if(navigator.share)navigator.share({text:UI.share}).catch(()=>{});else copyText(UI.share)},
  closeHelp(){hideModal();if(G){if(G.phase==='event')showEvent();else if(G.phase==='vp')showBrief()}},
  tutoNext(){if(UI.tuto>=TUTO.length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  tutoSkip(){UI.tuto=null;tutoMark();render()},
  tutoRestart(){hideModal();tutoGo(0)},
  lang(d){setLang(d.l)},
- restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');try{localStorage.removeItem(KEY)}catch(e){}renderTitle();$('#title').hidden=false}
+ restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');renderTitle();$('#title').hidden=false}
 };
 
 function endWeek(){
@@ -518,7 +560,7 @@ function endWeek(){
   G.wk++;
   if(G.wk>12){election();return}
   G.ap=Math.max(0,3+G.apNext);G.apNext=0;
-  nextEvent();save();render();showEvent();
+  nextEvent();snap();save();render();showEvent();
 }
 
 /* ---------- Colistier ---------- */
@@ -533,8 +575,8 @@ const VPS={D:[
 function pickVP(i){
   const v=VPS[side()][i];G.vpName=v.n;
   if(v.k==='region'){ST(v.st).vpP+=2;v.ne.forEach(a=>ST(a).vpP+=.6)}else if(v.k==='image')G.img+=G.me*.5;else G.cash+=8;
-  const ov=ST(['PA','AZ','GA','WI','MI','NC'][Math.floor(Math.random()*6)]);ov.vpO+=2;
-  G.phase='play';L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`)));
+  const ov=ST(['PA','AZ','GA','WI','MI','NC'][Math.floor(rnd()*6)]);ov.vpO+=2;
+  G.phase='play';snap();L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`)));
   hideModal();save();if(!SIM&&!tutoSeen())UI.tuto=0;render();if(UI.tuto===0)tutoGo(0);
 }
 
@@ -544,7 +586,7 @@ function tileStyle(m){
   const dk=isDark(),k=clamp(Math.abs(m)/18,0,1);
   if(Math.abs(m)<1.5)return{bg:dk?'#3a4354':'#c9ccd3',fg:dk?'#e7ebf3':'#14213a',tu:true};
   const l=dk?32+k*22:88-k*50;
-  return{bg:`hsl(${m>=0?218:4} ${dk?52:62}% ${l}%)`,fg:(dk||l<62)?'#fff':'#14213a',tu:false};
+  return{bg:`hsl(${m>=0?218:(SET.cb?28:4)} ${dk?52:62}% ${l}%)`,fg:(dk||l<62)?'#fff':'#14213a',tu:false};
 }
 function proj(){let ys=0,yl=0,c=0,ol=0,os=0;
   G.states.forEach(s=>{const p=G.me*pollOf(s);if(p>=4)ys+=s.ev;else if(p>=1.5)yl+=s.ev;else if(p>-1.5)c+=s.ev;else if(p>-4)ol+=s.ev;else os+=s.ev});
@@ -565,7 +607,7 @@ function applyStatic(){
 function setLang(l){
   LANG=l==='fr'?'fr':'en';try{localStorage.setItem('cap270.lang',LANG)}catch(e){}
   applyStatic();
-  if(!$('#modal').hidden&&$('#modal .man'))showModal(helpHTML(!!G&&G.phase==='play'));
+  if(!$('#modal').hidden){if(UI.mk==='help')showModal(helpHTML(!!G&&G.phase==='play'),'help');else if(UI.mk==='set')showModal(settingsHTML(),'set');else if(UI.mk==='stats')showModal(statsHTML(),'stats')}
   if(G&&!$('#game').hidden)render();else renderTitle();
 }
 
@@ -613,7 +655,7 @@ function statePanel(){
 function renderMain(){
   const m=$('#main');let h='';
   if(UI.tab==='map'){
-    h=mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">${t('Démocrate','Democrat')}</span><span style="--c:hsl(4 62% 40%)">${t('Républicain','Republican')}</span><span style="--c:#c9ccd3">${t('Incertain (moins de 1,5)','Toss-up (under 1.5)')}</span></div>`+statePanel();
+    h=mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">${t('Démocrate','Democrat')}</span><span style="--c:hsl(${SET.cb?28:4} 62% 40%)">${t('Républicain','Republican')}</span><span style="--c:#c9ccd3">${t('Incertain (moins de 1,5)','Toss-up (under 1.5)')}</span></div>`+statePanel();
   }else if(UI.tab==='issues'){
     const sd=side(),os=oside(),ok=can();
     h=`<p class="muted" style="margin:14px 0 10px">${t('Chaque changement de position ou mise à l’agenda coûte 1 action. Le point plein est votre position, le cercle celle de l’adversaire.','Each position change or agenda push costs 1 action. The filled dot is your position, the ring is your opponent’s.')}</p>`+ISSUES.map((I,i)=>{
@@ -645,7 +687,7 @@ function renderMain(){
     <div class="card"><div><h3>${t('Collecte de fonds','Fundraising')}</h3><p>${t('Rapporte environ 4 à 7 M$, plus si votre image est bonne.','Raises about $4M to $7M, more with a good image.')}</p></div><button class="btn sm" data-act="fund" ${ok?'':'disabled'}>1 action</button></div>
     <div class="card"><div><h3>${t('Grande interview','Major interview')}</h3><p>${t('Probablement bénéfique pour votre image, avec un risque de dérapage.','Likely to help your image, with a risk of a slip.')}</p></div><button class="btn sm" data-act="media" ${ok?'':'disabled'}>1 action</button></div>
     <div class="card"><div><h3>${t('Préparer le débat','Debate prep')}</h3><p>${t('Préparation','Preparation')} ${G.prep}/3. ${nd?t(`Prochain débat : semaine ${nd}.`,`Next debate: week ${nd}.`):t('Les débats sont terminés.','The debates are over.')}</p></div><button class="btn sm" data-act="prep" ${ok&&nd?'':'disabled'}>1 action</button></div>
-    <div class="panel"><h3 style="font-size:20px">${t('Votre ticket','Your ticket')}</h3><p style="margin:6px 0 0">${side()==='D'?'Elena Marsh':'Jack Holloway'} ${t('et','and')} ${G.vpName||t('colistier à choisir','running mate to be chosen')}.</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image')} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you')} · ${t('fonds adverses estimés','estimated opponent funds')} : <span class="mono">${fM(G.cashO)}</span>${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias')} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you')}`:''}</p></div>`;
+    <div class="panel"><h3 style="font-size:20px">${t('Votre ticket','Your ticket')}</h3><p style="margin:6px 0 0">${side()==='D'?'Elena Marsh':'Jack Holloway'} ${t('et','and')} ${G.vpName||t('colistier à choisir','running mate to be chosen')}.</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image')} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you')} · ${t('fonds adverses estimés','estimated opponent funds')} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code')} : <span class="mono">${codeOf(G.seed)}</span> <button class="btn sm alt" data-act="copycode" style="min-height:28px;padding:2px 8px">${t('Copier','Copy')}</button>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias')} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you')}`:''}</p></div>`;
   }else{
     h=`<div class="tog"><button class="btn sm alt" data-act="analyst">${G.analyst?t('Masquer les calculs détaillés','Hide detailed calculations'):t('Afficher les calculs détaillés','Show detailed calculations')}</button><span class="muted">${t('Mode analyste : décomposition de la marge de chaque État.','Analyst mode: breakdown of each state’s margin.')}</span></div><ul class="log">${G.log.map(e=>`<li class="${e.k}"><b>${t('S','W')}${e.w}</b><span>${t(e.t)}</span></li>`).join('')||`<li><b></b><span class="muted">${t('Rien à signaler pour l’instant.','Nothing to report yet.')}</span></li>`}</ul>`;
   }
@@ -654,8 +696,8 @@ function renderMain(){
 function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
 
 /* ---------- Modales ---------- */
-function showModal(h){if(SIM)return;const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.hidden=false}
-function hideModal(){$('#modal').hidden=true}
+function showModal(h,k){if(SIM)return;UI.mk=k||null;const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.hidden=false}
+function hideModal(){UI.mk=null;$('#modal').hidden=true}
 function showEvent(){
   if(SIM)return;
   if(!G.ev||G.phase!=='event'){hideModal();return}
@@ -667,7 +709,7 @@ function showEvent(){
 function showBrief(){
   const o=G.me*(G.env-PARAM.neutral),mood=o>1?t('plutôt porteur pour votre camp','rather favorable to your side'):o<-1?t('plutôt difficile pour votre camp','rather difficult for your side'):t('incertain','uncertain');
   const ec=G.econ>.6?t('tourne bien','is doing well'):G.econ<-.6?t('ralentit','is slowing'):t('est stable','is stable');
-  showModal(`<h2>${t('Novembre 2028','November 2028')}</h2><p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(40)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(40)} in the bank and 12 weeks ahead.`)}</p><p><b>${t('Choisissez votre colistier.','Choose your running mate.')}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
+  showModal(`<h2>${t('Novembre 2028','November 2028')}</h2><p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(40)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(40)} in the bank and 12 weeks ahead.`)}</p>${G.seed!=null?`<p class="muted" style="font-size:13px">${G.daily?t('Défi du jour','Daily challenge')+' · ':''}${t('Code de partie','Game code')} : <span class="mono">${codeOf(G.seed)}</span></p>`:''}<p><b>${t('Choisissez votre colistier.','Choose your running mate.')}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
 }
 function election(){
   G.phase='over';const eN=randn()*1.5;
@@ -683,14 +725,14 @@ function nightTick(first){
   let body=`<h2>${t('Soirée électorale','Election night')}</h2><div class="score"><div><span class="muted">${t('Vous','You')}</span><div class="big" style="color:${myC()}">${mine}</div></div><div style="text-align:right"><span class="muted">${t('Adversaire','Opponent')}</span><div class="big" style="color:${opC()}">${theirs}</div></div></div>${mapHTML('final',rev)}`;
   if(!done)body+=`<button class="btn alt full" data-act="skip">${t('Passer au résultat','Skip to the result')}</button>`;
   else{
-    const tie=mine===269&&theirs===269,win=mine>=270||(tie&&Math.random()<.5);
+    const tie=mine===269&&theirs===269,win=G.win!=null?G.win:(G.win=mine>=270||(tie&&rnd()<.5)),newA=G.rec?(G.newA||[]):finish(win,mine,theirs);
     const close=G.states.filter(s=>Math.abs(s.final)<1).map(s=>`${s.ab} (${s.final*G.me>0?t('vous','you'):t('adv.','opp.')})`).join(', ');
     const flips=G.states.filter(s=>Math.sign(s.final)!==Math.sign(s.lean)).map(s=>`${s.ab} (${s.final>0?'D':'R'})`).join(', ');
     const waste=G.states.filter(s=>G.me*s.final<-10&&s.spP>3).reduce((a,s)=>a+s.spP,0);
     let pop=0;G.states.forEach(s=>pop+=s.ev*s.final);pop/=538;
     const head=win?(tie?t('Égalité 269–269 : la Chambre des représentants vous donne la victoire.','Tie at 269–269: the House of Representatives gives you the victory.'):t('Victoire. Vous êtes élu(e) président(e).','Victory. You are elected president.')):(tie?t('Égalité 269–269 : la Chambre des représentants choisit l’adversaire.','Tie at 269–269: the House of Representatives chooses your opponent.'):t('Défaite. L’adversaire l’emporte.','Defeat. Your opponent wins.'));
-    body+=`<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div><button class="btn full" data-act="restart">${t('Nouvelle partie','New game')}</button>`;
-    try{localStorage.removeItem(KEY)}catch(e){}
+    body+=`<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div>${recapHTML(mine)}${achHTML(newA)}<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="share">${t('Partager','Share')}</button><button class="btn" data-act="restart">${t('Nouvelle partie','New game')}</button></div>`;
+    dropSave(G.slot);
   }
   showModal(body);
   if(!done){clearTimeout(nightTick.h);nightTick.h=setTimeout(()=>{n.idx++;nightTick()},first?700:130)}
@@ -724,7 +766,7 @@ function renderCoach(){
 function langSw(){return`<div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-l="en" aria-pressed="${LANG==='en'}">English</button><button data-act="lang" data-l="fr" aria-pressed="${LANG==='fr'}">Français</button></div>`}
 function helpHTML(canReplay){
   const replay=canReplay?`<button class="btn alt" data-act="tutoRestart">${t('Rejouer le tutoriel','Replay the tutorial')}</button>`:'';
-  const head=`<div class="man"><div class="mhead"><h2>${t('Manuel','Manual')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}`;
+  const head=`<div class="man"><div class="mhead"><h2>${t('Manuel','Manual')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}<div style="margin-bottom:8px"><button class="btn sm alt" data-act="settings">⚙ ${t('Réglages','Settings')}</button></div>`;
   const foot=`<div class="irow" style="margin-top:12px">${replay}<button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
   if(FR())return head+`
 <details open><summary>But et déroulé</summary><p>Vous menez une campagne présidentielle fictive de 12 semaines, du 14 août au 7 novembre 2028. Il faut au moins <b>270 des 538 grands électeurs</b>.</p>
@@ -820,10 +862,90 @@ function helpHTML(canReplay){
 <details><summary>Difficulty</summary><p>On Easy, the national mood favors you. On Hard, it works against you and your opponent has more money.</p></details>`+foot;
 }
 
+
+/* ---------- Statistiques, succès, bilan ---------- */
+const STK='cap270.stats';
+function getStats(){const d={g:0,w:0,sd:{D:[0,0],R:[0,0]},df:[[0,0],[0,0],[0,0]],best:0,st:0,bst:0,ach:{},h:[],dl:{}};try{const o=JSON.parse(localStorage.getItem(STK));if(o)Object.assign(d,o)}catch(e){}return d}
+const ACH=[
+ {id:'first',n:B('Première victoire','First victory'),d:B('Remporter une partie.','Win a game.'),ck:c=>c.win},
+ {id:'both',n:B('Les deux camps','Both sides'),d:B('Gagner côté démocrate et côté républicain.','Win as a Democrat and as a Republican.'),ck:c=>c.S.sd.D[1]>0&&c.S.sd.R[1]>0},
+ {id:'hard',n:B('Contre vents et marées','Against the wind'),d:B('Gagner en difficulté Difficile.','Win on Hard.'),ck:c=>c.win&&c.diff===2},
+ {id:'land',n:B('Raz-de-marée','Landslide'),d:B('Gagner avec au moins 350 grands électeurs.','Win with 350 or more electoral votes.'),ck:c=>c.win&&c.mine>=350},
+ {id:'hair',n:B('Au poil','By a hair'),d:B('Gagner avec 279 grands électeurs ou moins.','Win with 279 electoral votes or fewer.'),ck:c=>c.win&&c.mine<=279},
+ {id:'back',n:B('Remontada','Comeback'),d:B('Gagner après être passé sous 230 en projection (semaines 4 à 8).','Win after projecting under 230 (weeks 4 to 8).'),ck:c=>c.win&&c.mn<230},
+ {id:'cash',n:B('Cagnotte intacte','Spare change'),d:B('Gagner avec 10 M$ ou plus encore en caisse.','Win with $10M or more left unspent.'),ck:c=>c.win&&c.cash>=10},
+ {id:'flip',n:B('Redessiner la carte','Map changer'),d:B('Gagner en faisant basculer au moins 5 États par rapport à leur tendance de fond.','Win while flipping 5 or more states from their baseline lean.'),ck:c=>c.win&&c.flips>=5},
+ {id:'roll',n:B('Série gagnante','On a roll'),d:B('Gagner 3 parties d’affilée.','Win 3 games in a row.'),ck:c=>c.S.st>=3},
+ {id:'daily',n:B('Gagnant du jour','Daily winner'),d:B('Gagner un défi du jour.','Win a daily challenge.'),ck:c=>c.win&&c.daily}
+];
+const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
+const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':'en-US',{day:'numeric',month:'short'});
+const slotLabel=sv=>`${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
+function finish(win,mine,theirs){
+  const S=getStats(),sd=side();
+  S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
+  S.best=Math.max(S.best,mine);S.st=win?S.st+1:0;S.bst=Math.max(S.bst,S.st);
+  if(G.daily){S.dl=S.dl||{};S.dl[G.daily]=win?1:0}
+  const flips=G.states.filter(q=>Math.sign(q.final)===G.me&&Math.sign(q.lean)!==G.me).length;
+  const mn=Math.min(999,...(G.hist||[]).filter(h=>h.w>=4&&h.w<=8).map(h=>h.y));
+  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S},got=[];
+  ACH.forEach(a=>{if(!S.ach[a.id]&&a.ck(c)){S.ach[a.id]=Date.now();got.push(a.id)}});
+  S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win,ev:mine,op:theirs,seed:G.seed,daily:G.daily});S.h=S.h.slice(0,30);
+  try{localStorage.setItem(STK,JSON.stringify(S))}catch(e){}
+  G.rec=true;G.newA=got;
+  UI.share=`Road to 270 · ${win?t('Victoire','Victory'):t('Défaite','Defeat')} ${mine}–${theirs} (${sd==='D'?t('Démocrate','Democrat'):t('Républicain','Republican')}, ${DIFFN()[G.diff]})${G.seed!=null?' · '+t('code','code')+' '+codeOf(G.seed):''}${G.daily?' · '+t('défi du jour','daily')+' '+G.daily:''}`+(/^https?:/.test(location.protocol)?'\n'+location.origin+location.pathname:'');
+  return got;
+}
+function achHTML(ids){
+  if(!ids.length)return'';
+  return`<p style="margin:12px 0 0"><b>${ids.length>1?t('Succès débloqués','New achievements'):t('Succès débloqué','New achievement')}</b></p><ul class="ach">${ids.map(i=>{const a=ACH.find(q=>q.id===i);return`<li><b>${t(a.n)}</b>${t(a.d)}</li>`}).join('')}</ul>`;
+}
+function chartSVG(mine){
+  const pts=(G.hist||[]).filter(h=>h.w<=12).map(h=>h.y).concat([mine]);
+  if(pts.length<3)return'';
+  const X=i=>18+i*(264/(pts.length-1)),Y=v=>104-clamp((v-90)/358,0,1)*96,n=pts.length;
+  const poly=pts.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  const tx=(i,l)=>`<text x="${X(i).toFixed(1)}" y="120" font-size="9" text-anchor="middle" style="fill:var(--muted)">${l}</text>`;
+  return`<svg class="chart" viewBox="0 0 300 124" role="img" aria-label="${t('Évolution de votre projection en grands électeurs','Your projected electoral votes over time')}"><line x1="18" x2="282" y1="${Y(270).toFixed(1)}" y2="${Y(270).toFixed(1)}" style="stroke:var(--muted)" stroke-dasharray="4 4"/><text x="284" y="${(Y(270)+3).toFixed(1)}" font-size="9" style="fill:var(--muted)">270</text><polyline fill="none" stroke-width="2.5" stroke-linejoin="round" style="stroke:${myC()}" points="${poly}"/><circle cx="${X(n-1).toFixed(1)}" cy="${Y(mine).toFixed(1)}" r="4.5" style="fill:${myC()}"/>${tx(0,t('S','W')+'1')}${tx(n-2,t('S','W')+'12')}${tx(n-1,t('Vote','Vote'))}</svg>`;
+}
+function recapHTML(mine){
+  const hs=(G.hist||[]).filter(h=>h.w<=12);let best=null;
+  for(let i=1;i<hs.length;i++){const d=hs[i].y-hs[i-1].y;if(!best||Math.abs(d)>Math.abs(best.d))best={d,w:hs[i].w}}
+  const top=G.states.slice().sort((a,b)=>b.spP-a.spP).filter(q=>q.spP>0).slice(0,3).map(q=>`${sn(q)} ${fM(q.spP)} (${G.me*q.final>0?t('gagné','won'):t('perdu','lost')})`).join(', ');
+  return`<h3 class="sect" style="font-size:18px;margin-top:16px">${t('Bilan de campagne','Campaign recap')}</h3>${chartSVG(mine)}
+  <p class="muted" style="margin:0;font-size:13px">${t('Projection de vos grands électeurs, semaine par semaine, puis résultat du vote.','Your projected electoral votes, week by week, then the vote result.')}</p>
+  <div class="kv"><span>${t('Plus gros mouvement','Biggest swing')}</span><span>${best?`${t('semaine','week')} ${best.w} · ${best.d>0?'+':'−'}${Math.abs(best.d)}`:'—'}</span></div>
+  <div class="kv"><span>${t('Budget dépensé','Money spent')}</span><span>${fM(G.spentP)} · ${t('adversaire','opponent')} ${fM(G.spentO)}</span></div>
+  ${top?`<div class="kv"><span>${t('Principaux investissements','Biggest investments')}</span><span style="text-align:right">${top}</span></div>`:''}
+  ${G.seed!=null?`<div class="kv"><span>${t('Code de partie','Game code')}</span><span class="mono">${codeOf(G.seed)}</span></div>`:''}`;
+}
+function statsHTML(){
+  const S=getStats(),rate=S.g?Math.round(S.w/S.g*100):0,dn=DIFFN();
+  const row=(a,b)=>`<div class="kv"><span>${a}</span><span>${b}</span></div>`;
+  return`<div class="man"><div class="mhead"><h2>${t('Statistiques','Statistics')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>
+  ${row(t('Parties jouées','Games played'),S.g)}${row(t('Victoires','Wins'),`${S.w} (${pct(String(rate))})`)}
+  ${row(t('Démocrate','Democrat'),`${S.sd.D[1]}/${S.sd.D[0]}`)}${row(t('Républicain','Republican'),`${S.sd.R[1]}/${S.sd.R[0]}`)}
+  ${dn.map((n,i)=>row(n,`${S.df[i][1]}/${S.df[i][0]}`)).join('')}
+  ${row(t('Meilleur score','Best score'),`${S.best}`)}${row(t('Série en cours / record','Current / best streak'),`${S.st} / ${S.bst}`)}
+  <h3 class="sect" style="font-size:18px;margin-top:16px">${t('Succès','Achievements')} · ${Object.keys(S.ach).length}/${ACH.length}</h3>
+  <ul class="ach">${ACH.map(a=>`<li class="${S.ach[a.id]?'':'off'}"><b>${S.ach[a.id]?'✓ ':''}${t(a.n)}</b>${t(a.d)}</li>`).join('')}</ul>
+  <h3 class="sect" style="font-size:18px;margin-top:16px">${t('Dernières parties','Recent games')}</h3>
+  ${S.h.length?`<table class="hs">${S.h.slice(0,10).map(h=>`<tr><td>${fDate(h.t)}</td><td>${h.me===1?'D':'R'} · ${dn[h.df]}${h.daily?' ★':''}</td><td>${h.win?t('Victoire','Win'):t('Défaite','Loss')} ${h.ev}–${h.op}</td><td class="mono">${h.seed!=null?codeOf(h.seed):''}</td></tr>`).join('')}</table>`:`<p class="muted">${t('Aucune partie terminée pour l’instant.','No finished games yet.')}</p>`}
+  <div class="irow" style="margin-top:12px"><button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
+}
+function settingsHTML(){
+  const tg=(k,lab)=>`<div class="srow"><span>${lab}</span><button class="btn sm alt" data-act="set" data-k="${k}" data-v="${SET[k]?0:1}" aria-pressed="${!!SET[k]}">${SET[k]?t('Activé','On'):t('Désactivé','Off')}</button></div>`;
+  return`<div class="man"><div class="mhead"><h2>${t('Réglages','Settings')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}
+  ${tg('cb',t('Palette daltonienne (bleu et orange)','Color-blind palette (blue and orange)'))}
+  <div class="srow"><span>${t('Taille du texte','Text size')}</span><div class="segm">${[t('Normal','Normal'),t('Grand','Large'),t('Très grand','Extra large')].map((l,i)=>`<button class="btn sm alt" data-act="set" data-k="txt" data-v="${i}" aria-pressed="${SET.txt===i}">${l}</button>`).join('')}</div></div>
+  ${tg('vib',t('Vibrations légères (mobile)','Light vibrations (mobile)'))}
+  <div class="irow" style="margin-top:12px"><button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
+}
+
 /* ---------- Écran titre et démarrage ---------- */
 let pickedSide=1,pickedDiff=1;
 function renderTitle(){
-  const hasSave=!!loadSave();
+  const saves=loadSaves(),dl=getStats().dl&&getStats().dl[dayStr()];
   $('#title').innerHTML=`${langSw()}
   <h1>${FR()?'Cap sur':'Road to'} <span>270</span></h1>
   <p class="lede">${t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.')}</p>
@@ -836,9 +958,11 @@ function renderTitle(){
     <button data-diff="1" aria-pressed="${pickedDiff===1}"><b>Normal</b><small>${t('Course équilibrée','Even race')}</small></button>
     <button data-diff="2" aria-pressed="${pickedDiff===2}"><b>${t('Difficile','Hard')}</b><small>${t('Vent de face','Headwind')}</small></button>
   </div>
+  <input class="codein" id="codeIn" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${t('Code de partie (facultatif)','Game code (optional)')}" aria-label="${t('Code de partie','Game code')}">
   <button class="btn full" data-act="start">${t('Lancer la campagne','Start the campaign')}</button>
-  ${hasSave?`<button class="btn alt full" data-act="cont" style="margin-top:10px">${t('Reprendre la partie','Resume game')}</button>`:''}
-  <button class="btn alt full" data-act="help" style="margin-top:10px">${t('Comment jouer','How to play')}</button>
+  <button class="btn alt full" data-act="daily" style="margin-top:10px">${t('Défi du jour','Daily challenge')} · ${dayStr()}${dl===1?' ✓':dl===0?' ✗':''}</button>
+  ${saves.map(sv=>`<div class="slot"><button class="btn alt" data-act="cont" data-slot="${sv.slot}">${t('Reprendre','Resume')} : ${slotLabel(sv)}</button><button class="x" data-act="del" data-slot="${sv.slot}" aria-label="${t('Supprimer','Delete')}">×</button></div>`).join('')}
+  <div class="trio"><button class="btn alt sm" data-act="help">${t('Comment jouer','How to play')}</button><button class="btn alt sm" data-act="stats">${t('Statistiques','Stats')}</button><button class="btn alt sm" data-act="settings">${t('Réglages','Settings')}</button></div>
   <ul class="rules">
     <li>${t('Chaque semaine : 3 actions (visites, collecte, positions) et de l’argent (publicité, bureaux de terrain).','Each week: 3 actions (visits, fundraising, positions) and money (ads, field offices).')}</li>
     <li>${t('Les sondages sont bruités et peuvent se tromper dans le même sens partout. Un sondage interne coûte 1 M$ et donne la vraie marge.','Polls are noisy and can all miss in the same direction. An internal poll costs $1M and shows the true margin.')}</li>
@@ -852,12 +976,13 @@ document.addEventListener('click',e=>{
   const sb=e.target.closest('#pickSide button');if(sb){pickedSide=+sb.dataset.side;document.querySelectorAll('#pickSide button').forEach(b=>b.setAttribute('aria-pressed',b===sb));return}
   const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
   const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
-  if(a==='start'){newGame(pickedSide,pickedDiff);render();showBrief();return}
-  if(a==='cont'){const s=loadSave();if(s){G=s;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
+  if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null);render();showBrief();return}
+  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
+  if(SET.vib&&['ads','field','visit','poll','pos','agenda','fund','media','prep','target','end','choose','vp'].includes(a))navigator.vibrate?.(a==='end'?20:8);
   A[a]&&A[a](x.dataset);
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(G)render()});
-applyStatic();renderTitle();
+applySet();applyStatic();renderTitle();
 </script>
 
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
