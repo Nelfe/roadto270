@@ -9,5 +9,8 @@
     "test:smoke": "node tests/smoke.js",
     "test:balance": "node tests/balance.js 200"
   },
-  "devDependencies": { "playwright": "^1.48.0" }
+  "devDependencies": {
+    "acorn": "^8.19.0",
+    "playwright": "^1.48.0"
+  }
 }

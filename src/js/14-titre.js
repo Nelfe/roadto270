@@ -3,7 +3,7 @@ let pickedSide=1,pickedDiff=1,pickedMode='pres';
 function renderTitle(){
   const saves=loadSaves(),dl=getStats().dl&&getStats().dl[dayStr()];
   $('#title').innerHTML=`${langSw()}
-  <h1>${FR()?'Cap sur':'Road to'} <span>270</span></h1>
+  <h1>${FR()?'Cap sur':LANG==='es'?'Rumbo a':'Road to'} <span>270</span></h1>
   <div class="pick" id="pickMode"><button data-mode="pres" aria-pressed="${pickedMode==='pres'}"><b>${t('Présidentielle 2028','Presidential 2028')}</b><small>${t('270 grands électeurs','270 electoral votes')}</small></button><button data-mode="mid" aria-pressed="${pickedMode==='mid'}"><b>${t('Midterms 2030','Midterms 2030')}</b><small>${t('Chambre et Sénat','House and Senate')}</small></button></div>
   <p class="lede">${pickedMode==='mid'?t('Douze semaines pour conquérir le Congrès. Vous dirigez la campagne nationale de votre parti : vous répartissez votre argent et votre temps entre 435 sièges de la Chambre et 35 courses au Sénat, face à un adversaire qui fait de même. Données calées sur les résultats de 2024.','Twelve weeks to win Congress. You run your party’s national campaign, splitting money and time across 435 House seats and 35 Senate races, against an opponent doing the same. Data calibrated on the 2024 results.'):t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.')}</p>
   <div class="pick" id="pickSide">

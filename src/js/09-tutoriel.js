@@ -24,7 +24,7 @@ function renderCoach(){
   c.innerHTML=`<div class="cn">${t('Tutoriel · étape','Tutorial · step')} ${UI.tuto+1}/${TUTO.length}</div><h3>${t(st.t)}</h3><p>${t(st.x)}</p><div class="cb">${last?'':`<button class="btn sm alt" data-act="tutoSkip">${t('Passer','Skip')}</button>`}<button class="btn sm" data-act="tutoNext">${last?t('Commencer','Start'):t('Suivant','Next')}</button></div>`;
   const e=document.querySelector(st.hl);if(e)e.classList.add('hl');
 }
-function langSw(){return`<div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-l="en" aria-pressed="${LANG==='en'}">English</button><button data-act="lang" data-l="fr" aria-pressed="${LANG==='fr'}">Français</button></div>`}
+function langSw(){return`<div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-l="en" aria-pressed="${LANG==='en'}">English</button><button data-act="lang" data-l="fr" aria-pressed="${LANG==='fr'}">Français</button><button data-act="lang" data-l="es" aria-pressed="${LANG==='es'}">Español</button></div>`}
 function helpHTML(canReplay){
   const replay=canReplay?`<button class="btn alt" data-act="tutoRestart">${t('Rejouer le tutoriel','Replay the tutorial')}</button>`:'';
   const head=`<div class="man"><div class="mhead"><h2>${t('Manuel','Manual')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}<div style="margin-bottom:8px"><button class="btn sm alt" data-act="settings">⚙ ${t('Réglages','Settings')}</button></div>`;
@@ -97,6 +97,7 @@ function helpHTML(canReplay){
 <li>Surveillez le Journal : les actions publiques de l’adversaire y apparaissent.</li>
 <li>Dans le Journal, « Afficher les calculs » détaille la marge de chaque État.</li></ul></details>
 <details><summary>Difficulté</summary><p>En Facile, le climat national vous est favorable. En Difficile, il vous est défavorable et l’adversaire dispose de plus de fonds.</p></details>`+foot;
+  if(LANG==='es')return head+HELP_ES+foot;
   return head+`
 <details open><summary>Goal and flow</summary><p>You run a fictional 12-week presidential campaign, from August 14 to November 7, 2028. You need at least <b>270 of the 538 electoral votes</b>.</p>
 <ul><li>Each week, you spend your <b>3 actions</b> and your money.</li><li>You end the week: your opponent plays, the economy moves, and an event asks you to choose.</li><li>On election night, results come in state by state with some randomness: polls can be wrong.</li></ul></details>

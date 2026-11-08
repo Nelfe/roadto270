@@ -35,7 +35,7 @@ function genCand(sd,used){
   while(tr.length<2){const q=pickR(keys);if(!tr.includes(q))tr.push(q)}
   return{n,g,k,hs,city,tr,wk:pickR(Object.keys(WEAKS))};
 }
-const stNameOf=ab=>{const r=ST_RAW.find(q=>q[0]===ab);return FR()?r[1]:(EN_NAMES[ab]||r[1])};
+const stNameOf=ab=>{const r=ST_RAW.find(q=>q[0]===ab);return FR()?r[1]:LANG==='es'?(ES_NAMES[ab]||r[1]):(EN_NAMES[ab]||r[1])};
 const roleTxt=c=>{const R=ROLES[c.k];return t(R[c.g])+(c.city?` · ${c.city}, ${c.hs}`:R.st?` · ${stNameOf(c.hs)}`:'')};
 const trP=()=>G.cand?G.cand.tr:[],trO=()=>G.opp?G.opp.tr:[];
 const wkP=()=>G.cand?G.cand.wk:null,wkO=()=>G.opp?G.opp.wk:null;

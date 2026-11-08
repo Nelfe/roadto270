@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Assemble src/ -> index.html (PWA) and dist/artifact.html (single file, no service worker)
-const fs=require('fs'),path=require('path');
+const fs=require('fs'),path=require('path'),{inject}=require('./i18n');
 const R=path.join(__dirname,'..'),S=p=>path.join(R,'src',p);
 const rd=p=>fs.readFileSync(S(p),'utf8');
 const j=n=>fs.readFileSync(S('data/'+n+'.json'),'utf8').trim();
@@ -12,9 +12,13 @@ const HSEATS=${j('house_seats')};
 const SEN_UP=${j('senate_up')};
 const DEMO=${j('demo')};
 const CFG=${JSON.stringify(cfg)};
+const ES_NAMES=${j('es_names')};
+const HELP_ES=${JSON.stringify(rd('i18n/help_es.html').trim())};
 `;
 const files=fs.readdirSync(S('js')).filter(f=>f.endsWith('.js')).sort();
-let js=files.map(f=>rd('js/'+f)).join('');
+const es=JSON.parse(rd('i18n/es.json'));const missing=new Set();
+let js=files.map(f=>inject(rd('js/'+f),es,missing)).join('');
+if(missing.size)console.log('es: '+missing.size+' English-only strings (fallback)');
 // data goes right after 'use strict' (first line of 00-core.js)
 js=js.replace("'use strict';\n","'use strict';\n"+data);
 const core=rd('head.html')+'<style>\n'+rd('style.css')+'</style>\n'+rd('body.html')+'<script>\n'+js+'</script>\n';

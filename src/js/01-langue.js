@@ -1,18 +1,19 @@
 /* ---------- Langue ---------- */
 let LANG='en';
-try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en')LANG=l}catch(e){}
+try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en'||l==='es')LANG=l}catch(e){}
 const FR=()=>LANG==='fr';
+const COMMA=()=>LANG!=='en'; // decimal comma, “M$” amounts (fr, es)
 let SET={cb:0,txt:0,vib:1,tel:0};
 try{Object.assign(SET,JSON.parse(localStorage.getItem('cap270.set')||'{}'))}catch(e){}
 function applySet(){const r=document.documentElement;r.dataset.cb=SET.cb?'1':'0';r.style.zoom=[1,1.12,1.25][SET.txt]||1}
-const B=(fr,en)=>({fr,en});
-const t=(a,b)=>b===undefined?(a&&typeof a==='object'?a[LANG]:a):(LANG==='fr'?a:b);
-const both=fn=>{const o=LANG;LANG='fr';const a=fn();LANG='en';const b=fn();LANG=o;return B(a,b)};
-const f1=x=>{const s=x.toFixed(1);return FR()?s.replace('.',','):s};
+const B=(fr,en,es)=>({fr,en,es});
+const t=(a,b,c)=>b===undefined?(a&&typeof a==='object'?(a[LANG]??a.en):a):(LANG==='fr'?a:LANG==='es'?(c??b):b);
+const both=fn=>{const o=LANG;LANG='fr';const a=fn();LANG='en';const b=fn();LANG='es';const c=fn();LANG=o;return B(a,b,c)};
+const f1=x=>{const s=x.toFixed(1);return COMMA()?s.replace('.',','):s};
 const fS=x=>(x>=0?'+':'−')+f1(Math.abs(x));
-const fM=x=>FR()?f1(x)+' M$':'$'+f1(x)+'M';
-const fm0=x=>{const s=Number.isInteger(x)?String(x):f1(x);return FR()?s+' M$':'$'+s+'M'};
-const pct=s=>FR()?s+' %':s+'%';
+const fM=x=>COMMA()?f1(x)+' M$':'$'+f1(x)+'M';
+const fm0=x=>{const s=Number.isInteger(x)?String(x):f1(x);return COMMA()?s+' M$':'$'+s+'M'};
+const pct=s=>COMMA()?s+' %':s+'%';
 const fD=m=>(m>=0?'D+':'R+')+f1(Math.abs(m));
 
 const ISSUES=[
@@ -29,7 +30,7 @@ const ISSUES=[
 ];
 const S0=ISSUES.map(i=>i.s0);
 // ab, nom, grands électeurs, marge de fond (D+), ligne, colonne, tags
-const sn=s=>FR()?s.name:(EN_NAMES[s.ab]||s.name);
+const sn=s=>FR()?s.name:LANG==='es'?(ES_NAMES[s.ab]||s.name):(EN_NAMES[s.ab]||s.name);
 
 const GROUPS=[
  {id:'ouv',n:B('Classes populaires','Working class'),d:B('Ouvriers et employés sans diplôme supérieur','Workers and employees without a college degree'),ideal:[.5,-1.2,.8,-.3,-.8,-.8,-1,0.2,0.8,-0.6],w:[1.3,1.1,.8,.6,1,.6,1.2,0.6,0.9,0.6]},
@@ -88,4 +89,4 @@ function mkDeck(){const a=EVENTS.filter(e=>!['debate','surprise','third',...(G.m
 function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:G.mode==='mid'?projMid().youH:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
-const incName=()=>t(G.inc==='D'?'démocrate':'républicain',G.inc==='D'?'Democratic':'Republican');
+const incName=()=>t(G.inc==='D'?'démocrate':'républicain',G.inc==='D'?'Democratic':'Republican',G.inc==='D'?'demócrata':'republicano');

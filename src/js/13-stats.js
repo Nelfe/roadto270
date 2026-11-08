@@ -16,7 +16,7 @@ const ACH=[
  {id:'daily',n:B('Gagnant du jour','Daily winner'),d:B('Gagner un défi du jour.','Win a daily challenge.'),ck:c=>c.win&&c.daily}
 ];
 const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
-const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':'en-US',{day:'numeric',month:'short'});
+const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':LANG==='es'?'es-ES':'en-US',{day:'numeric',month:'short'});
 const slotLabel=sv=>`${sv.mode==='mid'?t('Midterms','Midterms')+' · ':''}${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
 function finish(win,mine,theirs){
   const S=getStats(),sd=side();

@@ -11,11 +11,11 @@ function proj(){let ys=0,yl=0,c=0,ol=0,os=0;
   return{ys,yl,c,ol,os,you:ys+yl,opp:os+ol}}
 const myC=()=>G.me===1?'var(--dem)':'var(--rep)', opC=()=>G.me===1?'var(--rep)':'var(--dem)';
 const ratingOf=p=>p>=8?t('Acquis','Locked'):p>=4?t('Probable','Likely'):p>=1.5?t('Avantage','Leaning'):p>-1.5?t('Incertain','Toss-up'):p>-4?t('Désavantage','Trailing'):p>-8?t('Improbable','Unlikely'):t('Perdu','Lost');
-const MONTHS_FR=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'],MONTHS_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function wkLabel(w){const d=new Date(Date.UTC(G.mode==='mid'?2030:2028,7,(G.mode==='mid'?12:14)+7*(w-1)));return FR()?d.getUTCDate()+' '+MONTHS_FR[d.getUTCMonth()]:MONTHS_EN[d.getUTCMonth()]+' '+d.getUTCDate()}
+const MONTHS_FR=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'],MONTHS_ES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],MONTHS_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function wkLabel(w){const d=new Date(Date.UTC(G.mode==='mid'?2030:2028,7,(G.mode==='mid'?12:14)+7*(w-1)));return LANG==='es'?d.getUTCDate()+' '+MONTHS_ES[d.getUTCMonth()]:FR()?d.getUTCDate()+' '+MONTHS_FR[d.getUTCMonth()]:MONTHS_EN[d.getUTCMonth()]+' '+d.getUTCDate()}
 function daysLeft(w){const m=G.mode==='mid';return Math.round((Date.UTC(m?2030:2028,10,m?5:7)-Date.UTC(m?2030:2028,7,(m?12:14)+7*(w-1)))/864e5)}
 
-function tabsHTML(){return [['map',t('Carte','Map')],['issues',t('Enjeux','Issues')],['groups',t('Groupes','Groups')],['team',t('Équipe','Team')],['actions','Actions'],['log',t('Journal','Log')]]
+function tabsHTML(){return [['map',t('Carte','Map')],['issues',t('Enjeux','Issues')],['groups',t('Groupes','Groups')],['team',t('Équipe','Team')],['actions',t('Actions','Actions','Acciones')],['log',t('Journal','Log')]]
   .map(([k,l])=>`<button role="tab" data-act="tab" data-tab="${k}" aria-selected="false">${l}${k==='log'?'<span class="bdg" id="bdg" hidden></span>':''}${k==='actions'?'<span class="bdg" id="bdgA" hidden>!</span>':''}</button>`).join('')}
 function applyStatic(){
   document.documentElement.lang=LANG;document.title=t('Cap sur 270','Road to 270');
@@ -23,7 +23,7 @@ function applyStatic(){
   $('#endBtn').textContent=t('Fin de semaine','End week');$('#coach').setAttribute('aria-label',t('Tutoriel','Tutorial'));
 }
 function setLang(l){
-  LANG=l==='fr'?'fr':'en';try{localStorage.setItem('cap270.lang',LANG)}catch(e){}
+  LANG=l==='fr'?'fr':l==='es'?'es':'en';try{localStorage.setItem('cap270.lang',LANG)}catch(e){}
   applyStatic();
   if(!$('#modal').hidden){if(UI.mk==='help')showModal(helpHTML(!!G&&G.phase==='play'),'help');else if(UI.mk==='set')showModal(settingsHTML(),'set');else if(UI.mk==='stats')showModal(statsHTML(),'stats')}
   if(G&&!$('#game').hidden)render();else renderTitle();
@@ -47,7 +47,7 @@ function renderHud(){
    <i style="width:${pc(p.ys)};background:${myC()}"></i><i style="width:${pc(p.yl)};background:${myC()};opacity:.55"></i><i style="width:${pc(p.c)};background:var(--tu)"></i><i style="width:${pc(p.ol)};background:${opC()};opacity:.55"></i><i style="width:${pc(p.os)};background:${opC()}"></i><span class="mark"></span></div>
   <div class="evleg"><span style="color:${myC()}"><b>${t('Vous','You')} ${p.you}</b></span><span class="muted">${t('Incertain','Toss-up')} ${p.c} · ${t('national','national')} ${fD(nat)}</span><span style="color:${opC()}"><b>${t('Adv.','Opp.')} ${p.opp}</b></span></div>`;
   if(G.mode==='mid')$('#hudTop').innerHTML=hudMidHTML();
-  $('#aps').innerHTML=Array.from({length:3},(_,i)=>`<i class="${i<G.ap?'on':''}"></i>`).join('')+`<span>${G.ap} action${G.ap>1?'s':''}</span>`;
+  $('#aps').innerHTML=Array.from({length:3},(_,i)=>`<i class="${i<G.ap?'on':''}"></i>`).join('')+`<span>${G.ap} ${LANG==='es'?(G.ap>1?'acciones':'acción'):'action'+(G.ap>1?'s':'')}</span>`;
   $('#endBtn').disabled=!can();
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===UI.tab));
   const ba=$('#bdgA');if(ba)ba.hidden=!(G.viral&&!G.viral.resp&&UI.tab!=='actions');

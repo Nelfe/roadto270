@@ -1,6 +1,6 @@
 # Road to 270 (Cap sur 270)
 
-Simulation de campagne présidentielle américaine en 12 semaines, jouable sur mobile (PWA installable, hors ligne). Bilingue : anglais (par défaut) et français, avec un sélecteur de langue à l’écran titre et dans le manuel.
+Simulation de campagne présidentielle américaine en 12 semaines, jouable sur mobile (PWA installable, hors ligne). Trilingue : anglais (par défaut), français et espagnol, avec un sélecteur de langue à l’écran titre et dans le manuel.
 
 - Carte des 51 États, grands électeurs, sondages bruités
 - Enjeux, 7 groupes d'électeurs, économie locale, événements, débats
@@ -52,3 +52,7 @@ Désactivée par défaut. Si une URL est fournie au build, une case apparaît da
 - `manifest.webmanifest` : métadonnées d'installation
 - `sw.js` : cache hors ligne
 - `icon-192.png`, `icon-512.png` : icônes provisoires
+
+## Traductions
+
+Les appels `t(fr, en)` et `B(fr, en)` du code reçoivent leur 3e argument (espagnol) **au build** depuis `src/i18n/es.json` (clé = texte anglais). `src/i18n/help_es.html` contient le manuel espagnol. Après avoir ajouté un texte, `node tools/i18n-extract.js --missing` liste les textes sans traduction (affichés en anglais en attendant) ; `node tests/i18n-leftovers.js es` repère les lignes encore en anglais pendant une partie.

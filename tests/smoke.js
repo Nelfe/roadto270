@@ -2,7 +2,7 @@
 const {chromium}=require('playwright');const path=require('path');
 (async()=>{
  const b=await chromium.launch();let bad=0;
- for(const lang of ['en','fr']){
+ for(const lang of ['en','fr','es']){
   const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();
   const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.addInitScript(l=>{try{localStorage.setItem('cap270.lang',l);localStorage.setItem('cap270.tuto','1')}catch(e){}},lang);
