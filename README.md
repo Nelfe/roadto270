@@ -5,7 +5,8 @@ Simulation de campagne présidentielle américaine en 12 semaines, jouable sur m
 - Carte des 51 États, grands électeurs, sondages bruités
 - Enjeux, 7 groupes d'électeurs, économie locale, événements, débats
 - Adversaire piloté par l'IA, trois niveaux de difficulté
-- Candidats fictifs ; marges de départ approximées d'après les résultats de 2024
+- Modes : présidentielle 2028 (primaires), midterms 2030, scénarios historiques 2016 / 2020 / 2024 (marges d'État réelles, candidats fictifs)
+- Marges de départ approximées d'après les résultats de 2024
 
 ## Lancer en local
 

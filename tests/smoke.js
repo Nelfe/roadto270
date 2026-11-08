@@ -10,9 +10,10 @@ const {chromium}=require('playwright');const path=require('path');
   const probs=await p.evaluate(()=>{
    const out=[];const chk=w=>{const t=document.body.innerText;if(/undefined|NaN|\[object/.test(t))out.push(w+': '+(t.match(/.{0,30}(undefined|NaN|\[object).{0,20}/)||[''])[0])};
    chk('title');
-   for(const mode of ['pres','mid']){
+   for(const mode of ['pres','mid','h2016','h2020','h2024']){
     newGame(1,1,4242,null,mode);
-    if(mode==='pres'){G.cand=G.cands[0];initPrim();G.phase='prim';for(let r=0;r<4&&G.phase==='prim';r++){render();chk('prim');primAct('ads');endRound()}
+    if(mode==='h2016'||mode==='h2020'||mode==='h2024'){pickVP(0)}
+    else if(mode==='pres'){G.cand=G.cands[0];initPrim();G.phase='prim';for(let r=0;r<4&&G.phase==='prim';r++){render();chk('prim');primAct('ads');endRound()}
      if(G.phase==='vp'){pickVP(0)}}
     else G.phase='play';
     for(let w=1;w<=12&&G.phase!=='over';w++){

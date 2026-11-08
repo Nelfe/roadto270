@@ -55,7 +55,7 @@ function endWeek(){
   G.states.forEach(s=>{s.tvP*=.85;s.dgP*=.72;s.raP*=.9;s.adsP=s.tvP+s.dgP+s.raP;s.adsO*=.85;s.buzzP*=.5;s.buzzO*=.5;s.noise=randn()*1.2;s.internal=null;s.shock*=.88});
   G.tgtP=G.tgtP.map(v=>v*.75);G.tgtO=G.tgtO.map(v=>v*.75);
   G.econ=clamp(G.econ*.9+randn()*.18,-3,3);
-  G.env+=randn()*.25;G.sal=G.sal.map((v,i)=>v+(S0[i]-v)*.12);
+  G.env+=randn()*.25;G.sal=G.sal.map((v,i)=>v+(((G.sal0||S0)[i])-v)*.12);
   applyViral();if(G.third&&G.third.on)G.third.pow*=G.wk<8?.98:.88;
   if(sk('pol')>=2)G.hint=G.me*G.pbNat+randn()*(1.1-.25*sk('pol'));
   G.wk++;

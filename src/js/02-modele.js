@@ -47,7 +47,8 @@ const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));
 
 function newGame(me,diff,seed,daily,mode){
-  if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.mode,diff:G.diff,week:G.week,phase:G.phase});
+  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';
+  if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
     adsP:0,adsO:0,tvP:0,dgP:0,raP:0,ebP:0,ebO:0,fieldP:0,fieldO:0,buzzP:0,buzzO:0,vpP:0,vpO:0,pb:randn()*2,noise:randn()*1.2,spP:0,internal:null,shock:0,eco0:randn()*.5};
@@ -55,7 +56,7 @@ function newGame(me,diff,seed,daily,mode){
     s.mix=mixOf(s);s.adj=adjOf(s);s.fd=s.mix.reduce((a,v,g)=>a+v*DW[g],0);s.fr=s.mix.reduce((a,v,g)=>a+v*RW[g],0);s.ei=s.mix.reduce((a,v,g)=>a+v*EARLY[g],0)/.5;return s});
   const mid=mode==='mid';
   const inc0=rnd()<.5?'D':'R';
-  const raw=(mid?(inc0==='D'?-1:1)*(PARAM.midEnv+randn()*1.4):randn()*1.6)+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral;
+  const raw=(mid?(inc0==='D'?-1:1)*(PARAM.midEnv+randn()*1.4):randn()*(scn?1.0:1.6))+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral+(scn?SCN[scn].env:0);
   const inc=mid?inc0:(raw<0?(rnd()<.7?'D':'R'):(rnd()<.7?'R':'D'));
   G={v:3,mode:mid?'mid':'pres',me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
@@ -64,6 +65,7 @@ function newGame(me,diff,seed,daily,mode){
   {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
+  if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4;G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
   UI={tab:'map',sel:null,night:null};
   save();
 }

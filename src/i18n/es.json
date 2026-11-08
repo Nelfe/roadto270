@@ -670,5 +670,11 @@
 "Seven voter groups weigh differently from state to state, and the local economy helps or hurts the incumbent party.": "Siete grupos de votantes pesan de forma distinta según el estado, y la economía local favorece o perjudica al partido en el poder.",
 "You need 218 of 435 House seats to win; the Senate (51 of 100, 50 for the president’s party) makes it a total victory.": "Necesitas 218 de 435 escaños de la Cámara para ganar; el Senado (51 de 100, 50 para el partido del presidente) completa una victoria total.",
 "You need 270 of 538 electoral votes. Maine and Nebraska split theirs by district.": "Necesitas 270 de 538 votos electorales. Maine y Nebraska reparten los suyos por distrito.",
-"Playable prototype. Baseline margins are rounded approximations of 2024. All candidates are fictional.": "Prototipo jugable. Los márgenes de base son aproximaciones redondeadas de 2024. Todos los candidatos son ficticios."
+"Playable prototype. Baseline margins are rounded approximations of 2024. All candidates are fictional.": "Prototipo jugable. Los márgenes de base son aproximaciones redondeadas de 2024. Todos los candidatos son ficticios.",
+"Rewrite history": "Reescribir la historia",
+"Win a historical scenario with the side that actually lost.": "Gana un escenario histórico con el bando que perdió en la realidad.",
+"Ballot memory": "Memoria de las urnas",
+"Win the 2016, 2020 and 2024 scenarios.": "Gana los escenarios de 2016, 2020 y 2024.",
+"Historical scenarios": "Escenarios históricos",
+"Replay 2016, 2020 or 2024 with real state margins": "Rejuega 2016, 2020 o 2024 con los márgenes reales por estado"
 }

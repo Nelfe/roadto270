@@ -13,11 +13,13 @@ const ACH=[
  {id:'roll',n:B('Série gagnante','On a roll'),d:B('Gagner 3 parties d’affilée.','Win 3 games in a row.'),ck:c=>c.S.st>=3},
  {id:'wave',n:B('Vague sur le Congrès','Congressional wave'),d:B('Contrôler la Chambre et le Sénat aux midterms.','Control both the House and the Senate in the midterms.'),ck:c=>!!c.mid&&c.mid.won===2},
  {id:'sen',n:B('Conquête du Sénat','Senate takeover'),d:B('Contrôler le Sénat aux midterms.','Control the Senate in the midterms.'),ck:c=>!!c.mid&&c.mid.sw},
+ {id:'rewrite',n:B('Réécrire l’histoire','Rewrite history'),d:B('Gagner un scénario historique avec le camp qui a perdu en réalité.','Win a historical scenario with the side that actually lost.'),ck:c=>c.win&&!!c.scn&&c.rw},
+ {id:'histall',n:B('Mémoire des urnes','Ballot memory'),d:B('Gagner les scénarios 2016, 2020 et 2024.','Win the 2016, 2020 and 2024 scenarios.'),ck:c=>!!c.S.sc&&['2016','2020','2024'].every(y=>c.S.sc[y])},
  {id:'daily',n:B('Gagnant du jour','Daily winner'),d:B('Gagner un défi du jour.','Win a daily challenge.'),ck:c=>c.win&&c.daily}
 ];
 const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
 const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':LANG==='es'?'es-ES':'en-US',{day:'numeric',month:'short'});
-const slotLabel=sv=>`${sv.mode==='mid'?t('Midterms','Midterms')+' · ':''}${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
+const slotLabel=sv=>`${sv.mode==='mid'?t('Midterms','Midterms')+' · ':sv.scn?sv.scn+' · ':''}${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='over'?t('Soirée électorale','Election night'):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
 function finish(win,mine,theirs){
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
@@ -25,10 +27,11 @@ function finish(win,mine,theirs){
   if(G.daily){S.dl=S.dl||{};S.dl[G.daily]=win?1:0}
   const flips=G.states.filter(q=>Math.sign(q.final)===G.me&&Math.sign(q.lean)!==G.me).length;
   const mn=Math.min(999,...(G.hist||[]).filter(h=>h.w>=4&&h.w<=8).map(h=>h.y));
-  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S},got=[];
+  if(G.scn&&win){S.sc=S.sc||{};S.sc[G.scn]=1}
+  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S,scn:G.scn,rw:!!G.scn&&sd!==SCN[G.scn].winner},got=[];
   ACH.forEach(a=>{if(!S.ach[a.id]&&a.ck(c)){S.ach[a.id]=Date.now();got.push(a.id)}});
-  TEL.send('end',{mode:'pres',diff:G.diff,side:G.me,win:+!!win,ev:mine});
-  S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win,ev:mine,op:theirs,seed:G.seed,daily:G.daily});S.h=S.h.slice(0,30);
+  TEL.send('end',{mode:G.scn?'h'+G.scn:'pres',diff:G.diff,side:G.me,win:+!!win,ev:mine});
+  S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win,ev:mine,op:theirs,seed:G.seed,daily:G.daily,scn:G.scn});S.h=S.h.slice(0,30);
   try{localStorage.setItem(STK,JSON.stringify(S))}catch(e){}
   G.rec=true;G.newA=got;
   UI.share=`Road to 270 · ${win?t('Victoire','Victory'):t('Défaite','Defeat')} ${mine}–${theirs} (${sd==='D'?t('Démocrate','Democrat'):t('Républicain','Republican')}, ${DIFFN()[G.diff]})${G.seed!=null?' · '+t('code','code')+' '+codeOf(G.seed):''}${G.daily?' · '+t('défi du jour','daily')+' '+G.daily:''}`+(/^https?:/.test(location.protocol)?'\n'+location.origin+location.pathname:'');

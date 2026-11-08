@@ -96,6 +96,7 @@ function helpHTML(canReplay){
 <li>Payez un sondage interne avant un gros investissement.</li>
 <li>Surveillez le Journal : les actions publiques de l’adversaire y apparaissent.</li>
 <li>Dans le Journal, « Afficher les calculs » détaille la marge de chaque État.</li></ul></details>
+<details><summary>Scénarios historiques</summary><p>Rejouez 2016, 2020 ou 2024 : la carte reprend les marges réelles de chaque État, avec l’économie, les enjeux dominants et le candidat indépendant propres à l’année. Pas de primaires ; les candidats restent fictifs. Gagner avec le camp qui a perdu en réalité débloque un succès.</p></details>
 <details><summary>Difficulté</summary><p>En Facile, le climat national vous est favorable. En Difficile, il vous est défavorable et l’adversaire dispose de plus de fonds.</p></details>`+foot;
   if(LANG==='es')return head+HELP_ES+foot;
   return head+`
@@ -165,5 +166,6 @@ function helpHTML(canReplay){
 <li>Pay for an internal poll before a big investment.</li>
 <li>Watch the Log: your opponent’s public actions appear there.</li>
 <li>In the Log, “Show detailed calculations” breaks down each state’s margin.</li></ul></details>
+<details><summary>Historical scenarios</summary><p>Replay 2016, 2020 or 2024: the map uses each state’s real margins, with the year’s economy, dominant issues and independent candidate. No primaries; candidates remain fictional. Winning with the side that actually lost unlocks an achievement.</p></details>
 <details><summary>Difficulty</summary><p>On Easy, the national mood favors you. On Hard, it works against you and your opponent has more money.</p></details>`+foot;
 }

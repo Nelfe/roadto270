@@ -12,6 +12,7 @@ const HSEATS=${j('house_seats')};
 const SEN_UP=${j('senate_up')};
 const DEMO=${j('demo')};
 const CFG=${JSON.stringify(cfg)};
+const HIST=${j('history')};
 const ES_NAMES=${j('es_names')};
 const HELP_ES=${JSON.stringify(rd('i18n/help_es.html').trim())};
 `;

@@ -12,8 +12,8 @@ function proj(){let ys=0,yl=0,c=0,ol=0,os=0;
 const myC=()=>G.me===1?'var(--dem)':'var(--rep)', opC=()=>G.me===1?'var(--rep)':'var(--dem)';
 const ratingOf=p=>p>=8?t('Acquis','Locked'):p>=4?t('Probable','Likely'):p>=1.5?t('Avantage','Leaning'):p>-1.5?t('Incertain','Toss-up'):p>-4?t('Désavantage','Trailing'):p>-8?t('Improbable','Unlikely'):t('Perdu','Lost');
 const MONTHS_FR=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'],MONTHS_ES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],MONTHS_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function wkLabel(w){const d=new Date(Date.UTC(G.mode==='mid'?2030:2028,7,(G.mode==='mid'?12:14)+7*(w-1)));return LANG==='es'?d.getUTCDate()+' '+MONTHS_ES[d.getUTCMonth()]:FR()?d.getUTCDate()+' '+MONTHS_FR[d.getUTCMonth()]:MONTHS_EN[d.getUTCMonth()]+' '+d.getUTCDate()}
-function daysLeft(w){const m=G.mode==='mid';return Math.round((Date.UTC(m?2030:2028,10,m?5:7)-Date.UTC(m?2030:2028,7,(m?12:14)+7*(w-1)))/864e5)}
+function wkLabel(w){const b=scnBase(),d=new Date(Date.UTC(b.y,b.s[0],b.s[1]+7*(w-1)));return LANG==='es'?d.getUTCDate()+' '+MONTHS_ES[d.getUTCMonth()]:FR()?d.getUTCDate()+' '+MONTHS_FR[d.getUTCMonth()]:MONTHS_EN[d.getUTCMonth()]+' '+d.getUTCDate()}
+function daysLeft(w){const b=scnBase();return Math.round((Date.UTC(b.y,b.e[0],b.e[1])-Date.UTC(b.y,b.s[0],b.s[1]+7*(w-1)))/864e5)}
 
 function tabsHTML(){return [['map',t('Carte','Map')],['issues',t('Enjeux','Issues')],['groups',t('Groupes','Groups')],['team',t('Équipe','Team')],['actions',t('Actions','Actions','Acciones')],['log',t('Journal','Log')]]
   .map(([k,l])=>`<button role="tab" data-act="tab" data-tab="${k}" aria-selected="false">${l}${k==='log'?'<span class="bdg" id="bdg" hidden></span>':''}${k==='actions'?'<span class="bdg" id="bdgA" hidden>!</span>':''}</button>`).join('')}

@@ -7,6 +7,7 @@ const SEED_JS=`(()=>{let a=12345;Math.random=()=>{a=(a+0x6D2B79F5)>>>0;let z=a;z
 const BANDS=[
  ['pres',1,'idle',0.00,0.25],['pres',1,'ads',0.12,0.55],['pres',1,'full',0.55,0.85],
  ['pres',2,'full',0.35,0.75],['pres',0,'full',0.72,0.98],
+ ['h2016',1,'full',0.55,0.88],['h2020',1,'full',0.55,0.88],['h2024',1,'full',0.55,0.88],
  ['mid',1,'idle',0.10,0.60],['mid',1,'full',0.50,0.85]
 ];
 (async()=>{
@@ -14,9 +15,9 @@ const BANDS=[
  await p.addInitScript(SEED_JS);
  await p.goto('file://'+(process.env.GAME_FILE||path.join(__dirname,'..','index.html')));
  const res=await p.evaluate(([N,BANDS])=>{
- function playPres(me,diff,strat){
+ function playPres(me,diff,strat,mm){
   SIM=true;
-  for(let tries=0;tries<20;tries++){newGame(me,diff);G.cand=G.cands[0];initPrim();G.phase='prim';
+  for(let tries=0;tries<20;tries++){newGame(me,diff,null,null,mm);if(G.scn)break;G.cand=G.cands[0];initPrim();G.phase='prim';
    for(let r=0;r<4&&G.phase==='prim';r++){const pr=G.pr,tg=clamp(Math.round(pr.hint),-2,2);
     if(pr.x<tg)primAct('base');else if(pr.x>tg)primAct('center');
     ['ads','tour','ads'].forEach(a=>{if(pr.ap>0){if(a==='ads'&&pr.cash<4)primAct('fund');else primAct(a)}});endRound()}
@@ -81,7 +82,7 @@ const BANDS=[
   const out=[];
   for(const [mode,diff,strat] of BANDS.map(x=>x)){
    let w=0;
-   for(let i=0;i<N;i++){const me=i%2?1:-1;const r=mode==='pres'?playPres(me,diff,strat):playMid(me,diff,strat);w+=(mode==='pres'?r>=270:r>=10)?1:0}
+   for(let i=0;i<N;i++){const me=i%2?1:-1;const r=mode==='mid'?playMid(me,diff,strat):playPres(me,diff,strat,mode==='pres'?undefined:mode);w+=(mode==='mid'?r>=10:r>=270)?1:0}
    out.push([mode,diff,strat,w/N]);
   }
   return out},[N,BANDS.map(x=>x.slice(0,3))]);
