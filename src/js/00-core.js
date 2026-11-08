@@ -1,0 +1,11 @@
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+let _s=1;
+const rnd=()=>{_s=(_s+0x6D2B79F5)>>>0;let z=_s;z=Math.imul(z^z>>>15,z|1);z^=z+Math.imul(z^z>>>7,z|61);return((z^z>>>14)>>>0)/4294967296};
+const SEEDS=2176782336;
+const codeOf=n=>(n>>>0).toString(36).toUpperCase().padStart(6,'0');
+const hashStr=x=>{let h=2166136261;for(const c of x){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0)%SEEDS};
+const seedFrom=x=>{x=x.trim().toUpperCase();return/^[0-9A-Z]{1,6}$/.test(x)?parseInt(x,36):hashStr(x)};
+const dayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const randn=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};

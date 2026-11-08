@@ -24,9 +24,31 @@ L'URL sera `https://nelfe.github.io/roadto270/`.
 
 Le service worker essaie d'abord le réseau : un simple rafraîchissement de la page récupère la dernière version, et le cache ne sert que hors ligne. Changer `VERSION` dans `sw.js` n'est utile que pour purger l'ancien cache après une modification de `sw.js` lui-même.
 
+## Développement
+
+Le code source vit dans `src/` ; `index.html` est généré (ne pas l'éditer à la main).
+
+```
+npm install && npx playwright install chromium
+npm run build          # src/ -> index.html (PWA) + dist/artifact.html (fichier unique, sans service worker)
+npm test               # build + test de fumée FR/EN + tests d'équilibrage (parties simulées, graines fixes)
+```
+
+- `src/js/NN-*.js` : modules concaténés dans l'ordre (noyau, langue, modèle, adversaire, événements, actions, rendu, modales, tutoriel, candidats, primaires, équipe, stats, titre, mesure)
+- `src/data/*.json` : données réelles (États, grands électeurs, sièges de la Chambre, Sénat, démographie, noms anglais), injectées au build
+- `src/config.json` : `telemetryUrl` (vide = aucune mesure) ; surchargeable avec `TELEMETRY_URL=... npm run build`
+- `tests/balance.js` : bots seedés ; échoue si un taux de victoire sort de sa fourchette
+- CI : `.github/workflows/ci.yml` (build à jour + tests à chaque push)
+- `capacitor/` : instructions pour empaqueter en app Android/iOS
+
+### Mesure anonyme
+
+Désactivée par défaut. Si une URL est fournie au build, une case apparaît dans les réglages (non cochée) ; une fois activée, seuls un identifiant aléatoire, la langue, le mode, la difficulté, la semaine atteinte et le résultat sont envoyés (fins de partie et abandons).
+
 ## Fichiers
 
-- `index.html` : le jeu (HTML, CSS et JS dans un seul fichier)
+- `index.html` : le jeu généré
+- `src/` : sources
 - `manifest.webmanifest` : métadonnées d'installation
 - `sw.js` : cache hors ligne
 - `icon-192.png`, `icon-512.png` : icônes provisoires

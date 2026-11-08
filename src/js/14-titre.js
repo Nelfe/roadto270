@@ -1,0 +1,44 @@
+/* ---------- Écran titre et démarrage ---------- */
+let pickedSide=1,pickedDiff=1,pickedMode='pres';
+function renderTitle(){
+  const saves=loadSaves(),dl=getStats().dl&&getStats().dl[dayStr()];
+  $('#title').innerHTML=`${langSw()}
+  <h1>${FR()?'Cap sur':'Road to'} <span>270</span></h1>
+  <div class="pick" id="pickMode"><button data-mode="pres" aria-pressed="${pickedMode==='pres'}"><b>${t('Présidentielle 2028','Presidential 2028')}</b><small>${t('270 grands électeurs','270 electoral votes')}</small></button><button data-mode="mid" aria-pressed="${pickedMode==='mid'}"><b>${t('Midterms 2030','Midterms 2030')}</b><small>${t('Chambre et Sénat','House and Senate')}</small></button></div>
+  <p class="lede">${pickedMode==='mid'?t('Douze semaines pour conquérir le Congrès. Vous dirigez la campagne nationale de votre parti : vous répartissez votre argent et votre temps entre 435 sièges de la Chambre et 35 courses au Sénat, face à un adversaire qui fait de même. Données calées sur les résultats de 2024.','Twelve weeks to win Congress. You run your party’s national campaign, splitting money and time across 435 House seats and 35 Senate races, against an opponent doing the same. Data calibrated on the 2024 results.'):t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.')}</p>
+  <div class="pick" id="pickSide">
+    <button class="d" data-side="1" aria-pressed="${pickedSide===1}"><b>${t('Démocrate','Democrat')}</b><small>${pickedMode==='mid'?t('Direction de campagne nationale','National campaign chief'):t('Candidat tiré au hasard','Randomly drawn candidate')}</small></button>
+    <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican')}</b><small>${pickedMode==='mid'?t('Direction de campagne nationale','National campaign chief'):t('Candidat tiré au hasard','Randomly drawn candidate')}</small></button>
+  </div>
+  <div class="pick three" id="pickDiff">
+    <button data-diff="0" aria-pressed="${pickedDiff===0}"><b>${t('Facile','Easy')}</b><small>${t('Vent dans le dos','Tailwind')}</small></button>
+    <button data-diff="1" aria-pressed="${pickedDiff===1}"><b>Normal</b><small>${t('Course équilibrée','Even race')}</small></button>
+    <button data-diff="2" aria-pressed="${pickedDiff===2}"><b>${t('Difficile','Hard')}</b><small>${t('Vent de face','Headwind')}</small></button>
+  </div>
+  <input class="codein" id="codeIn" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${t('Code de partie (facultatif)','Game code (optional)')}" aria-label="${t('Code de partie','Game code')}">
+  <button class="btn full" data-act="start">${t('Lancer la campagne','Start the campaign')}</button>
+  <button class="btn alt full" data-act="daily" style="margin-top:10px">${t('Défi du jour','Daily challenge')} · ${dayStr()}${dl===1?' ✓':dl===0?' ✗':''}</button>
+  ${saves.map(sv=>`<div class="slot"><button class="btn alt" data-act="cont" data-slot="${sv.slot}">${t('Reprendre','Resume')} : ${slotLabel(sv)}</button><button class="x" data-act="del" data-slot="${sv.slot}" aria-label="${t('Supprimer','Delete')}">×</button></div>`).join('')}
+  <div class="trio"><button class="btn alt sm" data-act="help">${t('Comment jouer','How to play')}</button><button class="btn alt sm" data-act="stats">${t('Statistiques','Stats')}</button><button class="btn alt sm" data-act="settings">${t('Réglages','Settings')}</button></div>
+  <ul class="rules">
+    ${pickedMode==='mid'?'':`<li>${t('Vous choisissez parmi trois candidats générés, puis vous gagnez les primaires avant d’affronter l’adversaire.','You choose among three generated candidates, then win the primaries before facing your opponent.')}</li>`}
+    <li>${t('Chaque semaine : 3 actions (visites, collecte, positions) et de l’argent (publicité, bureaux de terrain).','Each week: 3 actions (visits, fundraising, positions) and money (ads, field offices).')}</li>
+    <li>${t('Les sondages sont bruités et peuvent se tromper dans le même sens partout. Un sondage interne coûte 1 M$ et donne la vraie marge.','Polls are noisy and can all miss in the same direction. An internal poll costs $1M and shows the true margin.')}</li>
+    <li>${t('Vos positions sur les enjeux déplacent les États différemment : se recentrer gagne le Wisconsin et peut perdre la Californie.','Your positions on the issues move each state differently: moving to the center can win Wisconsin and lose California.')}</li>
+    <li>${t('Sept groupes d’électeurs pèsent différemment selon les États, et l’économie locale joue en faveur ou contre le parti sortant.','Seven voter groups weigh differently from state to state, and the local economy helps or hurts the incumbent party.')}</li>
+    <li>${pickedMode==='mid'?t('Il faut 218 sièges sur 435 à la Chambre pour gagner ; le Sénat (51 sur 100, 50 pour le parti du président) donne la victoire totale.','You need 218 of 435 House seats to win; the Senate (51 of 100, 50 for the president’s party) makes it a total victory.'):t('Il faut 270 grands électeurs sur 538. Le Maine et le Nebraska répartissent les leurs par district.','You need 270 of 538 electoral votes. Maine and Nebraska split theirs by district.')}</li>
+  </ul>
+  <p class="fine">${t('Prototype jouable. Les marges de fond sont des approximations arrondies de 2024. Tous les candidats sont fictifs.','Playable prototype. Baseline margins are rounded approximations of 2024. All candidates are fictional.')}</p>`;
+}
+document.addEventListener('click',e=>{
+  const mb=e.target.closest('#pickMode button');if(mb){pickedMode=mb.dataset.mode;const cv=$('#codeIn')?$('#codeIn').value:'';renderTitle();if(cv)$('#codeIn').value=cv;return}
+  const sb=e.target.closest('#pickSide button');if(sb){pickedSide=+sb.dataset.side;document.querySelectorAll('#pickSide button').forEach(b=>b.setAttribute('aria-pressed',b===sb));return}
+  const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
+  const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
+  if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null,null,pickedMode);render();if(G.mode==='mid')showBrief();return}
+  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
+  if(SET.vib&&['ads','field','visit','poll','pos','agenda','fund','media','prep','target','end','choose','vp'].includes(a))navigator.vibrate?.(a==='end'?20:8);
+  A[a]&&A[a](x.dataset);
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(G)render()});
+applySet();applyStatic();renderTitle();

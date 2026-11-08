@@ -1,0 +1,17 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Build is up to date
+        run: |
+          node tools/build.js
+          git diff --exit-code index.html || (echo "index.html is stale: run 'npm run build' and commit" && exit 1)
+      - run: node tests/smoke.js
+      - run: node tests/balance.js 120

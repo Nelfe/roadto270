@@ -1,0 +1,13 @@
+{
+  "name": "roadto270",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Road to 270 — US election campaign simulation (PWA)",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test": "node tools/build.js && node tests/smoke.js && node tests/balance.js 120",
+    "test:smoke": "node tests/smoke.js",
+    "test:balance": "node tests/balance.js 200"
+  },
+  "devDependencies": { "playwright": "^1.48.0" }
+}
