@@ -11,6 +11,10 @@ function pickVP(i){
   const v=VPS[side()][i];G.vpName=v.n;
   if(v.k==='region'){ST(v.st).vpP+=2;v.ne.forEach(a=>ST(a).vpP+=.6)}else if(v.k==='image')G.img+=G.me*.5;else G.cash+=8;
   const ov=ST(['PA','AZ','GA','WI','MI','NC'][Math.floor(rnd()*6)]);ov.vpO+=2;
+  if(G.long&&!G.convDone){G.convOv=ov.ab;if(SIM){convApply(-1,1)}else{G.phase='conv';G.conv={step:0};L('news',both(()=>t(`${v.n} est annoncé(e) comme colistier à la convention.`,`${v.n} is announced as running mate at the convention.`)));save();render();showConv();return}}
+  vpTail(v,ov)
+}
+function vpTail(v,ov){
   G.phase='play';snap();L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`)));
   hideModal();save();if(!SIM&&!tutoSeen())UI.tuto=0;render();if(UI.tuto===0)tutoGo(0);
 }

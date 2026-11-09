@@ -86,7 +86,7 @@ function loadSaves(){
 function dropSave(n){try{localStorage.removeItem(slotKey(n))}catch(e){}}
 function pickSlot(){const ss=loadSaves();for(let n=1;n<=3;n++)if(!ss.find(q=>q.slot===n))return n;return ss.sort((a,b)=>(a.t||0)-(b.t||0))[0].slot}
 function copyText(x){try{navigator.clipboard.writeText(x).then(()=>toast(t('Copié','Copied')),()=>toast(x))}catch(e){toast(x)}}
-function mkDeck(){const a=EVENTS.filter(e=>!['debate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:G.mode==='mid'?projMid().youH:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}

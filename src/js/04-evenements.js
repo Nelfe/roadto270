@@ -94,6 +94,10 @@ const EVENTS=[
  {t:B('Offensif','Aggressive'),d:B('Attaque','Attack'),fx(){debAuto(0);return G.ev.res}},
  {t:B('Pédagogue','Explainer'),d:B('Plan','Plan'),fx(){debAuto(1);return G.ev.res}},
  {t:B('Prudent','Cautious'),d:B('Prudent','Cautious'),fx(){debAuto(2);return G.ev.res}}]},
+{id:'vpdebate',t:B('Débat des colistiers','Vice-presidential debate'),x:()=>'',ch:[
+ {t:B('Offensif','Aggressive'),d:B('Attaque','Attack'),fx(){debAuto(0);return G.ev.res}},
+ {t:B('Pédagogue','Explainer'),d:B('Plan','Plan'),fx(){debAuto(1);return G.ev.res}},
+ {t:B('Prudent','Cautious'),d:B('Prudent','Cautious'),fx(){debAuto(2);return G.ev.res}}]},
 {id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation'),
  x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.'):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.'),
  pre(){G.ev.hit=rnd()<.5+(wkP()==='scandal'?.15:0)-(wkO()==='scandal'?.15:0)?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
@@ -102,7 +106,7 @@ const EVENTS=[
 ];
 function nextEvent(){
   let id;
-  if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.wk===11)id='surprise';
+  if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.long&&G.wk===7)id='vpdebate';else if(G.wk===11)id='surprise';
   else if(G.third&&!G.third.on&&G.wk>=G.third.wk)id='third';
   else{if(!G.deck||!G.deck.length)G.deck=mkDeck();id=G.deck.shift();G.used.push(id)}
   G.ev={id,res:null};G.phase='event';

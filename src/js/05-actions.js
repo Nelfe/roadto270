@@ -22,7 +22,7 @@ const A={
  media(){if(!can()||!needAP(1))return;const r=rnd(),gf=wkP()==='gaffe';if(r<(gf?.45:.6)+.04*sk('com')){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.'))}else if(r<(gf?.7:.85)+.03*sk('com'))L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.'));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.'))}save();render()},
  prep(){if(!can())return;if(G.prep>=3){toast(t('Préparation au maximum.','Preparation already at maximum.'));return}if(!needAP(1))return;G.prep++;L('you',B(`Préparation du débat (${G.prep}/3).`,`Debate prep (${G.prep}/3).`));save();render()},
  end(){endWeek()},
- choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;if(e.id==='debate'){save();showEvent();return}L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`));save();showEvent()},
+ choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;if(e.id==='debate'||e.id==='vpdebate'){save();showEvent();return}L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`));save();showEvent()},
  evnext(){G.ev=null;G.phase='play';hideModal();save();render()},
  analyst(){G.analyst=!G.analyst;save();render()},
  target(d){if(!can())return;const i=+d.i;if(G.ap<1){noAP();return}if(!needCash(1.5*(1-.1*sk('mgr'))))return;G.ap--;G.tgtP[i]=Math.min(2,G.tgtP[i]+1);const nm=GROUPS[i].n;L('you',B(`Campagne ciblée auprès des ${nm.fr.toLowerCase()}.`,`Targeted outreach to ${nm.en.toLowerCase()}.`));save();render()},

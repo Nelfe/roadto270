@@ -16,25 +16,29 @@ function debStart(){
   G.ev.deb={q:0,qs,tot:0,opp:0,last:null,nth:G.wk===5?1:2};
 }
 function debQuestion(){const d=G.ev.deb;return d.q<3?{topic:ISSUES[d.qs[d.q]],set:DEB_TOPIC}:{topic:null,set:DEB_CLOSE}}
-function debAnswer(i){
-  const d=G.ev.deb,Q=debQuestion(),a=Q.set[i];if(!a)return;
-  let m=a.m+PARAM.prep*G.prep/2+(trP().includes('debate')?.075:0)-(trO().includes('debate')?.075:0),sd=a.sd;
-  if(Q.topic){
-    const fav=G.me*Q.topic.own>.15,unf=G.me*Q.topic.own<-.15;
-    if(a.id==='plan'){m+=fav?.35:unf?-.2:.1;H.sal(Q.topic.id,.06)}
-    if(a.id==='pivot'){m+=unf?.4:fav?-.1:.1;const b=H.best();H.sal(b.id,.07);if(unf)H.sal(Q.topic.id,-.05)}
-    if(a.id==='story'){H.target(DEB_GRP[Q.topic.id],.3)}
+function debScore(a,topic,prep){
+  let m=a.m+PARAM.prep*prep/2+(trP().includes('debate')?.075:0)-(trO().includes('debate')?.075:0),sd=a.sd;
+  if(topic){
+    const fav=G.me*topic.own>.15,unf=G.me*topic.own<-.15;
+    if(a.id==='plan'){m+=fav?.35:unf?-.2:.1;H.sal(topic.id,.06)}
+    if(a.id==='pivot'){m+=unf?.4:fav?-.1:.1;const b=H.best();H.sal(b.id,.07);if(unf)H.sal(topic.id,-.05)}
+    if(a.id==='story'){H.target(DEB_GRP[topic.id],.3)}
   }else{
     if(a.id==='vis')m+=clamp(G.me*G.img*.1,-.2,.2);
     if(a.id==='ask'){H.target('jeu',.15);H.target('ouv',.15)}
   }
   const sc=m+randn()*sd;
   if(a.id==='con'&&sc>.9){const s=G.states.filter(q=>q.ev>=10).sort(()=>rnd()-.5)[0];if(s)H.buzz(s.ab,.5)}
+  return sc;
+}
+function debAnswer(i){
+  const d=G.ev.deb,Q=debQuestion(),a=Q.set[i];if(!a)return;
+  const sc=debScore(a,Q.topic,G.prep);
   d.tot+=sc;d.opp+=randn()*.6+(trO().includes('debate')?.1:0);
   d.last={sc,a:a.id,rx:sc>.7?0:sc>-.4?1:2};
   d.q++;
   if(d.q>=4){
-    const r=d.tot-d.opp*.5-.7,img=clamp(r*.35,-1.4,1.4);H.img(img);G.prep=0;
+    const r=d.tot-d.opp*.5-.7,img=clamp(r*.35,-1.4,1.4)*(G.ev.id==='vpdebate'?.5:1);H.img(img);G.prep=0;
     const res=r>1.2?B('Vous dominez le débat. Les éditorialistes sont unanimes.','You dominate the debate. Pundits are unanimous.','Dominas el debate. Los analistas coinciden.'):r>-.6?B('Un débat sans vainqueur net.','A debate with no clear winner.','Un debate sin ganador claro.'):B('Vous perdez le débat. Les images tournent en boucle.','You lose the debate. The clips play on a loop.','Pierdes el debate. Los vídeos se repiten sin parar.');
     G.ev.res=res;d.done=true;d.r=r;L('news',B(`Débat : ${res.fr}`,`Debate: ${res.en}`,`Debate: ${res.es}`));
   }
@@ -46,7 +50,7 @@ function debAuto(style){
   while(G.ev.deb.q<4){const Q=debQuestion();let i=style===0?0:style===1?(Q.topic?(G.me*Q.topic.own<-.15?3:1):0):(Q.topic?2:2);debAnswer(i)}
 }
 function showDebate(){
-  const d=G.ev.deb,title=G.wk===5?t('Premier débat','First debate','Primer debate'):t('Second débat','Second debate','Segundo debate');
+  const d=G.ev.deb,title=G.ev.id==='vpdebate'?t('Débat des colistiers','Vice-presidential debate','Debate vicepresidencial'):G.wk===5?t('Premier débat','First debate','Primer debate'):t('Second débat','Second debate','Segundo debate');
   if(!d){showModal(`<h2>${title}</h2><p>${t(`Face à face télévisé devant des dizaines de millions de personnes. Trois questions, puis une conclusion. Préparation : ${G.prep}/3.`,`A televised face-off before tens of millions of viewers. Three questions, then a closing statement. Preparation: ${G.prep}/3.`,`Cara a cara televisado ante decenas de millones de personas. Tres preguntas y una conclusión. Preparación: ${G.prep}/3.`)}</p><button class="btn full" data-act="dstart">${t('Monter sur scène','Step on stage','Subir al escenario')}</button>`);return}
   const RX=[t('Applaudissements dans la salle.','The room responds warmly.','La sala responde con aplausos.'),t('Réponse correcte, sans plus.','A solid but unremarkable answer.','Una respuesta correcta, sin más.'),t('Réponse maladroite, l’adversaire en profite.','A clumsy answer, your opponent pounces.','Una respuesta torpe; tu rival lo aprovecha.')];
   const prev=d.last&&!d.done?`<div class="res" style="margin-bottom:10px">${RX[d.last.rx]}</div>`:'';
@@ -57,3 +61,29 @@ function showDebate(){
   showModal(`<h2>${title}</h2>${prev}<p class="muted" style="font-size:13px;margin-bottom:4px">${head}</p><p>${prompt}</p>${Q.set.map((a,i)=>`<button class="ch" data-act="dans" data-i="${i}"><b>${t(a.n)}</b><small>${t(a.d)}</small></button>`).join('')}`);
 }
 Object.assign(A,{dstart(){debStart();save();showEvent()},dans(x){debAnswer(+x.i)}});
+
+// ---- Débats de primaire (mode long) : trois questions, l'effet porte sur l'élan et les rivaux
+function pdebStart(n){
+  const pr=G.pr,w=ISSUES.map((q,i)=>G.sal[i]+.15),qs=[];
+  while(qs.length<3){let tot=w.reduce((a,b)=>a+b,0)*rnd(),i=0;for(;i<w.length-1;i++){tot-=w[i];if(tot<=0)break}if(!qs.includes(i))qs.push(i)}
+  pr.deb={q:0,qs,tot:0,n,last:null};
+}
+function showPDeb(){
+  const pr=G.pr,d=pr.deb;if(!d||SIM)return;
+  const title=t(`Débat de primaire ${d.n}/2`,`Primary debate ${d.n}/2`,`Debate de primarias ${d.n}/2`);
+  if(d.done){showModal(`<h2>${title}</h2><div class="res">${t(d.res)}</div><button class="btn full" data-act="pdebend">${t('Continuer','Continue','Continuar')}</button>`);return}
+  const RX=[t('La salle réagit chaleureusement.','The room responds warmly.','La sala responde con calidez.'),t('Réponse correcte, sans plus.','A solid but unremarkable answer.','Una respuesta correcta, sin más.'),t('Réponse maladroite : vos rivaux en profitent.','A clumsy answer: your rivals pounce.','Una respuesta torpe: tus rivales lo aprovechan.')];
+  const q=ISSUES[d.qs[d.q]];
+  showModal(`<h2>${title}</h2>${d.last!=null?`<div class="res" style="margin-bottom:10px">${RX[d.last]}</div>`:''}<p class="muted" style="font-size:13px;margin-bottom:4px">${t(`Question ${d.q+1}/3 · ${q.n.fr}`,`Question ${d.q+1}/3 · ${q.n.en}`,`Pregunta ${d.q+1}/3 · ${q.n.es||q.n.en}`)}</p><p>${t(`Sur « ${q.n.fr} », vos rivaux vous attendent. Comment répondez-vous ?`,`On “${q.n.en}”, your rivals are waiting for you. How do you answer?`,`Sobre «${q.n.es||q.n.en}», tus rivales te esperan. ¿Cómo respondes?`)}</p>${DEB_TOPIC.map((a,i)=>`<button class="ch" data-act="pans" data-i="${i}"><b>${t(a.n)}</b><small>${t(a.d)}</small></button>`).join('')}`);
+}
+Object.assign(A,{
+  pans(x){const pr=G.pr,d=pr.deb,q=ISSUES[d.qs[d.q]],a=DEB_TOPIC[+x.i];
+    const sc=debScore(a,q,0);d.tot+=sc;d.last=sc>.7?0:sc>-.4?1:2;
+    if(a.id==='atk'){pr.riv.forEach(r=>{if(!r.out&&sc>.5)r.mom-=.12});pr.negs+=sc>.5?0:1}
+    d.q++;
+    if(d.q>=3){const m=clamp(d.tot*.12,-.35,.35);pr.mom+=m;
+      d.res=m>.15?B('Vous dominez le débat de primaire : l’élan est pour vous.','You dominate the primary debate: momentum is yours.','Dominas el debate de primarias: el impulso es tuyo.'):m>-.1?B('Un débat sans vainqueur net.','A debate with no clear winner.','Un debate sin ganador claro.'):B('Vous êtes malmené(e) : l’élan vous quitte.','You get roughed up: momentum slips away.','Sales maltrecho: el impulso se escapa.');
+      d.done=true;L('news',B(`Débat de primaire : ${d.res.fr}`,`Primary debate: ${d.res.en}`,`Debate de primarias: ${d.res.es}`))}
+    save();showPDeb()},
+  pdebend(){G.pr.deb=null;hideModal();save();render()}
+});

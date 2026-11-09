@@ -1,5 +1,7 @@
 /* ---------- Primaires ---------- */
 const PRD=[{n:B('Premiers États','Early states'),m:B('févr.','Feb'),w:.2},{n:B('Super Tuesday','Super Tuesday'),m:B('mars','Mar'),w:.35},{n:B('Primaires du printemps','Spring primaries'),m:B('avr.-mai','Apr–May'),w:.25},{n:B('Dernières primaires','Final primaries'),m:B('juin','Jun'),w:.2}];
+const PRDL=[{n:B('Iowa et New Hampshire','Iowa and New Hampshire','Iowa y Nuevo Hampshire'),m:B('janv.','Jan','ene'),w:.06},{n:B('Caroline du Sud et Nevada','South Carolina and Nevada','Carolina del Sur y Nevada'),m:B('févr.','Feb','feb'),w:.07},{n:B('Mini-Tuesday','Mini-Tuesday','Mini Martes'),m:B('mars','Mar','mar'),w:.1},{n:B('Super Tuesday','Super Tuesday','Super Martes'),m:B('mars','Mar','mar'),w:.25},{n:B('Primaires du Midwest','Midwest primaries','Primarias del Medio Oeste'),m:B('avr.','Apr','abr'),w:.12},{n:B('Côte Est','East Coast','Costa Este'),m:B('avr.','Apr','abr'),w:.13},{n:B('Primaires de mai','May primaries','Primarias de mayo'),m:B('mai','May','may'),w:.12},{n:B('Dernières primaires','Final primaries','Últimas primarias'),m:B('juin','Jun','jun'),w:.15}];
+const NR=()=>G.long?8:4,PRDS=()=>G.long?PRDL:PRD;
 const RIVC=['hsl(30 16% 52%)','hsl(200 14% 52%)'];
 function initPrim(){
   const used=[G.cand.n,G.opp.n,...G.cands.map(c=>c.n)],sd=side();
@@ -16,7 +18,7 @@ function prShares(nz){
 }
 function cumShares(upto){
   const tot={you:0,0:0,1:0};let w=0;
-  G.pr.sh.slice(0,upto).forEach((r,i)=>{w+=PRD[i].w;['you',0,1].forEach(k=>tot[k]+=PRD[i].w*(r[k]||0))});
+  G.pr.sh.slice(0,upto).forEach((r,i)=>{w+=PRDS()[i].w;['you',0,1].forEach(k=>tot[k]+=PRDS()[i].w*(r[k]||0))});
   if(w)['you',0,1].forEach(k=>tot[k]/=w);return tot;
 }
 function shiftPos(sd,x){
@@ -44,18 +46,19 @@ function endRound(){
   pr.mom*=PARAM.dec;pr.riv.forEach(q=>{if(!q.out){q.mom=q.mom*PARAM.dec+PARAM.rivM+rnd()*PARAM.rivR}});
   if(rnd()<.3&&pr.riv.some(q=>!q.out))pr.mom-=.25;
   pr.r++;pr.ap=2;
-  if(pr.r===2){
-    const cs=cumShares(2);const lead=Math.max(cs.you,cs[0],cs[1]);
+  if(pr.r===(G.long?3:2)){
+    const cs=cumShares(pr.r);const lead=Math.max(cs.you,cs[0],cs[1]);
     pr.riv.forEach((q,i)=>{if(!q.out&&!pr.riv.some(z=>z.out)&&cs[i]<.16&&cs[i]<lead){q.out=true;
       const rest=[{k:'you',x:pr.x},...pr.riv.map((z,j)=>({k:j,x:z.x,o:z.out}))].filter(z=>!z.o&&z.k!==i).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
       if(rest.k==='you')pr.mom+=.3;else pr.riv[rest.k].mom+=.3;pr.out={n:q.c.n,to:rest.k==='you'?G.cand.n:pr.riv[rest.k].c.n,you:rest.k==='you'}}});
   }
   pr.pn=newPn();
-  if(pr.r>=4){finishPrim();return}
+  if(pr.r>=NR()){finishPrim();return}
+  if(G.long&&(pr.r===3||pr.r===6)&&!SIM)pdebStart(pr.r===3?1:2);
   save();render();
 }
 function finishPrim(){
-  const pr=G.pr,cs=cumShares(4),order=[{k:'you',v:cs.you},{k:0,v:cs[0]},{k:1,v:cs[1]}].sort((a,b)=>b.v-a.v);
+  const pr=G.pr,cs=cumShares(NR()),order=[{k:'you',v:cs.you},{k:0,v:cs[0]},{k:1,v:cs[1]}].sort((a,b)=>b.v-a.v);
   pr.final=cs;
   if(order[0].k!=='you'){primLoss(order);return}
   const tot=cs.you,gap=tot-order[1].v;
@@ -87,17 +90,18 @@ function renderPrim(){
     m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.')}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('');
     return;
   }
-  const pr=G.pr,r=Math.min(pr.r,3),rd=PRD[r],myCol=myC();
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries')} ${r+1}/4 <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>
+  const pr=G.pr,r=Math.min(pr.r,NR()-1),rd=PRDS()[r],myCol=myC();
+  setTimeout(()=>{if(G&&G.pr&&G.pr.deb&&G.phase==='prim')showPDeb()},0);
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries')} ${r+1}/${NR()} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>
   <div class="aps" style="display:flex;gap:6px;align-items:center;margin-top:6px">${[0,1].map(i=>`<i class="${i<pr.ap?'on':''}" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);${i<pr.ap?'background:var(--gold)':''}"></i>`).join('')}<span class="muted" style="font-size:13px">${pr.ap} ${t('action(s) ce tour','action(s) this round')}</span></div>`;
   const nz=pr.pn,sh=prShares(nz),rows=[{k:'you',n:G.cand.n,col:myCol,you:true},...pr.riv.map((q,i)=>({k:i,n:q.c.n,col:RIVC[i],out:q.out}))];
   const cs=cumShares(pr.r);
   const bars=rows.map(q=>`<div class="pbar${q.you?' you':''}"><span class="nm">${q.n}${q.out?' ✗':''}</span><span class="tr"><i style="width:${q.out?0:(sh[q.k]*100).toFixed(1)}%;background:${q.col}"></i></span><span class="v">${q.out?'—':Math.round(sh[q.k]*100)+'%'}</span></div>`).join('');
-  const hist=pr.sh.length?`<table class="hs" style="margin-top:6px"><tr><td></td>${rows.map(q=>`<td class="muted">${q.n.split(' ').pop()}</td>`).join('')}</tr>${pr.sh.map((x,i)=>`<tr><td>${t(PRD[i].n)}</td>${rows.map(q=>`<td class="mono">${x[q.k]!=null?Math.round(x[q.k]*100)+'%':'—'}</td>`).join('')}</tr>`).join('')}<tr><td><b>${t('Délégués','Delegates')}</b></td>${rows.map(q=>`<td class="mono"><b>${Math.round((cs[q.k]||0)*100)}%</b></td>`).join('')}</tr></table>`:'';
+  const hist=pr.sh.length?`<table class="hs" style="margin-top:6px"><tr><td></td>${rows.map(q=>`<td class="muted">${q.n.split(' ').pop()}</td>`).join('')}</tr>${pr.sh.map((x,i)=>`<tr><td>${t(PRDS()[i].n)}</td>${rows.map(q=>`<td class="mono">${x[q.k]!=null?Math.round(x[q.k]*100)+'%':'—'}</td>`).join('')}</tr>`).join('')}<tr><td><b>${t('Délégués','Delegates')}</b></td>${rows.map(q=>`<td class="mono"><b>${Math.round((cs[q.k]||0)*100)}%</b></td>`).join('')}</tr></table>`:'';
   const st=[-2,-1,0,1,2].map(v=>`<div class="${v===pr.x?'on':''}">${v===-2?t('Centre','Center'):v===2?t('Base','Base'):''}${v===pr.x?'●':''}</div>`).join('');
   const out=pr.out?`<div class="res" style="margin-top:10px">${pr.out.n} ${t('se retire et apporte son soutien à','drops out and endorses')} <b>${pr.out.to}</b>${pr.out.you?t(' : vous en profitez.',': you benefit.'):'.'}</div>`:'';
   const rivBtn=pr.riv.map((q,i)=>q.out?'':`<button class="btn sm alt" data-act="patk" data-i="${i}"><b>${t('Attaquer','Attack')} ${q.c.n.split(' ').pop()}</b><small>${t('Adversaire −, image de fin −','Rival −, general image −')}</small></button>`).join('');
-  m.innerHTML=`${pr.r===0?`<div class="hint" style="margin-top:14px">${t('Pour gagner l’investiture, devancez vos deux rivaux sur l’ensemble des quatre scrutins (le Super Tuesday pèse le plus). Les électeurs de primaire ont une humeur : se placer près d’elle aide, mais ce positionnement vous suivra face à l’adversaire en novembre. Vous avez 2 actions par tour.','To win the nomination, beat your two rivals across the four contests (Super Tuesday counts the most). Primary voters have a mood: positioning near it helps, but that stance follows you into the general election. You have 2 actions per round.')}</div>`:''}
+  m.innerHTML=`${pr.r===0&&G.long?`<div class="hint" style="margin-top:14px">${t('Campagne longue : huit scrutins de janvier à juin, deux débats de primaire (après les tours 3 et 6), puis la convention où vous réglez la plateforme et prononcez votre discours.','Long campaign: eight contests from January to June, two primary debates (after rounds 3 and 6), then the convention where you settle the platform and give your speech.','Campaña larga: ocho contiendas de enero a junio, dos debates de primarias (tras las rondas 3 y 6) y la convención, donde fijas la plataforma y pronuncias tu discurso.')}</div>`:''}${pr.r===0?`<div class="hint" style="margin-top:14px">${t('Pour gagner l’investiture, devancez vos deux rivaux sur l’ensemble des quatre scrutins (le Super Tuesday pèse le plus). Les électeurs de primaire ont une humeur : se placer près d’elle aide, mais ce positionnement vous suivra face à l’adversaire en novembre. Vous avez 2 actions par tour.','To win the nomination, beat your two rivals across the four contests (Super Tuesday counts the most). Primary voters have a mood: positioning near it helps, but that stance follows you into the general election. You have 2 actions per round.')}</div>`:''}
   <h2 class="sect">${t('Sondages de primaire','Primary polls')}</h2><div class="panel">${bars}<p class="muted" style="font-size:13px;margin:8px 0 0">${t('Les électeurs de primaire semblent','Primary voters seem')} <b>${moodLabel(pr.hint)}</b>. ${t('Poids de ce scrutin','Weight of this contest')} : ${Math.round(rd.w*100)} %.</p>${hist}${out}</div>
   <h3 class="sect" style="font-size:18px">${t('Votre positionnement','Your positioning')}</h3><div class="panel"><div class="stance">${st}</div><p class="muted" style="font-size:13px;margin:4px 0 0">${t('Aller vers la base conforte la ligne du parti ; aller vers le centre aide en novembre mais déplace vos positions sur les enjeux au moment de l’investiture.','Moving toward the base reinforces the party line; moving to the center helps in November but shifts your issue positions once you are nominated.')}</p></div>
   <h3 class="sect" style="font-size:18px">${t('Actions','Actions')}</h3><div class="pg">
@@ -107,6 +111,6 @@ function renderPrim(){
    <button class="btn sm" data-act="ptour"><b>${t('Tournée de terrain','Barnstorm')}</b><small>${t('Gratuit','Free')}</small></button>
    <button class="btn sm" data-act="pfund"><b>${t('Collecte de fonds','Fundraise')}</b><small>${t('+5 à 7 M$','+$5M to $7M')}</small></button>
    ${rivBtn}</div>
-  <div style="height:14px"></div><button class="btn full" data-act="pend">${r>=3?t('Clore la dernière primaire','Close the final primary'):t('Terminer le tour','End the round')}</button>
+  <div style="height:14px"></div><button class="btn full" data-act="pend">${r>=NR()-1?t('Clore la dernière primaire','Close the final primary'):t('Terminer le tour','End the round')}</button>
   <p class="muted" style="font-size:12px;margin:10px 0 0">${candLine(G.cand)}</p>`;
 }

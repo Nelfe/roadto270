@@ -693,5 +693,8 @@
 "Recount winner": "Recuento ganador",
 "Win after a recount that flips the result.": "Gana tras un recuento que invierte el resultado.",
 "Favorable verdict": "Fallo favorable",
-"Win thanks to the Supreme Court.": "Gana gracias a la Corte Suprema."
+"Win thanks to the Supreme Court.": "Gana gracias a la Corte Suprema.",
+"Vice-presidential debate": "Debate vicepresidencial",
+"${v.n} is announced as running mate at the convention.": "${v.n} es anunciado(a) como compañero(a) de fórmula en la convención.",
+"The convention gives you a polling bump.": "La convención te da un repunte en las encuestas."
 }

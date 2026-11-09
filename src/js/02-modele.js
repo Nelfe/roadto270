@@ -47,7 +47,7 @@ const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));
 
 function newGame(me,diff,seed,daily,mode){
-  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';
+  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const lng=mode==='long';if(lng)mode='pres';
   if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
@@ -65,6 +65,7 @@ function newGame(me,diff,seed,daily,mode){
   {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
+  if(lng)G.long=true;
   if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4;G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
   UI={tab:'map',sel:null,night:null};
   save();

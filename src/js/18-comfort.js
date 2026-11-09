@@ -19,7 +19,7 @@ const undoBtn=()=>UNDO.st.length&&G&&G.phase==='play'?`<button class="help" data
 // ---- Simulation accélérée : fait avancer les semaines en résolvant les événements au plus prudent
 function autoEvent(){
   const e=EVENTS.find(q=>q.id===G.ev.id);let r;
-  if(e.id==='debate'){debAuto(2);r=G.ev.res}
+  if(e.id==='debate'||e.id==='vpdebate'){debAuto(2);r=G.ev.res}
   else{let i=e.ch.findIndex(c=>c.d===FREE);if(i<0)i=e.ch.length-1;r=e.ch[i].fx();G.ev.res=r;L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`))}
   A.evnext();
 }

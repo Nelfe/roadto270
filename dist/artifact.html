@@ -406,7 +406,7 @@ function loadSaves(){
 function dropSave(n){try{localStorage.removeItem(slotKey(n))}catch(e){}}
 function pickSlot(){const ss=loadSaves();for(let n=1;n<=3;n++)if(!ss.find(q=>q.slot===n))return n;return ss.sort((a,b)=>(a.t||0)-(b.t||0))[0].slot}
 function copyText(x){try{navigator.clipboard.writeText(x).then(()=>toast(t('Copié','Copied',`Copiado`)),()=>toast(x))}catch(e){toast(x)}}
-function mkDeck(){const a=EVENTS.filter(e=>!['debate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:G.mode==='mid'?projMid().youH:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
@@ -460,7 +460,7 @@ const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));
 
 function newGame(me,diff,seed,daily,mode){
-  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';
+  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const lng=mode==='long';if(lng)mode='pres';
   if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
@@ -478,6 +478,7 @@ function newGame(me,diff,seed,daily,mode){
   {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
+  if(lng)G.long=true;
   if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4;G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
   UI={tab:'map',sel:null,night:null};
   save();
@@ -621,6 +622,10 @@ const EVENTS=[
  {t:B('Offensif','Aggressive',`Agresivo`),d:B('Attaque','Attack',`Atacar`),fx(){debAuto(0);return G.ev.res}},
  {t:B('Pédagogue','Explainer',`Didáctico`),d:B('Plan','Plan',`Plan`),fx(){debAuto(1);return G.ev.res}},
  {t:B('Prudent','Cautious',`Cauteloso`),d:B('Prudent','Cautious',`Cauteloso`),fx(){debAuto(2);return G.ev.res}}]},
+{id:'vpdebate',t:B('Débat des colistiers','Vice-presidential debate',`Debate vicepresidencial`),x:()=>'',ch:[
+ {t:B('Offensif','Aggressive',`Agresivo`),d:B('Attaque','Attack',`Atacar`),fx(){debAuto(0);return G.ev.res}},
+ {t:B('Pédagogue','Explainer',`Didáctico`),d:B('Plan','Plan',`Plan`),fx(){debAuto(1);return G.ev.res}},
+ {t:B('Prudent','Cautious',`Cauteloso`),d:B('Prudent','Cautious',`Cauteloso`),fx(){debAuto(2);return G.ev.res}}]},
 {id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation',`Revelación de última hora`),
  x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.',`Una investigación periodística pone en apuros a tu campaña diez días antes de la votación.`):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.',`Una investigación periodística pone en apuros a tu oponente diez días antes de la votación.`),
  pre(){G.ev.hit=rnd()<.5+(wkP()==='scandal'?.15:0)-(wkO()==='scandal'?.15:0)?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
@@ -629,7 +634,7 @@ const EVENTS=[
 ];
 function nextEvent(){
   let id;
-  if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.wk===11)id='surprise';
+  if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.long&&G.wk===7)id='vpdebate';else if(G.wk===11)id='surprise';
   else if(G.third&&!G.third.on&&G.wk>=G.third.wk)id='third';
   else{if(!G.deck||!G.deck.length)G.deck=mkDeck();id=G.deck.shift();G.used.push(id)}
   G.ev={id,res:null};G.phase='event';
@@ -659,7 +664,7 @@ const A={
  media(){if(!can()||!needAP(1))return;const r=rnd(),gf=wkP()==='gaffe';if(r<(gf?.45:.6)+.04*sk('com')){H.img(.25);L('you',B('Grande interview : bien reçue.','Major interview: well received.',`Gran entrevista: bien recibida.`))}else if(r<(gf?.7:.85)+.03*sk('com'))L('you',B('Grande interview : sans effet notable.','Major interview: no notable effect.',`Gran entrevista: sin efecto notable.`));else{H.img(-.5);L('you',B('Grande interview : un dérapage fait polémique.','Major interview: a slip sparks controversy.',`Gran entrevista: un desliz genera polémica.`))}save();render()},
  prep(){if(!can())return;if(G.prep>=3){toast(t('Préparation au maximum.','Preparation already at maximum.',`Preparación ya al máximo.`));return}if(!needAP(1))return;G.prep++;L('you',B(`Préparation du débat (${G.prep}/3).`,`Debate prep (${G.prep}/3).`,`Preparación del debate (${G.prep}/3).`));save();render()},
  end(){endWeek()},
- choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;if(e.id==='debate'){save();showEvent();return}L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`));save();showEvent()},
+ choose(d){const e=EVENTS.find(q=>q.id===G.ev.id);const r=e.ch[+d.i].fx();G.ev.res=r;if(e.id==='debate'||e.id==='vpdebate'){save();showEvent();return}L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`));save();showEvent()},
  evnext(){G.ev=null;G.phase='play';hideModal();save();render()},
  analyst(){G.analyst=!G.analyst;save();render()},
  target(d){if(!can())return;const i=+d.i;if(G.ap<1){noAP();return}if(!needCash(1.5*(1-.1*sk('mgr'))))return;G.ap--;G.tgtP[i]=Math.min(2,G.tgtP[i]+1);const nm=GROUPS[i].n;L('you',B(`Campagne ciblée auprès des ${nm.fr.toLowerCase()}.`,`Targeted outreach to ${nm.en.toLowerCase()}.`,`Acercamiento dirigido a ${nm.es.toLowerCase()}.`));save();render()},
@@ -713,6 +718,10 @@ function pickVP(i){
   const v=VPS[side()][i];G.vpName=v.n;
   if(v.k==='region'){ST(v.st).vpP+=2;v.ne.forEach(a=>ST(a).vpP+=.6)}else if(v.k==='image')G.img+=G.me*.5;else G.cash+=8;
   const ov=ST(['PA','AZ','GA','WI','MI','NC'][Math.floor(rnd()*6)]);ov.vpO+=2;
+  if(G.long&&!G.convDone){G.convOv=ov.ab;if(SIM){convApply(-1,1)}else{G.phase='conv';G.conv={step:0};L('news',both(()=>t(`${v.n} est annoncé(e) comme colistier à la convention.`,`${v.n} is announced as running mate at the convention.`,`${v.n} es anunciado(a) como compañero(a) de fórmula en la convención.`)));save();render();showConv();return}}
+  vpTail(v,ov)
+}
+function vpTail(v,ov){
   G.phase='play';snap();L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`,`${v.n} se une a tu fórmula. Tu oponente elige a un compañero de fórmula vinculado a ${sn(ov)}.`)));
   hideModal();save();if(!SIM&&!tutoSeen())UI.tuto=0;render();if(UI.tuto===0)tutoGo(0);
 }
@@ -857,7 +866,7 @@ function showEvent(){
   if(!G.ev||G.phase!=='event'){hideModal();return}
   const e=EVENTS.find(q=>q.id===G.ev.id);
   const title=e.id==='debate'?(G.wk===5?t('Premier débat','First debate',`Primer debate`):t('Second débat','Second debate',`Segundo debate`)):t(e.t);
-  if(e.id==='debate'){showDebate();return}
+  if(e.id==='debate'||e.id==='vpdebate'){showDebate();return}
   if(G.ev.res===null)showModal(`<h2>${title}</h2><p>${e.x()}</p>${e.ch.map((c,i)=>`<button class="ch" data-act="choose" data-i="${i}"><b>${t(c.t)}</b><small>${t(c.d)}</small></button>`).join('')}`);
   else showModal(`<h2>${title}</h2><div class="res">${t(G.ev.res)}</div><button class="btn full" data-act="evnext">${t('Continuer','Continue',`Continuar`)}</button>`);
 }
@@ -1170,6 +1179,8 @@ function candCard(c,i){
 const candLine=c=>`${c.n} (${roleTxt(c)}) : ${c.tr.map(k=>t(TRAITS[k].n)).join(', ')} · ${t(WEAKS[c.wk].n)}`;
 /* ---------- Primaires ---------- */
 const PRD=[{n:B('Premiers États','Early states',`Primeros estados`),m:B('févr.','Feb',`feb.`),w:.2},{n:B('Super Tuesday','Super Tuesday',`Super Martes`),m:B('mars','Mar',`mar.`),w:.35},{n:B('Primaires du printemps','Spring primaries',`Primarias de primavera`),m:B('avr.-mai','Apr–May',`abr.–may.`),w:.25},{n:B('Dernières primaires','Final primaries',`Últimas primarias`),m:B('juin','Jun',`jun.`),w:.2}];
+const PRDL=[{n:B('Iowa et New Hampshire','Iowa and New Hampshire','Iowa y Nuevo Hampshire'),m:B('janv.','Jan','ene'),w:.06},{n:B('Caroline du Sud et Nevada','South Carolina and Nevada','Carolina del Sur y Nevada'),m:B('févr.','Feb','feb'),w:.07},{n:B('Mini-Tuesday','Mini-Tuesday','Mini Martes'),m:B('mars','Mar','mar'),w:.1},{n:B('Super Tuesday','Super Tuesday','Super Martes'),m:B('mars','Mar','mar'),w:.25},{n:B('Primaires du Midwest','Midwest primaries','Primarias del Medio Oeste'),m:B('avr.','Apr','abr'),w:.12},{n:B('Côte Est','East Coast','Costa Este'),m:B('avr.','Apr','abr'),w:.13},{n:B('Primaires de mai','May primaries','Primarias de mayo'),m:B('mai','May','may'),w:.12},{n:B('Dernières primaires','Final primaries','Últimas primarias'),m:B('juin','Jun','jun'),w:.15}];
+const NR=()=>G.long?8:4,PRDS=()=>G.long?PRDL:PRD;
 const RIVC=['hsl(30 16% 52%)','hsl(200 14% 52%)'];
 function initPrim(){
   const used=[G.cand.n,G.opp.n,...G.cands.map(c=>c.n)],sd=side();
@@ -1186,7 +1197,7 @@ function prShares(nz){
 }
 function cumShares(upto){
   const tot={you:0,0:0,1:0};let w=0;
-  G.pr.sh.slice(0,upto).forEach((r,i)=>{w+=PRD[i].w;['you',0,1].forEach(k=>tot[k]+=PRD[i].w*(r[k]||0))});
+  G.pr.sh.slice(0,upto).forEach((r,i)=>{w+=PRDS()[i].w;['you',0,1].forEach(k=>tot[k]+=PRDS()[i].w*(r[k]||0))});
   if(w)['you',0,1].forEach(k=>tot[k]/=w);return tot;
 }
 function shiftPos(sd,x){
@@ -1214,18 +1225,19 @@ function endRound(){
   pr.mom*=PARAM.dec;pr.riv.forEach(q=>{if(!q.out){q.mom=q.mom*PARAM.dec+PARAM.rivM+rnd()*PARAM.rivR}});
   if(rnd()<.3&&pr.riv.some(q=>!q.out))pr.mom-=.25;
   pr.r++;pr.ap=2;
-  if(pr.r===2){
-    const cs=cumShares(2);const lead=Math.max(cs.you,cs[0],cs[1]);
+  if(pr.r===(G.long?3:2)){
+    const cs=cumShares(pr.r);const lead=Math.max(cs.you,cs[0],cs[1]);
     pr.riv.forEach((q,i)=>{if(!q.out&&!pr.riv.some(z=>z.out)&&cs[i]<.16&&cs[i]<lead){q.out=true;
       const rest=[{k:'you',x:pr.x},...pr.riv.map((z,j)=>({k:j,x:z.x,o:z.out}))].filter(z=>!z.o&&z.k!==i).sort((a,b)=>Math.abs(a.x-q.x)-Math.abs(b.x-q.x))[0];
       if(rest.k==='you')pr.mom+=.3;else pr.riv[rest.k].mom+=.3;pr.out={n:q.c.n,to:rest.k==='you'?G.cand.n:pr.riv[rest.k].c.n,you:rest.k==='you'}}});
   }
   pr.pn=newPn();
-  if(pr.r>=4){finishPrim();return}
+  if(pr.r>=NR()){finishPrim();return}
+  if(G.long&&(pr.r===3||pr.r===6)&&!SIM)pdebStart(pr.r===3?1:2);
   save();render();
 }
 function finishPrim(){
-  const pr=G.pr,cs=cumShares(4),order=[{k:'you',v:cs.you},{k:0,v:cs[0]},{k:1,v:cs[1]}].sort((a,b)=>b.v-a.v);
+  const pr=G.pr,cs=cumShares(NR()),order=[{k:'you',v:cs.you},{k:0,v:cs[0]},{k:1,v:cs[1]}].sort((a,b)=>b.v-a.v);
   pr.final=cs;
   if(order[0].k!=='you'){primLoss(order);return}
   const tot=cs.you,gap=tot-order[1].v;
@@ -1257,17 +1269,18 @@ function renderPrim(){
     m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.',`Tres perfiles al azar. Cada candidato tiene dos puntos fuertes y una debilidad que influyen en la campaña, incluidas las primarias.`)}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('');
     return;
   }
-  const pr=G.pr,r=Math.min(pr.r,3),rd=PRD[r],myCol=myC();
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries',`Primarias`)} ${r+1}/4 <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
+  const pr=G.pr,r=Math.min(pr.r,NR()-1),rd=PRDS()[r],myCol=myC();
+  setTimeout(()=>{if(G&&G.pr&&G.pr.deb&&G.phase==='prim')showPDeb()},0);
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries',`Primarias`)} ${r+1}/${NR()} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
   <div class="aps" style="display:flex;gap:6px;align-items:center;margin-top:6px">${[0,1].map(i=>`<i class="${i<pr.ap?'on':''}" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);${i<pr.ap?'background:var(--gold)':''}"></i>`).join('')}<span class="muted" style="font-size:13px">${pr.ap} ${t('action(s) ce tour','action(s) this round',`acción(es) en esta ronda`)}</span></div>`;
   const nz=pr.pn,sh=prShares(nz),rows=[{k:'you',n:G.cand.n,col:myCol,you:true},...pr.riv.map((q,i)=>({k:i,n:q.c.n,col:RIVC[i],out:q.out}))];
   const cs=cumShares(pr.r);
   const bars=rows.map(q=>`<div class="pbar${q.you?' you':''}"><span class="nm">${q.n}${q.out?' ✗':''}</span><span class="tr"><i style="width:${q.out?0:(sh[q.k]*100).toFixed(1)}%;background:${q.col}"></i></span><span class="v">${q.out?'—':Math.round(sh[q.k]*100)+'%'}</span></div>`).join('');
-  const hist=pr.sh.length?`<table class="hs" style="margin-top:6px"><tr><td></td>${rows.map(q=>`<td class="muted">${q.n.split(' ').pop()}</td>`).join('')}</tr>${pr.sh.map((x,i)=>`<tr><td>${t(PRD[i].n)}</td>${rows.map(q=>`<td class="mono">${x[q.k]!=null?Math.round(x[q.k]*100)+'%':'—'}</td>`).join('')}</tr>`).join('')}<tr><td><b>${t('Délégués','Delegates',`Delegados`)}</b></td>${rows.map(q=>`<td class="mono"><b>${Math.round((cs[q.k]||0)*100)}%</b></td>`).join('')}</tr></table>`:'';
+  const hist=pr.sh.length?`<table class="hs" style="margin-top:6px"><tr><td></td>${rows.map(q=>`<td class="muted">${q.n.split(' ').pop()}</td>`).join('')}</tr>${pr.sh.map((x,i)=>`<tr><td>${t(PRDS()[i].n)}</td>${rows.map(q=>`<td class="mono">${x[q.k]!=null?Math.round(x[q.k]*100)+'%':'—'}</td>`).join('')}</tr>`).join('')}<tr><td><b>${t('Délégués','Delegates',`Delegados`)}</b></td>${rows.map(q=>`<td class="mono"><b>${Math.round((cs[q.k]||0)*100)}%</b></td>`).join('')}</tr></table>`:'';
   const st=[-2,-1,0,1,2].map(v=>`<div class="${v===pr.x?'on':''}">${v===-2?t('Centre','Center',`Centro`):v===2?t('Base','Base',`Base`):''}${v===pr.x?'●':''}</div>`).join('');
   const out=pr.out?`<div class="res" style="margin-top:10px">${pr.out.n} ${t('se retire et apporte son soutien à','drops out and endorses',`se retira y apoya a`)} <b>${pr.out.to}</b>${pr.out.you?t(' : vous en profitez.',': you benefit.',`: te beneficias.`):'.'}</div>`:'';
   const rivBtn=pr.riv.map((q,i)=>q.out?'':`<button class="btn sm alt" data-act="patk" data-i="${i}"><b>${t('Attaquer','Attack',`Atacar`)} ${q.c.n.split(' ').pop()}</b><small>${t('Adversaire −, image de fin −','Rival −, general image −',`Rival −, imagen general −`)}</small></button>`).join('');
-  m.innerHTML=`${pr.r===0?`<div class="hint" style="margin-top:14px">${t('Pour gagner l’investiture, devancez vos deux rivaux sur l’ensemble des quatre scrutins (le Super Tuesday pèse le plus). Les électeurs de primaire ont une humeur : se placer près d’elle aide, mais ce positionnement vous suivra face à l’adversaire en novembre. Vous avez 2 actions par tour.','To win the nomination, beat your two rivals across the four contests (Super Tuesday counts the most). Primary voters have a mood: positioning near it helps, but that stance follows you into the general election. You have 2 actions per round.',`Para ganar la nominación, vence a tus dos rivales en las cuatro contiendas (el Super Martes pesa más). Los votantes de primarias tienen un ánimo: situarte cerca ayuda, pero esa postura te acompañará en las elecciones generales. Tienes 2 acciones por ronda.`)}</div>`:''}
+  m.innerHTML=`${pr.r===0&&G.long?`<div class="hint" style="margin-top:14px">${t('Campagne longue : huit scrutins de janvier à juin, deux débats de primaire (après les tours 3 et 6), puis la convention où vous réglez la plateforme et prononcez votre discours.','Long campaign: eight contests from January to June, two primary debates (after rounds 3 and 6), then the convention where you settle the platform and give your speech.','Campaña larga: ocho contiendas de enero a junio, dos debates de primarias (tras las rondas 3 y 6) y la convención, donde fijas la plataforma y pronuncias tu discurso.')}</div>`:''}${pr.r===0?`<div class="hint" style="margin-top:14px">${t('Pour gagner l’investiture, devancez vos deux rivaux sur l’ensemble des quatre scrutins (le Super Tuesday pèse le plus). Les électeurs de primaire ont une humeur : se placer près d’elle aide, mais ce positionnement vous suivra face à l’adversaire en novembre. Vous avez 2 actions par tour.','To win the nomination, beat your two rivals across the four contests (Super Tuesday counts the most). Primary voters have a mood: positioning near it helps, but that stance follows you into the general election. You have 2 actions per round.',`Para ganar la nominación, vence a tus dos rivales en las cuatro contiendas (el Super Martes pesa más). Los votantes de primarias tienen un ánimo: situarte cerca ayuda, pero esa postura te acompañará en las elecciones generales. Tienes 2 acciones por ronda.`)}</div>`:''}
   <h2 class="sect">${t('Sondages de primaire','Primary polls',`Encuestas de primarias`)}</h2><div class="panel">${bars}<p class="muted" style="font-size:13px;margin:8px 0 0">${t('Les électeurs de primaire semblent','Primary voters seem',`Los votantes de primarias parecen`)} <b>${moodLabel(pr.hint)}</b>. ${t('Poids de ce scrutin','Weight of this contest',`Peso de esta contienda`)} : ${Math.round(rd.w*100)} %.</p>${hist}${out}</div>
   <h3 class="sect" style="font-size:18px">${t('Votre positionnement','Your positioning',`Tu posicionamiento`)}</h3><div class="panel"><div class="stance">${st}</div><p class="muted" style="font-size:13px;margin:4px 0 0">${t('Aller vers la base conforte la ligne du parti ; aller vers le centre aide en novembre mais déplace vos positions sur les enjeux au moment de l’investiture.','Moving toward the base reinforces the party line; moving to the center helps in November but shifts your issue positions once you are nominated.',`Acercarte a la base refuerza la línea del partido; moverte al centro ayuda en noviembre, pero cambia tus posturas en los temas una vez nominado.`)}</p></div>
   <h3 class="sect" style="font-size:18px">${t('Actions','Actions',`Acciones`)}</h3><div class="pg">
@@ -1277,7 +1290,7 @@ function renderPrim(){
    <button class="btn sm" data-act="ptour"><b>${t('Tournée de terrain','Barnstorm',`Gira de campo`)}</b><small>${t('Gratuit','Free',`Gratis`)}</small></button>
    <button class="btn sm" data-act="pfund"><b>${t('Collecte de fonds','Fundraise',`Recaudar fondos`)}</b><small>${t('+5 à 7 M$','+$5M to $7M',`+5 a 7 M$`)}</small></button>
    ${rivBtn}</div>
-  <div style="height:14px"></div><button class="btn full" data-act="pend">${r>=3?t('Clore la dernière primaire','Close the final primary',`Cerrar la última primaria`):t('Terminer le tour','End the round',`Terminar la ronda`)}</button>
+  <div style="height:14px"></div><button class="btn full" data-act="pend">${r>=NR()-1?t('Clore la dernière primaire','Close the final primary',`Cerrar la última primaria`):t('Terminer le tour','End the round',`Terminar la ronda`)}</button>
   <p class="muted" style="font-size:12px;margin:10px 0 0">${candLine(G.cand)}</p>`;
 }
 /* ---------- Équipe, indépendant, médias ---------- */
@@ -1433,8 +1446,8 @@ function renderTitle(){
   const saves=loadSaves(),dl=getStats().dl&&getStats().dl[dayStr()];
   $('#title').innerHTML=`${langSw()}
   <h1>${FR()?'Cap sur':LANG==='es'?'Rumbo a':'Road to'} <span>270</span></h1>
-  <div class="pick" id="pickMode"><button data-mode="pres" aria-pressed="${pickedMode==='pres'}"><b>${t('Présidentielle 2028','Presidential 2028',`Presidenciales 2028`)}</b><small>${t('270 grands électeurs','270 electoral votes',`270 votos electorales`)}</small></button><button data-mode="mid" aria-pressed="${pickedMode==='mid'}"><b>${t('Midterms 2030','Midterms 2030',`Mitad de mandato 2030`)}</b><small>${t('Chambre et Sénat','House and Senate',`Cámara y Senado`)}</small></button><button data-mode="hist" aria-pressed="${pickedMode==='hist'}" style="grid-column:1/-1"><b>${t('Scénarios historiques','Historical scenarios',`Escenarios históricos`)}</b><small>${t('Rejouez 2016, 2020 ou 2024 avec les vraies marges d’État','Replay 2016, 2020 or 2024 with real state margins',`Rejuega 2016, 2020 o 2024 con los márgenes reales por estado`)}</small></button></div>${pickedMode==='hist'?`<div class="pick three" id="pickYear">${Object.keys(SCN).map(y=>`<button data-year="${y}" aria-pressed="${pickedYear===y}"><b>${y}</b><small>${t(SCN[y].tag)}</small></button>`).join('')}</div>`:''}
-  <p class="lede">${pickedMode==='hist'?t(SCN[pickedYear].blurb):pickedMode==='mid'?t('Douze semaines pour conquérir le Congrès. Vous dirigez la campagne nationale de votre parti : vous répartissez votre argent et votre temps entre 435 sièges de la Chambre et 35 courses au Sénat, face à un adversaire qui fait de même. Données calées sur les résultats de 2024.','Twelve weeks to win Congress. You run your party’s national campaign, splitting money and time across 435 House seats and 35 Senate races, against an opponent doing the same. Data calibrated on the 2024 results.',`Doce semanas para ganar el Congreso. Diriges la campaña nacional de tu partido y repartes dinero y tiempo entre 435 escaños de la Cámara y 35 carreras al Senado, frente a un adversario que hace lo mismo. Datos calibrados con los resultados de 2024.`):t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.',`Doce semanas para ganar la presidencia de EE. UU. Repartes dinero y tiempo entre los estados clave, eliges tus posturas y te enfrentas a un adversario que hace lo mismo. Candidatos ficticios, datos calibrados con los resultados de 2024.`)}</p>
+  <div class="pick" id="pickMode"><button data-mode="pres" aria-pressed="${pickedMode==='pres'}"><b>${t('Présidentielle 2028','Presidential 2028',`Presidenciales 2028`)}</b><small>${t('270 grands électeurs','270 electoral votes',`270 votos electorales`)}</small></button><button data-mode="mid" aria-pressed="${pickedMode==='mid'}"><b>${t('Midterms 2030','Midterms 2030',`Mitad de mandato 2030`)}</b><small>${t('Chambre et Sénat','House and Senate',`Cámara y Senado`)}</small></button><button data-mode="long" aria-pressed="${pickedMode==='long'}" style="grid-column:1/-1"><b>${t('Campagne longue 2028','Long campaign 2028','Campaña larga 2028')}</b><small>${t('Primaires en 8 tours, débats, convention','8-round primaries, debates, convention','Primarias en 8 rondas, debates, convención')}</small></button><button data-mode="hist" aria-pressed="${pickedMode==='hist'}" style="grid-column:1/-1"><b>${t('Scénarios historiques','Historical scenarios',`Escenarios históricos`)}</b><small>${t('Rejouez 2016, 2020 ou 2024 avec les vraies marges d’État','Replay 2016, 2020 or 2024 with real state margins',`Rejuega 2016, 2020 o 2024 con los márgenes reales por estado`)}</small></button></div>${pickedMode==='hist'?`<div class="pick three" id="pickYear">${Object.keys(SCN).map(y=>`<button data-year="${y}" aria-pressed="${pickedYear===y}"><b>${y}</b><small>${t(SCN[y].tag)}</small></button>`).join('')}</div>`:''}
+  <p class="lede">${pickedMode==='long'?t('Toute la course : huit scrutins de primaire de janvier à juin avec deux débats, la convention (plateforme et discours), puis les douze semaines de campagne avec un débat des colistiers en plus. Candidats fictifs.','The whole race: eight primary contests from January to June with two debates, the convention (platform and speech), then the twelve-week campaign with an extra vice-presidential debate. Fictional candidates.','Toda la carrera: ocho contiendas de primarias de enero a junio con dos debates, la convención (plataforma y discurso) y las doce semanas de campaña con un debate vicepresidencial adicional. Candidatos ficticios.'):pickedMode==='hist'?t(SCN[pickedYear].blurb):pickedMode==='mid'?t('Douze semaines pour conquérir le Congrès. Vous dirigez la campagne nationale de votre parti : vous répartissez votre argent et votre temps entre 435 sièges de la Chambre et 35 courses au Sénat, face à un adversaire qui fait de même. Données calées sur les résultats de 2024.','Twelve weeks to win Congress. You run your party’s national campaign, splitting money and time across 435 House seats and 35 Senate races, against an opponent doing the same. Data calibrated on the 2024 results.',`Doce semanas para ganar el Congreso. Diriges la campaña nacional de tu partido y repartes dinero y tiempo entre 435 escaños de la Cámara y 35 carreras al Senado, frente a un adversario que hace lo mismo. Datos calibrados con los resultados de 2024.`):t('Douze semaines pour gagner la présidentielle américaine. Vous répartissez votre argent et votre temps entre les États clés, vous choisissez vos positions et vous affrontez un adversaire qui fait de même. Candidats fictifs, données calées sur les résultats de 2024.','Twelve weeks to win the US presidency. You split your money and time across the key states, choose your positions and face an opponent doing the same. Fictional candidates, data calibrated on the 2024 results.',`Doce semanas para ganar la presidencia de EE. UU. Repartes dinero y tiempo entre los estados clave, eliges tus posturas y te enfrentas a un adversario que hace lo mismo. Candidatos ficticios, datos calibrados con los resultados de 2024.`)}</p>
   <div class="pick" id="pickSide">
     <button class="d" data-side="1" aria-pressed="${pickedSide===1}"><b>${t('Démocrate','Democrat',`Demócrata`)}</b><small>${pickedMode==='mid'?t('Direction de campagne nationale','National campaign chief',`Jefe de campaña nacional`):t('Candidat tiré au hasard','Randomly drawn candidate',`Candidato al azar`)}</small></button>
     <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican',`Republicano`)}</b><small>${pickedMode==='mid'?t('Direction de campagne nationale','National campaign chief',`Jefe de campaña nacional`):t('Candidat tiré au hasard','Randomly drawn candidate',`Candidato al azar`)}</small></button>
@@ -1466,7 +1479,7 @@ document.addEventListener('click',e=>{
   const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
   const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
   if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null,null,pickedMode==='hist'?'h'+pickedYear:pickedMode);render();if(G.mode==='mid'||G.scn)showBrief();return}
-  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
+  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='conv')showConv();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
   if(SET.vib&&['ads','field','visit','poll','pos','agenda','fund','media','prep','target','end','choose','vp'].includes(a))navigator.vibrate?.(a==='end'?20:8);
   A[a]&&A[a](x.dataset);
 });
@@ -1531,25 +1544,29 @@ function debStart(){
   G.ev.deb={q:0,qs,tot:0,opp:0,last:null,nth:G.wk===5?1:2};
 }
 function debQuestion(){const d=G.ev.deb;return d.q<3?{topic:ISSUES[d.qs[d.q]],set:DEB_TOPIC}:{topic:null,set:DEB_CLOSE}}
-function debAnswer(i){
-  const d=G.ev.deb,Q=debQuestion(),a=Q.set[i];if(!a)return;
-  let m=a.m+PARAM.prep*G.prep/2+(trP().includes('debate')?.075:0)-(trO().includes('debate')?.075:0),sd=a.sd;
-  if(Q.topic){
-    const fav=G.me*Q.topic.own>.15,unf=G.me*Q.topic.own<-.15;
-    if(a.id==='plan'){m+=fav?.35:unf?-.2:.1;H.sal(Q.topic.id,.06)}
-    if(a.id==='pivot'){m+=unf?.4:fav?-.1:.1;const b=H.best();H.sal(b.id,.07);if(unf)H.sal(Q.topic.id,-.05)}
-    if(a.id==='story'){H.target(DEB_GRP[Q.topic.id],.3)}
+function debScore(a,topic,prep){
+  let m=a.m+PARAM.prep*prep/2+(trP().includes('debate')?.075:0)-(trO().includes('debate')?.075:0),sd=a.sd;
+  if(topic){
+    const fav=G.me*topic.own>.15,unf=G.me*topic.own<-.15;
+    if(a.id==='plan'){m+=fav?.35:unf?-.2:.1;H.sal(topic.id,.06)}
+    if(a.id==='pivot'){m+=unf?.4:fav?-.1:.1;const b=H.best();H.sal(b.id,.07);if(unf)H.sal(topic.id,-.05)}
+    if(a.id==='story'){H.target(DEB_GRP[topic.id],.3)}
   }else{
     if(a.id==='vis')m+=clamp(G.me*G.img*.1,-.2,.2);
     if(a.id==='ask'){H.target('jeu',.15);H.target('ouv',.15)}
   }
   const sc=m+randn()*sd;
   if(a.id==='con'&&sc>.9){const s=G.states.filter(q=>q.ev>=10).sort(()=>rnd()-.5)[0];if(s)H.buzz(s.ab,.5)}
+  return sc;
+}
+function debAnswer(i){
+  const d=G.ev.deb,Q=debQuestion(),a=Q.set[i];if(!a)return;
+  const sc=debScore(a,Q.topic,G.prep);
   d.tot+=sc;d.opp+=randn()*.6+(trO().includes('debate')?.1:0);
   d.last={sc,a:a.id,rx:sc>.7?0:sc>-.4?1:2};
   d.q++;
   if(d.q>=4){
-    const r=d.tot-d.opp*.5-.7,img=clamp(r*.35,-1.4,1.4);H.img(img);G.prep=0;
+    const r=d.tot-d.opp*.5-.7,img=clamp(r*.35,-1.4,1.4)*(G.ev.id==='vpdebate'?.5:1);H.img(img);G.prep=0;
     const res=r>1.2?B('Vous dominez le débat. Les éditorialistes sont unanimes.','You dominate the debate. Pundits are unanimous.','Dominas el debate. Los analistas coinciden.'):r>-.6?B('Un débat sans vainqueur net.','A debate with no clear winner.','Un debate sin ganador claro.'):B('Vous perdez le débat. Les images tournent en boucle.','You lose the debate. The clips play on a loop.','Pierdes el debate. Los vídeos se repiten sin parar.');
     G.ev.res=res;d.done=true;d.r=r;L('news',B(`Débat : ${res.fr}`,`Debate: ${res.en}`,`Debate: ${res.es}`));
   }
@@ -1561,7 +1578,7 @@ function debAuto(style){
   while(G.ev.deb.q<4){const Q=debQuestion();let i=style===0?0:style===1?(Q.topic?(G.me*Q.topic.own<-.15?3:1):0):(Q.topic?2:2);debAnswer(i)}
 }
 function showDebate(){
-  const d=G.ev.deb,title=G.wk===5?t('Premier débat','First debate','Primer debate'):t('Second débat','Second debate','Segundo debate');
+  const d=G.ev.deb,title=G.ev.id==='vpdebate'?t('Débat des colistiers','Vice-presidential debate','Debate vicepresidencial'):G.wk===5?t('Premier débat','First debate','Primer debate'):t('Second débat','Second debate','Segundo debate');
   if(!d){showModal(`<h2>${title}</h2><p>${t(`Face à face télévisé devant des dizaines de millions de personnes. Trois questions, puis une conclusion. Préparation : ${G.prep}/3.`,`A televised face-off before tens of millions of viewers. Three questions, then a closing statement. Preparation: ${G.prep}/3.`,`Cara a cara televisado ante decenas de millones de personas. Tres preguntas y una conclusión. Preparación: ${G.prep}/3.`)}</p><button class="btn full" data-act="dstart">${t('Monter sur scène','Step on stage','Subir al escenario')}</button>`);return}
   const RX=[t('Applaudissements dans la salle.','The room responds warmly.','La sala responde con aplausos.'),t('Réponse correcte, sans plus.','A solid but unremarkable answer.','Una respuesta correcta, sin más.'),t('Réponse maladroite, l’adversaire en profite.','A clumsy answer, your opponent pounces.','Una respuesta torpe; tu rival lo aprovecha.')];
   const prev=d.last&&!d.done?`<div class="res" style="margin-bottom:10px">${RX[d.last.rx]}</div>`:'';
@@ -1572,6 +1589,32 @@ function showDebate(){
   showModal(`<h2>${title}</h2>${prev}<p class="muted" style="font-size:13px;margin-bottom:4px">${head}</p><p>${prompt}</p>${Q.set.map((a,i)=>`<button class="ch" data-act="dans" data-i="${i}"><b>${t(a.n)}</b><small>${t(a.d)}</small></button>`).join('')}`);
 }
 Object.assign(A,{dstart(){debStart();save();showEvent()},dans(x){debAnswer(+x.i)}});
+
+// ---- Débats de primaire (mode long) : trois questions, l'effet porte sur l'élan et les rivaux
+function pdebStart(n){
+  const pr=G.pr,w=ISSUES.map((q,i)=>G.sal[i]+.15),qs=[];
+  while(qs.length<3){let tot=w.reduce((a,b)=>a+b,0)*rnd(),i=0;for(;i<w.length-1;i++){tot-=w[i];if(tot<=0)break}if(!qs.includes(i))qs.push(i)}
+  pr.deb={q:0,qs,tot:0,n,last:null};
+}
+function showPDeb(){
+  const pr=G.pr,d=pr.deb;if(!d||SIM)return;
+  const title=t(`Débat de primaire ${d.n}/2`,`Primary debate ${d.n}/2`,`Debate de primarias ${d.n}/2`);
+  if(d.done){showModal(`<h2>${title}</h2><div class="res">${t(d.res)}</div><button class="btn full" data-act="pdebend">${t('Continuer','Continue','Continuar')}</button>`);return}
+  const RX=[t('La salle réagit chaleureusement.','The room responds warmly.','La sala responde con calidez.'),t('Réponse correcte, sans plus.','A solid but unremarkable answer.','Una respuesta correcta, sin más.'),t('Réponse maladroite : vos rivaux en profitent.','A clumsy answer: your rivals pounce.','Una respuesta torpe: tus rivales lo aprovechan.')];
+  const q=ISSUES[d.qs[d.q]];
+  showModal(`<h2>${title}</h2>${d.last!=null?`<div class="res" style="margin-bottom:10px">${RX[d.last]}</div>`:''}<p class="muted" style="font-size:13px;margin-bottom:4px">${t(`Question ${d.q+1}/3 · ${q.n.fr}`,`Question ${d.q+1}/3 · ${q.n.en}`,`Pregunta ${d.q+1}/3 · ${q.n.es||q.n.en}`)}</p><p>${t(`Sur « ${q.n.fr} », vos rivaux vous attendent. Comment répondez-vous ?`,`On “${q.n.en}”, your rivals are waiting for you. How do you answer?`,`Sobre «${q.n.es||q.n.en}», tus rivales te esperan. ¿Cómo respondes?`)}</p>${DEB_TOPIC.map((a,i)=>`<button class="ch" data-act="pans" data-i="${i}"><b>${t(a.n)}</b><small>${t(a.d)}</small></button>`).join('')}`);
+}
+Object.assign(A,{
+  pans(x){const pr=G.pr,d=pr.deb,q=ISSUES[d.qs[d.q]],a=DEB_TOPIC[+x.i];
+    const sc=debScore(a,q,0);d.tot+=sc;d.last=sc>.7?0:sc>-.4?1:2;
+    if(a.id==='atk'){pr.riv.forEach(r=>{if(!r.out&&sc>.5)r.mom-=.12});pr.negs+=sc>.5?0:1}
+    d.q++;
+    if(d.q>=3){const m=clamp(d.tot*.12,-.35,.35);pr.mom+=m;
+      d.res=m>.15?B('Vous dominez le débat de primaire : l’élan est pour vous.','You dominate the primary debate: momentum is yours.','Dominas el debate de primarias: el impulso es tuyo.'):m>-.1?B('Un débat sans vainqueur net.','A debate with no clear winner.','Un debate sin ganador claro.'):B('Vous êtes malmené(e) : l’élan vous quitte.','You get roughed up: momentum slips away.','Sales maltrecho: el impulso se escapa.');
+      d.done=true;L('news',B(`Débat de primaire : ${d.res.fr}`,`Primary debate: ${d.res.en}`,`Debate de primarias: ${d.res.es}`))}
+    save();showPDeb()},
+  pdebend(){G.pr.deb=null;hideModal();save();render()}
+});
 /* ---------- Confort : annuler, accélérer, animations, sons ---------- */
 // ---- Annuler (jusqu'à 5 coups dans la semaine en cours)
 const UNDO={st:[],max:5,
@@ -1593,7 +1636,7 @@ const undoBtn=()=>UNDO.st.length&&G&&G.phase==='play'?`<button class="help" data
 // ---- Simulation accélérée : fait avancer les semaines en résolvant les événements au plus prudent
 function autoEvent(){
   const e=EVENTS.find(q=>q.id===G.ev.id);let r;
-  if(e.id==='debate'){debAuto(2);r=G.ev.res}
+  if(e.id==='debate'||e.id==='vpdebate'){debAuto(2);r=G.ev.res}
   else{let i=e.ch.findIndex(c=>c.d===FREE);if(i<0)i=e.ch.length-1;r=e.ch[i].fx();G.ev.res=r;L('news',B(`${e.t.fr} : ${r.fr}`,`${e.t.en}: ${r.en}`,`${e.t.es||e.t.en}: ${r.es||r.en}`))}
   A.evnext();
 }
@@ -1743,4 +1786,31 @@ A.postch=function(x){
   save();showPost();
 };
 A.postnext=function(){const p=G.post;p.cur=null;save();if(postPending())showPost();else nightTick()};
+/* ---------- Convention (mode long) ---------- */
+// Step 1: settle the party platform (one issue moves your position). Step 2: the acceptance speech (convention bounce).
+function convApply(issueIdx,speech){
+  const sd=side();
+  if(issueIdx>=0){const i=issueIdx;G.pos[sd][i]=clamp(G.pos[sd][i]+(sd==='D'?1:-1),-2,2);H.sal(ISSUES[i].id,.08)}
+  const negs=G.pr?G.pr.negs:0;let bounce=.3+randn()*.2;
+  if(speech===0){bounce+=.1+Math.min(.35,.12*negs);G.cash+=2}
+  else if(speech===1){const base=sd==='D'?['jeu','noi','dip']:['evg','ouv','sen'];base.forEach(g=>H.target(g,.3));G.cash+=3}
+  else{G.env+=G.me*.25;bounce+=.05}
+  H.img(clamp(bounce,-.2,.8));G.convDone=true;
+}
+function showConv(){
+  if(SIM)return;const c=G.conv;
+  if(c.step===0){
+    const ord=ISSUES.map((q,i)=>({q,i})).filter(x=>G.pos[side()][x.i]*(side()==='D'?1:-1)<2).sort((a,b)=>G.sal[b.i]-G.sal[a.i]).slice(0,3);
+    showModal(`<h2>${t('Convention du parti','Party convention','Convención del partido')}</h2><p>${t('La plateforme du parti se joue en coulisses. Quel combat voulez-vous gagner ? Votre position sur cet enjeu se déplace d’un cran vers la ligne du parti.','The party platform is settled behind the scenes. Which fight do you want to win? Your position on that issue moves one notch toward the party line.','La plataforma del partido se decide entre bastidores. ¿Qué batalla quieres ganar? Tu posición en ese tema se desplaza un punto hacia la línea del partido.')}</p>${ord.map(x=>`<button class="ch" data-act="convplat" data-i="${x.i}"><b>${t(x.q.n)}</b><small>${t(side()==='D'?x.q.hi:x.q.lo)}</small></button>`).join('')}<button class="ch" data-act="convplat" data-i="-1"><b>${t('Rester flou','Stay vague','Mantenerse ambiguo')}</b><small>${t('Aucune position ne bouge','No position moves','Ninguna posición cambia')}</small></button>`);
+  }else{
+    showModal(`<h2>${t('Discours d’investiture','Acceptance speech','Discurso de aceptación')}</h2><p>${t('Le discours devant la convention donne le ton de l’automne.','The convention speech sets the tone for the fall.','El discurso ante la convención marca el tono del otoño.')}</p>
+    <button class="ch" data-act="convspeech" data-i="0"><b>${t('Unité','Unity','Unidad')}</b><small>${t('Répare les dégâts des primaires, +2 M$','Heals primary wounds, +$2M','Repara las heridas de las primarias, +2 M$')}</small></button>
+    <button class="ch" data-act="convspeech" data-i="1"><b>${t('Mobiliser la base','Fire up the base','Movilizar a la base')}</b><small>${t('Trois groupes de votre camp, +3 M$','Three groups of your side, +$3M','Tres grupos de tu bando, +3 M$')}</small></button>
+    <button class="ch" data-act="convspeech" data-i="2"><b>${t('Tendre la main','Reach across the aisle','Tender la mano')}</b><small>${t('Humeur nationale un peu meilleure','Slightly better national mood','Clima nacional algo mejor')}</small></button>`);
+  }
+}
+Object.assign(A,{
+  convplat(x){G.conv.plat=+x.i;G.conv.step=1;save();showConv()},
+  convspeech(x){convApply(G.conv.plat,+x.i);G.conv=null;L('news',both(()=>t('La convention vous offre un regain de popularité.','The convention gives you a polling bump.',`La convención te da un repunte en las encuestas.`)));const v=VPS[side()].find(q=>q.n===G.vpName)||VPS[side()][0];vpTail(v,ST(G.convOv));}
+});
 </script>

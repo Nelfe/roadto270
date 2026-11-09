@@ -6,7 +6,7 @@ function showEvent(){
   if(!G.ev||G.phase!=='event'){hideModal();return}
   const e=EVENTS.find(q=>q.id===G.ev.id);
   const title=e.id==='debate'?(G.wk===5?t('Premier débat','First debate'):t('Second débat','Second debate')):t(e.t);
-  if(e.id==='debate'){showDebate();return}
+  if(e.id==='debate'||e.id==='vpdebate'){showDebate();return}
   if(G.ev.res===null)showModal(`<h2>${title}</h2><p>${e.x()}</p>${e.ch.map((c,i)=>`<button class="ch" data-act="choose" data-i="${i}"><b>${t(c.t)}</b><small>${t(c.d)}</small></button>`).join('')}`);
   else showModal(`<h2>${title}</h2><div class="res">${t(G.ev.res)}</div><button class="btn full" data-act="evnext">${t('Continuer','Continue')}</button>`);
 }
