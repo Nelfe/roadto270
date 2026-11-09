@@ -38,6 +38,7 @@ npm test               # build + test de fumée FR/EN + tests d'équilibrage (pa
 - `src/js/NN-*.js` : modules concaténés dans l'ordre (noyau, langue, modèle, adversaire, événements, actions, rendu, modales, tutoriel, candidats, primaires, équipe, stats, titre, mesure)
 - `src/data/*.json` : données réelles (États, grands électeurs, sièges de la Chambre, Sénat, démographie, noms anglais), injectées au build
 - `src/config.json` : `telemetryUrl` (vide = aucune mesure) ; surchargeable avec `TELEMETRY_URL=... npm run build`
+- `tests/snapshot.js` : résultats exacts de parties à graines fixes (`npm run test:update-snapshot` après un changement volontaire des règles)
 - `tests/balance.js` : bots seedés ; échoue si un taux de victoire sort de sa fourchette
 - CI : `.github/workflows/ci.yml` (build à jour + tests à chaque push)
 - `capacitor/` : instructions pour empaqueter en app Android/iOS

@@ -5,7 +5,8 @@
   "description": "Road to 270 — US election campaign simulation (PWA)",
   "scripts": {
     "build": "node tools/build.js",
-    "test": "node tools/build.js && node tests/smoke.js && node tests/balance.js 120",
+    "test": "node tools/build.js && node tests/smoke.js && node tests/comfort.js && node tests/post.js && node tests/long.js && node tests/snapshot.js && node tools/i18n-extract.js --check && node tests/balance.js 120",
+    "test:update-snapshot": "node tests/snapshot.js --update",
     "test:smoke": "node tests/smoke.js",
     "test:balance": "node tests/balance.js 200"
   },

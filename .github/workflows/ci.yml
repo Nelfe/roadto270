@@ -16,4 +16,12 @@ jobs:
       - run: node tests/smoke.js
       - run: node tests/comfort.js
       - run: node tests/post.js
+      - run: node tests/long.js
+      - run: node tests/snapshot.js
+      - run: node tools/i18n-extract.js --check
+      - name: Telemetry stays silent unless enabled
+        run: |
+          TELEMETRY_URL=https://example.test/ingest node tools/build.js
+          node tests/telemetry.js
+          node tools/build.js
       - run: node tests/balance.js 120
