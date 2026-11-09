@@ -15,6 +15,8 @@ const ACH=[
  {id:'sen',n:B('Conquête du Sénat','Senate takeover'),d:B('Contrôler le Sénat aux midterms.','Control the Senate in the midterms.'),ck:c=>!!c.mid&&c.mid.sw},
  {id:'rewrite',n:B('Réécrire l’histoire','Rewrite history'),d:B('Gagner un scénario historique avec le camp qui a perdu en réalité.','Win a historical scenario with the side that actually lost.'),ck:c=>c.win&&!!c.scn&&c.rw},
  {id:'histall',n:B('Mémoire des urnes','Ballot memory'),d:B('Gagner les scénarios 2016, 2020 et 2024.','Win the 2016, 2020 and 2024 scenarios.'),ck:c=>!!c.S.sc&&['2016','2020','2024'].every(y=>c.S.sc[y])},
+ {id:'recount',n:B('Recomptage gagnant','Recount winner'),d:B('Gagner après un recomptage qui inverse le résultat.','Win after a recount that flips the result.'),ck:c=>c.win&&!!c.post&&!!c.post.wonRecount},
+ {id:'court',n:B('Verdict favorable','Favorable verdict'),d:B('Gagner grâce à la Cour suprême.','Win thanks to the Supreme Court.'),ck:c=>c.win&&!!c.post&&!!c.post.wonCourt},
  {id:'daily',n:B('Gagnant du jour','Daily winner'),d:B('Gagner un défi du jour.','Win a daily challenge.'),ck:c=>c.win&&c.daily}
 ];
 const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
@@ -28,7 +30,7 @@ function finish(win,mine,theirs){
   const flips=G.states.filter(q=>Math.sign(q.final)===G.me&&Math.sign(q.lean)!==G.me).length;
   const mn=Math.min(999,...(G.hist||[]).filter(h=>h.w>=4&&h.w<=8).map(h=>h.y));
   if(G.scn&&win){S.sc=S.sc||{};S.sc[G.scn]=1}
-  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S,scn:G.scn,rw:!!G.scn&&sd!==SCN[G.scn].winner},got=[];
+  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S,post:G.post,scn:G.scn,rw:!!G.scn&&sd!==SCN[G.scn].winner},got=[];
   ACH.forEach(a=>{if(!S.ach[a.id]&&a.ck(c)){S.ach[a.id]=Date.now();got.push(a.id)}});
   TEL.send('end',{mode:G.scn?'h'+G.scn:'pres',diff:G.diff,side:G.me,win:+!!win,ev:mine});
   S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win,ev:mine,op:theirs,seed:G.seed,daily:G.daily,scn:G.scn});S.h=S.h.slice(0,30);

@@ -70,7 +70,9 @@ function nightTick(first){
   if(G.mode==='mid')return nightMid(first);
   const n=UI.night;let dEV=0,rEV=0;const rev=new Set(G.order.slice(0,n.idx));
   rev.forEach(a=>{const s=ST(a);comps(s).forEach((k,i)=>{if(s.final+(s.dn?s.dn[i]:0)>0)dEV+=k[0];else rEV+=k[0]})});
-  const mine=G.me===1?dEV:rEV,theirs=G.me===1?rEV:dEV,done=n.idx>=G.order.length;
+  const done0=n.idx>=G.order.length;if(done0&&G.fl){dEV+=G.fl.d||0;rEV+=G.fl.r||0}
+  const mine=G.me===1?dEV:rEV,theirs=G.me===1?rEV:dEV,done=done0;
+  if(done&&!G.rec&&postPending()){showPost();return}
   let body=`<h2>${t('Soirée électorale','Election night')}</h2><div class="score"><div><span class="muted">${t('Vous','You')}</span><div class="big" style="color:${myC()}">${mine}</div></div><div style="text-align:right"><span class="muted">${t('Adversaire','Opponent')}</span><div class="big" style="color:${opC()}">${theirs}</div></div></div>${mapHTML('final',rev)}`;
   if(!done)body+=`<button class="btn alt full" data-act="skip">${t('Passer au résultat','Skip to the result')}</button>`;
   else{
@@ -80,7 +82,7 @@ function nightTick(first){
     const waste=G.states.filter(s=>G.me*s.final<-10&&s.spP>3).reduce((a,s)=>a+s.spP,0);
     let pop=0;G.states.forEach(s=>pop+=s.ev*s.final);pop/=538;
     const head=win?(tie?t('Égalité 269–269 : la Chambre des représentants vous donne la victoire.','Tie at 269–269: the House of Representatives gives you the victory.'):t('Victoire. Vous êtes élu(e) président(e).','Victory. You are elected president.')):(tie?t('Égalité 269–269 : la Chambre des représentants choisit l’adversaire.','Tie at 269–269: the House of Representatives chooses your opponent.'):t('Défaite. L’adversaire l’emporte.','Defeat. Your opponent wins.'));
-    body+=`<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div>${recapHTML(mine)}${achHTML(newA)}<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="share">${t('Partager','Share')}</button><button class="btn" data-act="restart">${t('Nouvelle partie','New game')}</button></div>`;
+    body+=`${G.post&&G.post.log.length?`<div class="muted" style="font-size:13px;margin-bottom:8px"><b>${t('Après le scrutin','After election night','Después del escrutinio')}</b><br>${G.post.log.map(l=>t(l)).join('<br>')}</div>`:''}<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div>${recapHTML(mine)}${achHTML(newA)}<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="share">${t('Partager','Share')}</button><button class="btn" data-act="restart">${t('Nouvelle partie','New game')}</button></div>`;
     dropSave(G.slot);
   }
   showModal(body);
