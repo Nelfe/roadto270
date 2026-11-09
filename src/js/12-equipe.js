@@ -31,7 +31,7 @@ function thirdHTML(){
   const T=G.third;if(!T||!T.on)return'';
   const hurt=T.side===side(),ok=can();
   return`<div class="panel"><h3 style="font-size:20px">${t('Candidat indépendant','Independent candidate')}</h3><p style="margin:6px 0 0">${T.name} · ${t('attire surtout des électeurs','draws mostly')} ${T.side==='D'?t('démocrates','Democratic'):t('républicains','Republican')}${t('',' voters')}. <b>${hurt?t('Cela vous coûte','This costs you'):t('Cela vous profite','This helps you')}</b>.</p><p class="muted" style="margin:4px 0 8px;font-size:13px">${t('Poids actuel','Current weight')} : <span class="mono">${f1(T.pow)}</span> ${t('point(s), en baisse à l’approche du vote','point(s), fading toward election day')}.</p>
-  ${hurt?`<button class="btn sm" data-act="usefulvote" ${ok&&T.pow>.2?'':'disabled'}>${t('Appeler au vote utile','Urge strategic voting')}<small>1 action</small></button>`:''}</div>`;
+  ${hurt?`<button class="btn sm" data-act="usefulvote" ${ok&&T.pow>.2?'':'disabled'}>${t('Appeler au vote utile','Urge strategic voting')}<small>${ONEA()}</small></button>`:''}</div>`;
 }
 const VIR=[
  {v:-.35,t:B('Un ancien message de votre campagne ressurgit et circule en boucle.','An old post from your campaign resurfaces and circulates in a loop.')},

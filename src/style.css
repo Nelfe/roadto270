@@ -220,3 +220,11 @@ body.tuto{padding-block:0 330px}
 html[lang="es"] .tabs button{font-size:10.5px;letter-spacing:-.2px}
 html[lang="es"] #title h1{font-size:44px}
 html[lang="es"] .pick b{font-size:16px;letter-spacing:0}
+/* animations */
+.tile{transition:transform .12s}.tile:active{transform:scale(.93)}
+.tile.pulse{animation:tpulse .7s ease-out;z-index:3}
+@keyframes tpulse{0%{transform:scale(1);filter:brightness(1.6)}35%{transform:scale(1.22)}100%{transform:scale(1);filter:none}}
+.sheet{animation:sheetup .22s ease-out}
+@keyframes sheetup{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+html[data-anim="0"] *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

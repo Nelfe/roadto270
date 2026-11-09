@@ -14,4 +14,5 @@ jobs:
           node tools/build.js
           git diff --exit-code index.html || (echo "index.html is stale: run 'npm run build' and commit" && exit 1)
       - run: node tests/smoke.js
+      - run: node tests/comfort.js
       - run: node tests/balance.js 120

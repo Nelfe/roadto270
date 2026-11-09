@@ -81,6 +81,9 @@ function settingsHTML(){
   ${tg('cb',t('Palette daltonienne (bleu et orange)','Color-blind palette (blue and orange)'))}
   <div class="srow"><span>${t('Taille du texte','Text size')}</span><div class="segm">${[t('Normal','Normal'),t('Grand','Large'),t('Très grand','Extra large')].map((l,i)=>`<button class="btn sm alt" data-act="set" data-k="txt" data-v="${i}" aria-pressed="${SET.txt===i}">${l}</button>`).join('')}</div></div>
   ${tg('vib',t('Vibrations légères (mobile)','Light vibrations (mobile)'))}
+  ${tg('snd',t('Effets sonores','Sound effects','Efectos de sonido'))}
+  ${tg('mus',t('Musique d’ambiance','Background music','Música de ambiente'))}
+  ${tg('anim',t('Animations','Animations','Animaciones'))}
   ${CFG.telemetryUrl?tg('tel',t('Aide à améliorer le jeu (statistiques anonymes)','Help improve the game (anonymous stats)')):''}
   <div class="irow" style="margin-top:12px"><button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
 }

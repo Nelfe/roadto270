@@ -31,7 +31,7 @@ const A={
  help(){showModal(helpHTML(!!G&&G.phase==='play'),'help')},
  settings(){showModal(settingsHTML(),'set')},
  stats(){showModal(statsHTML(),'stats')},
- set(d){SET[d.k]=+d.v;try{localStorage.setItem('cap270.set',JSON.stringify(SET))}catch(e){}applySet();showModal(settingsHTML(),'set');if(G&&!$('#game').hidden)render()},
+ set(d){SET[d.k]=+d.v;try{localStorage.setItem('cap270.set',JSON.stringify(SET))}catch(e){}applySet();SND.sync();showModal(settingsHTML(),'set');if(G&&!$('#game').hidden)render()},
  daily(){newGame(pickedSide,pickedDiff,hashStr('daily-'+dayStr()+pickedMode),dayStr(),pickedMode);render();if(G.mode==='mid')showBrief()},
  del(d){if(confirm(t('Supprimer cette partie ?','Delete this game?'))){dropSave(+d.slot);renderTitle()}},
  copycode(){copyText(codeOf(G.seed))},

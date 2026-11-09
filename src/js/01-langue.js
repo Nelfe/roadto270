@@ -3,9 +3,10 @@ let LANG='en';
 try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en'||l==='es')LANG=l}catch(e){}
 const FR=()=>LANG==='fr';
 const COMMA=()=>LANG!=='en'; // decimal comma, “M$” amounts (fr, es)
-let SET={cb:0,txt:0,vib:1,tel:0};
+const ONEA=()=>t('1 action','1 action','1 acción');
+let SET={cb:0,txt:0,vib:1,tel:0,snd:1,mus:0,anim:1};
 try{Object.assign(SET,JSON.parse(localStorage.getItem('cap270.set')||'{}'))}catch(e){}
-function applySet(){const r=document.documentElement;r.dataset.cb=SET.cb?'1':'0';r.style.zoom=[1,1.12,1.25][SET.txt]||1}
+function applySet(){const r=document.documentElement;r.dataset.anim=SET.anim?'1':'0';r.dataset.cb=SET.cb?'1':'0';r.style.zoom=[1,1.12,1.25][SET.txt]||1}
 const B=(fr,en,es)=>({fr,en,es});
 const t=(a,b,c)=>b===undefined?(a&&typeof a==='object'?(a[LANG]??a.en):a):(LANG==='fr'?a:LANG==='es'?(c??b):b);
 const both=fn=>{const o=LANG;LANG='fr';const a=fn();LANG='en';const b=fn();LANG='es';const c=fn();LANG=o;return B(a,b,c)};
