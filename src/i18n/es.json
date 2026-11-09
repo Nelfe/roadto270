@@ -696,5 +696,11 @@
 "Win thanks to the Supreme Court.": "Gana gracias a la Corte Suprema.",
 "Vice-presidential debate": "Debate vicepresidencial",
 "${v.n} is announced as running mate at the convention.": "${v.n} es anunciado(a) como compañero(a) de fórmula en la convención.",
-"The convention gives you a polling bump.": "La convención te da un repunte en las encuestas."
+"The convention gives you a polling bump.": "La convención te da un repunte en las encuestas.",
+"Election-night surprises": "Sorpresas de la noche electoral",
+"strong turnout (favors young and minority voters)": "participación alta (favorece a jóvenes y minorías)",
+"weak turnout (favors seniors and graduates)": "participación baja (favorece a mayores y graduados)",
+"better than expected in ": "mejor de lo previsto en ",
+"worse than expected in ": "peor de lo previsto en ",
+"no regional surprise": "sin sorpresas regionales"
 }

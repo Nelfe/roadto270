@@ -39,6 +39,7 @@ function helpHTML(canReplay){
 <li>Attaquer affaiblit un rival mais coûte de l’image face à l’adversaire. L’argent restant passe en campagne générale.</li>
 <li>Si vous ne finissez pas premier aux délégués, la campagne s’arrête.</li></ul></details>
 <details><summary>Lire la carte et les sondages</summary><ul>
+<li>Les erreurs de sondage sont <b>corrélées par région</b> : si le Midwest est surestimé pour un camp, tous ses États le sont. La <b>participation</b> du jour J favorise les jeunes et les minorités (forte) ou les seniors et les diplômés (faible).</li>
 <li><b>Couleurs :</b> bleu pour les démocrates, rouge pour les républicains. Plus c’est foncé, plus l’écart est grand. Hachuré : moins de 1,5 point, incertain.</li>
 <li><b>Sondages :</b> bruités, avec un biais commun à tout le pays. Un événement permet d’auditer ce biais.</li>
 <li><b>Sondage interne (1 M$) :</b> donne la vraie marge de l’État pour la semaine.</li>
@@ -111,6 +112,7 @@ function helpHTML(canReplay){
 <li>Attacking weakens a rival but costs image against your general-election opponent. Money left over carries into the general campaign.</li>
 <li>If you do not finish first in delegates, your campaign ends.</li></ul></details>
 <details><summary>Reading the map and polls</summary><ul>
+<li>Poll errors are <b>correlated by region</b>: if the Midwest is overstated for one side, all its states are. Election-day <b>turnout</b> favors young and minority voters (high) or seniors and graduates (low).</li>
 <li><b>Colors:</b> blue for Democrats, red for Republicans. The darker, the bigger the gap. Hatched: under 1.5 points, a toss-up.</li>
 <li><b>Polls:</b> noisy, with a bias shared across the whole country. One event lets you audit that bias.</li>
 <li><b>Internal poll ($1M):</b> gives the state’s true margin for the week.</li>

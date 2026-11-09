@@ -18,7 +18,7 @@ function showBrief(){
 }
 function election(){
   G.phase='over';const eN=randn()*1.5;
-  G.states.forEach(s=>{s.final=margin(s)+eN+randn()*2;s.dn=comps(s).map((k,i)=>i?k[1]+randn()*1.5:0)});
+  G.states.forEach(s=>{s.final=margin(s)+eN+((G.regSh||{})[s.reg]||0)+(G.tur||0)*((s.tl||.42)-.42)*6+randn()*1.4;s.dn=comps(s).map((k,i)=>i?k[1]+randn()*1.5:0)});
   G.order=G.states.slice().sort((a,b)=>(Math.abs(b.final)+randn()*6)-(Math.abs(a.final)+randn()*6)).map(s=>s.ab);
   if(G.mode==='mid'){G.states.forEach(s=>{s.hD=s.dz.filter(z=>s.final+G.HK+z>0).length;s.sD=s.sen?(s.final+senAdj(s)>0?'D':'R'):null});G.res=midResult()}
   if(SIM)return;

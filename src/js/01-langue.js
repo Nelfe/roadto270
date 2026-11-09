@@ -43,6 +43,9 @@ const GROUPS=[
  {id:'evg',n:B('Évangéliques et ruraux','Evangelicals & rural'),d:B('Communautés religieuses et zones rurales','Religious communities and rural areas'),ideal:[-.6,-1.5,-.5,-1.7,-1,-1.2,-.6,-1,0.3,0.2],w:[.8,1.1,.5,1.6,1,.4,.6,0.9,0.5,0.8]},
 ];
 const DW=[.7,1.4,.5,1.8,1.1,1.2,.5],RW=[1.1,.6,1.2,.5,1,1.4,1.6],EARLY=[.45,.6,.8,.3,.4,.45,.5];
+const TURN=[.52,.78,.85,.38,.45,.55,.68]; // turnout propensity by group (low-propensity groups react more to field work and to turnout swings)
+const REG={ME:'NE',NH:'NE',VT:'NE',MA:'NE',RI:'NE',CT:'NE',NY:'NE',NJ:'NE',PA:'NE',DE:'NE',MD:'NE',DC:'NE',VA:'SE',NC:'SE',SC:'SE',GA:'SE',FL:'SE',AL:'SE',MS:'SE',TN:'SE',KY:'SE',WV:'SE',AR:'SE',LA:'SE',OH:'MW',MI:'MW',IN:'MW',IL:'MW',WI:'MW',MN:'MW',IA:'MW',MO:'MW',TX:'SW',OK:'SW',NM:'SW',AZ:'SW',NV:'SW',CA:'W',OR:'W',WA:'W',HI:'W',AK:'W',ID:'PL',MT:'PL',WY:'PL',UT:'PL',CO:'PL',ND:'PL',SD:'PL',NE:'PL',KS:'PL'};
+const REGN={NE:B('le Nord-Est','the Northeast','el Noreste'),SE:B('le Sud','the South','el Sur'),MW:B('le Midwest','the Midwest','el Medio Oeste'),SW:B('le Sud-Ouest','the Southwest','el Suroeste'),W:B('la côte Ouest','the West Coast','la costa Oeste'),PL:B('les Plaines et les Rocheuses','the Plains and Mountain West','las Planicies y las Rocosas')};
 const DIST={ME:[[2,0,''],[1,8,'ME-1'],[1,-16,'ME-2']],NE:[[2,0,''],[1,8,'NE-1'],[1,25,'NE-2'],[1,-38,'NE-3']]};
 const comps=s=>DIST[s.ab]||[[s.ev,0,'']];
 

@@ -40,7 +40,7 @@ const PL={pimg:B('Image du parti','Party image'),eb:B('Vote anticipé','Early vo
 function parts(s){const me=G.me;return[
  [PL.base,s.lean],[PL.env,G.env+ownEff()],[PL.eco,econSign()*.8*ecoOf(s)],[PL.iss,issueEff(s,G.pos.D,G.pos.R)],
  [PL.enth,-.25*dev('D')+.25*dev('R')],[G.mode==='mid'?PL.pimg:PL.img,G.img],[PL.tgt,tgtEff(s)],
- [PL.ads,me*(adsEff(s.adsP,s.ev)*(1+.06*sk('com'))-adsEff(s.adsO,s.ev))],[PL.fld,me*(fieldEff(s.fieldP)*(1+.1*sk('fld'))-fieldEff(s.fieldO))],
+ [PL.ads,me*(adsEff(s.adsP,s.ev)*(1+.06*sk('com'))-adsEff(s.adsO,s.ev))],[PL.fld,me*(fieldEff(s.fieldP)*(1+.1*sk('fld'))-fieldEff(s.fieldO))*(s.fm||1)],
  [PL.eb,me*.55*(s.ebP-s.ebO)*s.ei],[PL.third,thirdEff(s)],
  [PL.bz,me*(s.buzzP-s.buzzO)],[PL.vp,me*(s.vpP-s.vpO)]]}
 const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
@@ -50,10 +50,11 @@ function newGame(me,diff,seed,daily,mode){
   const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const lng=mode==='long';if(lng)mode='pres';
   if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
+  const RPB={},RSH={};['NE','SE','MW','SW','W','PL'].forEach(k=>{RPB[k]=randn()*1.6;RSH[k]=randn()*1.4});
   const states=ST_RAW.map(r=>{const s={ab:r[0],name:r[1],ev:r[2],lean:r[3],r:r[4],c:r[5],tags:r[6]?r[6].split(' '):[],
-    adsP:0,adsO:0,tvP:0,dgP:0,raP:0,ebP:0,ebO:0,fieldP:0,fieldO:0,buzzP:0,buzzO:0,vpP:0,vpO:0,pb:randn()*2,noise:randn()*1.2,spP:0,internal:null,shock:0,eco0:randn()*.5};
+    adsP:0,adsO:0,tvP:0,dgP:0,raP:0,ebP:0,ebO:0,fieldP:0,fieldO:0,buzzP:0,buzzO:0,vpP:0,vpO:0,pb:RPB[REG[r[0]]||'MW']+randn()*1.2,reg:REG[r[0]]||'MW',noise:randn()*1.2,spP:0,internal:null,shock:0,eco0:randn()*.5};
     const g=s.tags;s.beta=g.includes('energy')?1.4:g.includes('rust')?1.2:g.includes('urban')?.9:g.includes('retire')?.6:g.includes('ag')?.8:1;
-    s.mix=mixOf(s);s.adj=adjOf(s);s.fd=s.mix.reduce((a,v,g)=>a+v*DW[g],0);s.fr=s.mix.reduce((a,v,g)=>a+v*RW[g],0);s.ei=s.mix.reduce((a,v,g)=>a+v*EARLY[g],0)/.5;return s});
+    s.mix=mixOf(s);s.tl=s.mix.reduce((a,v,g)=>a+v*(1-TURN[g]),0);s.fm=1+1.2*(s.tl-.42);s.adj=adjOf(s);s.fd=s.mix.reduce((a,v,g)=>a+v*DW[g],0);s.fr=s.mix.reduce((a,v,g)=>a+v*RW[g],0);s.ei=s.mix.reduce((a,v,g)=>a+v*EARLY[g],0)/.5;return s});
   const mid=mode==='mid';
   const inc0=rnd()<.5?'D':'R';
   const raw=(mid?(inc0==='D'?-1:1)*(PARAM.midEnv+randn()*1.4):randn()*(scn?1.0:1.6))+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral+(scn?SCN[scn].env:0);
@@ -65,6 +66,7 @@ function newGame(me,diff,seed,daily,mode){
   {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
+  G.regSh=RSH;G.tur=randn();
   if(lng)G.long=true;
   if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4;G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
   UI={tab:'map',sel:null,night:null};
