@@ -90,18 +90,16 @@ const EVENTS=[
 {id:'naval',t:B('Incident naval dans le Pacifique','Naval incident in the Pacific'),x:()=>t('Un affrontement en mer ravive le débat sur la défense. Le pays se range d’abord derrière l’exécutif.','A clash at sea revives the defense debate. The country first rallies behind the executive.'),pre(){H.sal('def',.3);H.incHit(-.3)},ch:[
  {t:B('Afficher la fermeté','Project strength'),d:B('Seniors +','Seniors +'),fx(){H.target('sen',.5);H.sal('def',.05);return B('Les électeurs âgés approuvent votre fermeté.','Older voters approve your firmness.')}},
  {t:B('Appeler à la retenue','Call for restraint'),d:B('Jeunes +','Young voters +'),fx(){H.target('jeu',.5);return B('Votre prudence est bien reçue chez les jeunes.','Your caution goes down well with young voters.')}}]},
-{id:'debate',t:B('Débat présidentiel','Presidential debate'),x:()=>t(`Face à face télévisé devant des dizaines de millions de personnes. Préparation : ${G.prep}/3.`,`A televised face-off before tens of millions of viewers. Preparation: ${G.prep}/3.`),ch:[
- {t:B('Offensif','Aggressive'),d:B('Fort risque, fort gain','High risk, high reward'),fx(){return debate(.1,1.6)}},
- {t:B('Pédagogue','Explainer'),d:B('Équilibré','Balanced'),fx(){return debate(.2,1.0)}},
- {t:B('Prudent','Cautious'),d:B('Peu de risque','Low risk'),fx(){return debate(0,.6)}}]},
+{id:'debate',t:B('Débat présidentiel','Presidential debate'),x:()=>'',ch:[
+ {t:B('Offensif','Aggressive'),d:B('Attaque','Attack'),fx(){debAuto(0);return G.ev.res}},
+ {t:B('Pédagogue','Explainer'),d:B('Plan','Plan'),fx(){debAuto(1);return G.ev.res}},
+ {t:B('Prudent','Cautious'),d:B('Prudent','Cautious'),fx(){debAuto(2);return G.ev.res}}]},
 {id:'surprise',t:B('Révélation de dernière minute','Last-minute revelation'),
  x:()=>G.ev.hit==='you'?t('Une enquête de presse met votre campagne en difficulté à dix jours du vote.','A press investigation puts your campaign in trouble ten days before the vote.'):t('Une enquête de presse met l’adversaire en difficulté à dix jours du vote.','A press investigation puts your opponent in trouble ten days before the vote.'),
  pre(){G.ev.hit=rnd()<.5+(wkP()==='scandal'?.15:0)-(wkO()==='scandal'?.15:0)?'you':'opp';H.img(G.ev.hit==='you'?-.9:.9)},ch:[
  {t:B('Contre-attaque médiatique','Media counterattack'),d:B('−3 M$','−$3M'),fx(){H.pay(3);if(G.ev.hit==='you'){H.img(.5);return B('Vous limitez les dégâts.','You limit the damage.')}H.img(.2);return B('Vous enfoncez le clou.','You drive the point home.')}},
  {t:B('Laisser passer','Let it pass'),d:FREE,fx(){return B('La campagne se poursuit.','The campaign goes on.')}}]}
 ];
-function debate(mean,sd){const r=PARAM.prep*G.prep+mean+(trP().includes('debate')?.3:0)-(trO().includes('debate')?.3:0)+randn()*sd;G.prep=0;H.img(clamp(r*.8,-1.4,1.4));
-  return r>.7?B('Vous dominez le débat. Les éditorialistes sont unanimes.','You dominate the debate. Pundits are unanimous.'):r>-.5?B('Un débat sans vainqueur net.','A debate with no clear winner.'):B('Vous perdez le débat. Les images tournent en boucle.','You lose the debate. The clips play on a loop.')}
 function nextEvent(){
   let id;
   if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.wk===11)id='surprise';

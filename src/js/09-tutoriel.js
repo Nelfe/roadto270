@@ -72,7 +72,7 @@ function helpHTML(canReplay){
 <details><summary>Événements, image, débats</summary><ul>
 <li>Chaque semaine, un événement demande un choix, souvent avec un coût ou un risque.</li>
 <li>Votre <b>image</b> face à l’adversaire déplace tous les États un peu.</li>
-<li>Deux débats (semaines 5 et 9) et une révélation de dernière minute (semaine 11).</li></ul></details>
+<li>Deux débats (semaines 5 et 9) joués question par question : trois questions sur les enjeux du moment, puis une conclusion. Chaque réponse (attaquer, détailler, raconter, recentrer) a son risque ; détailler paie sur vos enjeux forts, recentrer sauve un enjeu faible. et une révélation de dernière minute (semaine 11).</li></ul></details>
 <details><summary>Équipe de campagne</summary><ul>
 <li>L’onglet <b>Équipe</b> permet de recruter 5 cadres : directeur de campagne, sondeur, directeur de terrain, communication, finances. Chacun a un niveau (I à III) et un salaire hebdomadaire.</li>
 <li>Recruter coûte une semaine de salaire d’avance. Un niveau élevé coûte plus cher : à vous de juger si l’effet compense le salaire.</li></ul></details>
@@ -142,7 +142,7 @@ function helpHTML(canReplay){
 <details><summary>Events, image, debates</summary><ul>
 <li>Each week, an event asks for a choice, often with a cost or a risk.</li>
 <li>Your <b>image</b> against your opponent moves every state a little.</li>
-<li>Two debates (weeks 5 and 9) and a last-minute revelation (week 11).</li></ul></details>
+<li>Two debates (weeks 5 and 9), played question by question: three questions on the hot issues, then a closing statement. Each answer (attack, lay out a plan, tell a story, pivot) has its own risk; a plan pays off on your strong issues, a pivot rescues a weak one. and a last-minute revelation (week 11).</li></ul></details>
 <details><summary>Campaign staff</summary><ul>
 <li>The <b>Team</b> tab lets you hire 5 staffers: campaign manager, pollster, field director, communications, finance. Each has a level (I to III) and a weekly salary.</li>
 <li>Hiring costs one week of salary up front. A higher level costs more: it is up to you to judge whether the effect pays for the salary.</li></ul></details>
