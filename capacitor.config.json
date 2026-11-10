@@ -1,0 +1,7 @@
+{
+  "appId": "io.github.nelfe.roadto270",
+  "appName": "Road to 270",
+  "webDir": "www",
+  "backgroundColor": "#14213a",
+  "android": { "allowMixedContent": false }
+}

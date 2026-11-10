@@ -2,16 +2,24 @@
   "name": "roadto270",
   "version": "1.0.0",
   "private": true,
-  "description": "Road to 270 — US election campaign simulation (PWA)",
+  "description": "Road to 270 \u2014 US election campaign simulation (PWA)",
   "scripts": {
     "build": "node tools/build.js",
     "test": "node tools/build.js && node tests/smoke.js && node tests/comfort.js && node tests/post.js && node tests/long.js && node tests/snapshot.js && node tools/i18n-extract.js --check && node tests/balance.js 120",
     "test:update-snapshot": "node tests/snapshot.js --update",
     "test:smoke": "node tests/smoke.js",
-    "test:balance": "node tests/balance.js 200"
+    "test:balance": "node tests/balance.js 200",
+    "www": "node tools/build.js && node tools/make-www.js",
+    "android:sync": "npm run www && npx cap sync android"
   },
   "devDependencies": {
     "acorn": "^8.19.0",
-    "playwright": "^1.48.0"
+    "playwright": "^1.48.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/assets": "^3.0.5"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0"
   }
 }

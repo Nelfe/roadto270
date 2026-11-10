@@ -1,0 +1,58 @@
+name: Android build
+# Run it from the Actions tab ("Run workflow"). Produces a debug APK (for emulators/phones)
+# and, if signing secrets exist, a signed release AAB for the Play Store.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+      KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm install
+      - run: npm run www
+      - name: Generate the Android project
+        run: |
+          npx cap add android
+          # launcher icon from icon-512.png (best effort)
+          pip install pillow
+          mkdir -p assets && python3 - <<'PY'
+          from PIL import Image
+          im=Image.open('icon-512.png').convert('RGBA').resize((1024,1024),Image.LANCZOS)
+          im.save('assets/icon-only.png');im.save('assets/icon-foreground.png')
+          Image.new('RGBA',(1024,1024),(20,33,58,255)).save('assets/icon-background.png')
+          PY
+          npx capacitor-assets generate --android || true
+          # version + portrait lock
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          sed -i 's/<activity /<activity android:screenOrientation="portrait" /' android/app/src/main/AndroidManifest.xml
+          npx cap sync android
+      - name: Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: roadto270-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Signed release AAB (needs secrets)
+        if: ${{ env.KS_B64 != '' }}
+        working-directory: android
+        run: |
+          echo "$KS_B64" | base64 -d > ../release.keystore
+          ./gradlew bundleRelease
+          jarsigner -keystore ../release.keystore -storepass "$KS_PASS" -keypass "$KEY_PASS" app/build/outputs/bundle/release/app-release.aab "$KEY_ALIAS"
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('android/app/build/outputs/bundle/release/app-release.aab') != '' }}
+        with:
+          name: roadto270-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
