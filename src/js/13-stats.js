@@ -87,6 +87,7 @@ function settingsHTML(){
   ${tg('snd',t('Effets sonores','Sound effects','Efectos de sonido'))}
   ${tg('mus',t('Musique d’ambiance','Background music','Música de ambiente'))}
   ${tg('anim',t('Animations','Animations','Animaciones'))}
+  ${tg('nohint',t('Masquer les conseils du mode Facile','Hide Easy-mode tips','Ocultar los consejos del modo Fácil'))}
   ${CFG.telemetryUrl?tg('tel',t('Aide à améliorer le jeu (statistiques anonymes)','Help improve the game (anonymous stats)')):''}
   <div class="irow" style="margin-top:12px"><button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
 }

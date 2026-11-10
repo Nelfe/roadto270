@@ -52,7 +52,7 @@ function endWeek(){
   G.cash+=PARAM.income+(trP().includes('funds')?1.5:0)+.3*sk('fin')-staffCost()-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
   G.cash=Math.max(0,G.cash);
   oppTurn();
-  G.states.forEach(s=>{s.tvP*=.85;s.dgP*=.72;s.raP*=.9;s.adsP=s.tvP+s.dgP+s.raP;s.adsO*=.85;s.buzzP*=.5;s.buzzO*=.5;s.noise=randn()*1.2;s.internal=null;s.shock*=.88});
+  G.states.forEach(s=>{s.tvP*=.85;s.dgP*=.72;s.raP*=.9;s.adsP=s.tvP+s.dgP+s.raP;s.adsO*=.85;s.buzzP*=.5;s.buzzO*=.5;s.noise=randn()*1.2*DM.noise[G.diff];s.internal=null;s.shock*=.88});
   G.tgtP=G.tgtP.map(v=>v*.75);G.tgtO=G.tgtO.map(v=>v*.75);
   G.econ=clamp(G.econ*.9+randn()*.18,-3,3);
   G.env+=randn()*.25;G.sal=G.sal.map((v,i)=>v+(((G.sal0||S0)[i])-v)*.12);

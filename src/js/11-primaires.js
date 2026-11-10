@@ -65,7 +65,7 @@ function finishPrim(){
   shiftPos(side(),pr.x);
   if(pr.negs)H.img(-Math.min(.6,.15*pr.negs));
   if(gap>.18)H.img(.25);else if(gap<.05)H.img(-.25);
-  G.cash=clamp(PARAM.pcash+pr.cash,16,46);
+  G.cash=clamp(PARAM.pcash+pr.cash+DM.cash[G.diff],16,46);
   applyCand(G.cand,true);applyCand(G.opp,false);
   shiftPos(oside(),(rnd()<.5?1:-1)*(rnd()<.5?1:2));
   G.phase='vp';pr.won=true;

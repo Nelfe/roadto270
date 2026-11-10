@@ -11,9 +11,9 @@ function renderTitle(){
     <button class="r" data-side="-1" aria-pressed="${pickedSide===-1}"><b>${t('Républicain','Republican')}</b><small>${pickedMode==='mid'?t('Direction de campagne nationale','National campaign chief'):t('Candidat tiré au hasard','Randomly drawn candidate')}</small></button>
   </div>
   <div class="pick three" id="pickDiff">
-    <button data-diff="0" aria-pressed="${pickedDiff===0}"><b>${t('Facile','Easy')}</b><small>${t('Vent dans le dos','Tailwind')}</small></button>
+    <button data-diff="0" aria-pressed="${pickedDiff===0}"><b>${t('Facile','Easy')}</b><small>${t('Conseils et cibles','Hints and targets','Consejos y objetivos')}</small></button>
     <button data-diff="1" aria-pressed="${pickedDiff===1}"><b>Normal</b><small>${t('Course équilibrée','Even race')}</small></button>
-    <button data-diff="2" aria-pressed="${pickedDiff===2}"><b>${t('Difficile','Hard')}</b><small>${t('Vent de face','Headwind')}</small></button>
+    <button data-diff="2" aria-pressed="${pickedDiff===2}"><b>${t('Difficile','Hard')}</b><small>${t('Sondages incertains','Noisy polls','Encuestas inciertas')}</small></button>
   </div>
   <input class="codein" id="codeIn" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${t('Code de partie (facultatif)','Game code (optional)')}" aria-label="${t('Code de partie','Game code')}">
   <button class="btn full" data-act="start">${t('Lancer la campagne','Start the campaign')}</button>

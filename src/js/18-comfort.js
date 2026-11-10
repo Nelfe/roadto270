@@ -12,6 +12,8 @@ const UNDO={st:[],max:5,
 {const f=A.end;A.end=function(...a){UNDO.clear();return f.apply(this,a)}}
 A.undo=function(){
   if(!UNDO.st.length||!G||G.phase!=='play')return;
+  if((UNDO.used||0)>=DM.undo[G.diff]){toast(t('Plus d’annulation disponible (mode Difficile).','No undo left (Hard mode).','No quedan deshacer (modo Difícil).'));return}
+  UNDO.used=(UNDO.used||0)+1;
   const u=UNDO.st.pop();G=JSON.parse(u.s);if(G.rs)_s=G.rs>>>0;UI.sel=u.ui;SND.play('undo');save();render();toast(t('Dernier coup annulé.','Last move undone.','Última acción deshecha.'));
 };
 const undoBtn=()=>UNDO.st.length&&G&&G.phase==='play'?`<button class="help" data-act="undo" aria-label="${t('Annuler le dernier coup','Undo last move','Deshacer la última acción')}" style="margin-right:6px">↶</button>`:'';

@@ -54,12 +54,13 @@ function renderHud(){
   const n=Math.min(9,G.log.length-(G.seen||0)),bd=$('#bdg');bd.hidden=n<=0||UI.tab==='log';bd.textContent=n;
 }
 function mapHTML(mode,rev){
+  const HS=mode==='poll'&&hintsOn()?new Set(hintStates().map(x=>x.ab)):null;
   const grid=Array.from({length:8},()=>Array(11).fill(null));G.states.forEach(s=>grid[s.r][s.c]=s);
   let h='<div class="map">';
   for(let r=0;r<8;r++)for(let c=0;c<11;c++){const s=grid[r][c];if(!s){h+='<span></span>';continue}
     const fin=mode==='final',shown=!fin||rev.has(s.ab),m=fin?s.final:pollOf(s);
     const ts=shown?tileStyle(m):{bg:isDark()?'#232b3a':'#dde1e9',fg:'var(--muted)',tu:false};
-    h+=`<button class="tile${!fin&&UI.sel===s.ab?' sel':''}${ts.tu?' tu':''}" ${fin?'tabindex="-1"':`data-act="sel" data-ab="${s.ab}"`} style="background:${ts.bg};color:${ts.fg}" aria-label="${sn(s)}, ${evLbl(s)}${shown?', '+fD(m):''}"><b>${s.ab}</b><small>${G.mode==='mid'?(s.hs||'–')+(s.sen?'★':''):s.ev}</small>${!fin&&s.fieldP?'<i class="pip"></i>':''}</button>`}
+    h+=`<button class="tile${!fin&&UI.sel===s.ab?' sel':''}${ts.tu?' tu':''}${HS&&HS.has(s.ab)?' hint':''}" ${fin?'tabindex="-1"':`data-act="sel" data-ab="${s.ab}"`} style="background:${ts.bg};color:${ts.fg}" aria-label="${sn(s)}, ${evLbl(s)}${shown?', '+fD(m):''}"><b>${s.ab}</b><small>${G.mode==='mid'?(s.hs||'–')+(s.sen?'★':''):s.ev}</small>${!fin&&s.fieldP?'<i class="pip"></i>':''}</button>`}
   return h+'</div>';
 }
 function statePanel(){
@@ -68,7 +69,7 @@ function statePanel(){
   const chip=p>1.5?'gd':p<-1.5?'bd':'you';
   let tb='';
   if(show)tb=`<table class="bd">${parts(s).map(x=>{const v=G.me*x[1];return`<tr><td>${t(x[0])}</td><td class="${Math.abs(v)<.05?'':v>0?'pos':'neg'}">${x[0]===PL.base?fD(x[1]):fS(v)}</td></tr>`}).join('')}<tr><td><b>${t('Marge réelle du modèle','True model margin')}</b></td><td><b>${fD(margin(s))}</b></td></tr></table>`;
-  return`<div class="panel"><div class="top"><div><h2>${sn(s)}</h2><span class="muted">${evLbl(s)} · ${t('fond','baseline')} ${fD(s.lean)}</span></div><span class="chip ${chip}">${ratingOf(p)}</span></div>
+  return`<div class="panel"><div class="top"><div><h2>${sn(s)}</h2><span class="muted">${evLbl(s)} · ${t('fond','baseline')} ${fD(s.lean)}${hintsOn()&&hintStates().some(x=>x.ab===s.ab)?` · <b style="color:var(--gold)">★ ${t('Cible facile','Easy target','Objetivo fácil')}</b>`:''}</span></div><span class="chip ${chip}">${ratingOf(p)}</span></div>
   <p style="margin:8px 0 0">${t('Moyenne des sondages','Poll average')} : <b class="mono">${fD(pl)}</b>${s.internal!==null?` · ${t('sondage interne','internal poll')} : <b class="mono">${fD(s.internal)}</b>`:''}</p>
   <div class="mixbar" role="img" aria-label="${t('Composition de l’électorat','Electorate makeup')}">${s.mix.map((v,i)=>`<i style="width:${v*100}%;background:${GCOL[i]}"></i>`).join('')}</div>
   <div class="mixleg">${s.mix.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(([v,i])=>`<span style="--c:${GCOL[i]}">${t(GROUPS[i].n)} ${pct(String(Math.round(v*100)))}</span>`).join('')}</div>
@@ -89,7 +90,7 @@ function statePanel(){
 function renderMain(){
   const m=$('#main');let h='';
   if(UI.tab==='map'){
-    h=mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">${t('Démocrate','Democrat')}</span><span style="--c:hsl(${SET.cb?28:4} 62% 40%)">${t('Républicain','Republican')}</span><span style="--c:#c9ccd3">${t('Incertain (moins de 1,5)','Toss-up (under 1.5)')}</span></div>`+statePanel();
+    h=tipsHTML()+mapHTML('poll')+`<div class="legend"><span style="--c:hsl(218 62% 40%)">${t('Démocrate','Democrat')}</span><span style="--c:hsl(${SET.cb?28:4} 62% 40%)">${t('Républicain','Republican')}</span><span style="--c:#c9ccd3">${t('Incertain (moins de 1,5)','Toss-up (under 1.5)')}</span></div>`+statePanel();
   }else if(UI.tab==='issues'){
     const sd=side(),os=oside(),ok=can();
     h=`<p class="muted" style="margin:14px 0 10px">${t('Chaque changement de position ou mise à l’agenda coûte 1 action. Le point plein est votre position, le cercle celle de l’adversaire.','Each position change or agenda push costs 1 action. The filled dot is your position, the ring is your opponent’s.')}</p>`+ISSUES.map((I,i)=>{

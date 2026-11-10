@@ -4,7 +4,7 @@ try{const l=localStorage.getItem('cap270.lang');if(l==='fr'||l==='en'||l==='es')
 const FR=()=>LANG==='fr';
 const COMMA=()=>LANG!=='en'; // decimal comma, “M$” amounts (fr, es)
 const ONEA=()=>t('1 action','1 action','1 acción');
-let SET={cb:0,txt:0,vib:1,tel:0,snd:1,mus:0,anim:1};
+let SET={cb:0,txt:0,vib:1,tel:0,snd:1,mus:0,anim:1,nohint:0};
 try{Object.assign(SET,JSON.parse(localStorage.getItem('cap270.set')||'{}'))}catch(e){}
 function applySet(){const r=document.documentElement;r.dataset.anim=SET.anim?'1':'0';r.dataset.cb=SET.cb?'1':'0';r.style.zoom=[1,1.12,1.25][SET.txt]||1}
 const B=(fr,en,es)=>({fr,en,es});
@@ -89,7 +89,7 @@ function loadSaves(){
 function dropSave(n){try{localStorage.removeItem(slotKey(n))}catch(e){}}
 function pickSlot(){const ss=loadSaves();for(let n=1;n<=3;n++)if(!ss.find(q=>q.slot===n))return n;return ss.sort((a,b)=>(a.t||0)-(b.t||0))[0].slot}
 function copyText(x){try{navigator.clipboard.writeText(x).then(()=>toast(t('Copié','Copied')),()=>toast(x))}catch(e){toast(x)}}
-function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake','taxes','oldrival','interview']:[]),...(G.scn&&!G.long?['oldrival']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:G.mode==='mid'?projMid().youH:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}

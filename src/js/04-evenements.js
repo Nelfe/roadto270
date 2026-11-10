@@ -1,6 +1,6 @@
 /* ---------- Événements ---------- */
 const H={
- img(x){G.img+=G.me*x},incHit(x){G.env+=(G.inc==='D'?-x:x)},
+ img(x){G.img+=G.me*x*(x<0?DM.neg[G.diff]:1)},incHit(x){G.env+=(G.inc==='D'?-x:x)},
  shock(l,v){l.forEach(a=>{const s=ST(a);if(s)s.shock+=v})},
  target(id,v){const i=GROUPS.findIndex(g=>g.id===id);G.tgtP[i]=clamp(G.tgtP[i]+v,-2,2)},
  sal(id,dv){const i=ISSUES.findIndex(q=>q.id===id);G.sal[i]=clamp(G.sal[i]+dv,.1,1.6)},

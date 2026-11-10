@@ -47,6 +47,7 @@ const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));
 
 function newGame(me,diff,seed,daily,mode){
+  if(typeof UNDO!=='undefined')UNDO.used=0;
   const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const lng=mode==='long';if(lng)mode='pres';
   if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
@@ -59,7 +60,7 @@ function newGame(me,diff,seed,daily,mode){
   const inc0=rnd()<.5?'D':'R';
   const raw=(mid?(inc0==='D'?-1:1)*(PARAM.midEnv+randn()*1.4):randn()*(scn?1.0:1.6))+me*({0:1.2,1:0,2:-1.2}[diff]),env=raw+PARAM.neutral+(scn?SCN[scn].env:0);
   const inc=mid?inc0:(raw<0?(rnd()<.7?'D':'R'):(rnd()<.7?'R':'D'));
-  G={v:3,mode:mid?'mid':'pres',me,diff,wk:1,ap:3,apNext:0,cash:40,cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5,sal:S0.slice(),
+  G={v:3,mode:mid?'mid':'pres',me,diff,wk:1,ap:3,apNext:0,cash:40+DM.cash[diff],cashO:40+(diff===2?3:0),env,img:0,inc,pbNat:randn()*1.5*DM.nat[diff],sal:S0.slice(),
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
      pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'cand',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
   G.deck=mkDeck();
@@ -68,7 +69,7 @@ function newGame(me,diff,seed,daily,mode){
   if(mid)midInit();
   G.regSh=RSH;G.tur=randn();
   if(lng)G.long=true;
-  if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4;G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
+  if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
   UI={tab:'map',sel:null,night:null};
   save();
 }
