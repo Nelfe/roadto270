@@ -500,7 +500,7 @@ function newGame(me,diff,seed,daily,mode){
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
      pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'cand',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
   G.deck=mkDeck();
-  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
+  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.opp.pf=pickR(Object.keys(RIVALS));G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
   G.regSh=RSH;G.tur=randn();
@@ -512,25 +512,26 @@ function newGame(me,diff,seed,daily,mode){
 /* ---------- Adversaire ---------- */
 function oppTurn(){
   const o=-G.me,wl=12-G.wk+1,pub=[];
-  G.cashO+=(trO().includes('funds')?1.5:0)+7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+rnd()*3;
+  G.cashO+=(trO().includes('funds')?1.5:0)+7+(G.diff===0?-.5:G.diff===2?PARAM.oppHard:0)+PARAM.oppIncome+rnd()*3+(pfO()==='moneyed'?1.5:0);
   const ad=PARAM.adapt*[0,.5,1][G.diff],push=s=>clamp(s.adsP/(2+s.ev*.15),0,1.5)+.4*s.fieldP+.3*s.buzzP;
   const sc=G.states.map(s=>{const adv=o*margin(s)+randn()*2;
     return{s,adv,pu:push(s),w:(adv>-14&&adv<9)?valOf(s)*(1+ad*push(s))/(1+Math.pow(Math.max(0,Math.abs(adv)-1)/5,2)):0}}).sort((a,b)=>b.w-a.w);
   const top=sc.slice(0,7).filter(x=>x.w>0),tw=top.reduce((a,x)=>a+x.w,0)||1;
   if(ad>0){const hot=top.filter(x=>x.pu>.7).slice(0,2);if(hot.length)pub.push(both(()=>t(`L’adversaire riposte à votre offensive en ${hot.map(x=>sn(x.s)).join(', ')}.`,`Your opponent hits back at your push in ${hot.map(x=>sn(x.s)).join(', ')}.`,`Tu rival responde a tu ofensiva en ${hot.map(x=>sn(x.s)).join(', ')}.`)))}
-  const budget=Math.max(0,Math.min(G.cashO-1,G.cashO/wl*1.25));let spent=0;const ads=[];
+  const pk=pfO(),bm=pk==='careful'?(G.wk>=9?1.35:.88):1,budget=Math.max(0,Math.min(G.cashO-1,G.cashO/wl*1.25*bm));let spent=0;const ads=[];
   top.forEach(x=>{const share=budget*x.w/tw,u=share/adCost(x.s);if(u>.2){x.s.adsO+=u;spent+=share;ads.push([x.s,share])}});
   if(ads.length){ads.sort((a,b)=>b[1]-a[1]);const tot=ads.reduce((a,x)=>a+x[1],0),names=ads.slice(0,3).map(x=>x[0]);
     pub.push(both(()=>t(`Campagne TV adverse (≈ ${fM(tot)}) surtout en ${names.map(sn).join(', ')}.`,`Opposing TV campaign (≈ ${fM(tot)}) mainly in ${names.map(sn).join(', ')}.`,`Campaña de TV rival (≈ ${fM(tot)}) sobre todo en ${names.map(sn).join(', ')}.`)))}
-  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(x.s.fieldO<2&&G.cashO-spent>fcost(x.s,false)+5){x.s.fieldO++;spent+=fcost(x.s,false);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`,`Tu rival abre una oficina de campaña en ${sn(x.s)}.`)))}});
-  const v=top.slice(0,4).sort(()=>rnd()-.5).slice(0,2);
+  if(G.wk<=8)top.slice(0,4).forEach(x=>{if(!(pk==='moneyed'&&rnd()<.5)&&!(pk==='attack'&&rnd()<.3)&&x.s.fieldO<2&&G.cashO-spent>fcost(x.s,false)+5){x.s.fieldO++;spent+=fcost(x.s,false);pub.push(both(()=>t(`L’adversaire ouvre un bureau de campagne en ${sn(x.s)}.`,`Your opponent opens a campaign office in ${sn(x.s)}.`,`Tu rival abre una oficina de campaña en ${sn(x.s)}.`)))}});
+  const v=top.slice(0,4).sort(()=>rnd()-.5).slice(0,pk==='populist'?3:pk==='careful'?1:2);
   v.forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+1.3);spent+=.3;pub.push(both(()=>t(`Meeting de l’adversaire en ${sn(x.s)}.`,`Opponent rally in ${sn(x.s)}.`,`Mitin del rival en ${sn(x.s)}.`)))});
   G.cashO=Math.max(0,G.cashO-spent-.08*G.states.reduce((a,s)=>a+s.fieldO*fieldCost(s),0));G.spentO+=spent;
   if(rnd()<.5&&G.cashO-spent>3){let gi=bestGroup(oside(),true);
     if(ad>0&&rnd()<.6*ad){const mx=Math.max(...G.tgtP);if(mx>.5)gi=G.tgtP.indexOf(mx)}G.tgtO[gi]=Math.min(2,G.tgtO[gi]+1);spent+=1.5;if(rnd()<.5)pub.push(both(()=>t(`Campagne de l’adversaire auprès des ${t(GROUPS[gi].n).toLowerCase()}.`,`Opponent outreach to ${t(GROUPS[gi].n).toLowerCase()}.`,`Acercamiento del rival a ${t(GROUPS[gi].n).toLowerCase()}.`)))}
   if(G.wk>=8)top.slice(0,3).forEach(x=>{if(x.s.ebO<3&&rnd()<.5&&G.cashO-spent>2){x.s.ebO++;spent+=1.5}});
-  if(PARAM.pivotWeeks.includes(G.wk))oppPivot(pub);
-  else if(ad>0&&(G.posMoves||0)>(G.posSeen||0)&&rnd()<.5*ad){G.posSeen=G.posMoves;oppPivot(pub)}
+  spent+=rivalWeek(pub,top);G.cashO=Math.max(0,G.cashO-0);
+  if(PARAM.pivotWeeks.includes(G.wk)||(pk==='centrist'&&G.wk>1&&G.wk%3===1))oppPivot(pub);
+  else if(pk!=='careful'&&ad>0&&(G.posMoves||0)>(G.posSeen||0)&&rnd()<(pk==='centrist'?.85:.5)*ad){G.posSeen=G.posMoves;oppPivot(pub)}
   pub.forEach(x=>L('opp',x));
 }
 function bestShift(sd){
@@ -550,7 +551,7 @@ function bestGroup(sd,rr){
 }
 function oppPivot(pub){
   const osd=oside(),best=bestShift(osd);
-  if(best&&best.g>PARAM.pivotMin){G.pos[osd][best.i]=best.np;const nm=ISSUES[best.i].n;pub.push(B(`L’adversaire ajuste sa position sur « ${nm.fr} ».`,`Your opponent adjusts its position on “${nm.en}”.`,`Tu rival ajusta su postura sobre “${nm.es}”.`))}
+  if(best&&best.g>PARAM.pivotMin*(pfO()==='centrist'?.5:1)){G.pos[osd][best.i]=best.np;const nm=ISSUES[best.i].n;pub.push(B(`L’adversaire ajuste sa position sur « ${nm.fr} ».`,`Your opponent adjusts its position on “${nm.en}”.`,`Tu rival ajusta su postura sobre “${nm.es}”.`))}
 }
 /* ---------- Événements ---------- */
 const H={
@@ -882,7 +883,7 @@ function renderMain(){
     <div class="card"><div><h3>${t('Collecte de fonds','Fundraising',`Recaudación de fondos`)}</h3><p>${t('Rapporte environ 4 à 7 M$, plus si votre image est bonne.','Raises about $4M to $7M, more with a good image.',`Recauda de 4 a 7 M$, más si tu imagen es buena.`)}</p></div><button class="btn sm" data-act="fund" ${ok?'':'disabled'}>${ONEA()}</button></div>
     <div class="card"><div><h3>${t('Grande interview','Major interview',`Gran entrevista`)}</h3><p>${t('Probablement bénéfique pour votre image, avec un risque de dérapage.','Likely to help your image, with a risk of a slip.',`Probablemente mejore tu imagen, con riesgo de desliz.`)}</p></div><button class="btn sm" data-act="media" ${ok?'':'disabled'}>${ONEA()}</button></div>
     <div class="card"${G.mode==='mid'?' hidden':''}><div><h3>${t('Préparer le débat','Debate prep',`Preparar el debate`)}</h3><p>${t('Préparation','Preparation',`Preparación`)} ${G.prep}/3. ${nd?t(`Prochain débat : semaine ${nd}.`,`Next debate: week ${nd}.`,`Próximo debate: semana ${nd}.`):t('Les débats sont terminés.','The debates are over.',`Los debates han terminado.`)}</p></div><button class="btn sm" data-act="prep" ${ok&&nd?'':'disabled'}>${ONEA()}</button></div>
-    ${viralHTML()}${thirdHTML()}${autoHTML()}${G.mode==='mid'?`<div class="panel"><h3 style="font-size:20px">${t('Votre mission','Your mission',`Tu misión`)}</h3><p style="margin:6px 0 0">${t('Contrôler la Chambre (218 sièges) pour gagner, et si possible le Sénat (51 sièges ; 50 suffisent pour le parti du président). Les États avec une ★ ont une élection au Sénat.','Control the House (218 seats) to win, and the Senate too if you can (51 seats; 50 is enough for the president’s party). States marked ★ have a Senate race.',`Controla la Cámara de Representantes (218 escaños) para ganar y, si puedes, también el Senado (51 escaños; 50 bastan para el partido del presidente). Los estados con ★ tienen elección al Senado.`)}</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Fonds adverses estimés','Estimated opponent funds',`Fondos estimados del rival`)} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code',`código de partida`)} : <span class="mono">${codeOf(G.seed)}</span>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias',`sesgo estimado de las encuestas`)} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you',`para ti`)}`:''}</p></div>`:''}<div class="panel"${G.mode==='mid'?' hidden':''}><h3 style="font-size:20px">${t('Votre ticket','Your ticket',`Tu fórmula`)}</h3><p style="margin:6px 0 0">${G.cand?G.cand.n:(side()==='D'?'Elena Marsh':'Jack Holloway')} ${t('et','and',`y`)} ${G.vpName||t('colistier à choisir','running mate to be chosen',`compañero(a) de fórmula por elegir`)}.</p>${G.cand?`<p class="muted" style="margin:4px 0 0;font-size:13px">${candLine(G.cand)}</p>`:''}${G.opp?`<p class="muted" style="margin:4px 0 0;font-size:13px">${t('Adversaire','Opponent',`Rival`)} : ${candLine(G.opp)}</p>`:''}<p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image',`Imagen neta`)} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you',`para ti`)} · ${t('fonds adverses estimés','estimated opponent funds',`fondos estimados del rival`)} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code',`código de partida`)} : <span class="mono">${codeOf(G.seed)}</span> <button class="btn sm alt" data-act="copycode" style="min-height:28px;padding:2px 8px">${t('Copier','Copy',`Copiar`)}</button>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias',`sesgo estimado de las encuestas`)} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you',`para ti`)}`:''}</p></div>`;
+    ${rivalPanel()}${viralHTML()}${thirdHTML()}${autoHTML()}${G.mode==='mid'?`<div class="panel"><h3 style="font-size:20px">${t('Votre mission','Your mission',`Tu misión`)}</h3><p style="margin:6px 0 0">${t('Contrôler la Chambre (218 sièges) pour gagner, et si possible le Sénat (51 sièges ; 50 suffisent pour le parti du président). Les États avec une ★ ont une élection au Sénat.','Control the House (218 seats) to win, and the Senate too if you can (51 seats; 50 is enough for the president’s party). States marked ★ have a Senate race.',`Controla la Cámara de Representantes (218 escaños) para ganar y, si puedes, también el Senado (51 escaños; 50 bastan para el partido del presidente). Los estados con ★ tienen elección al Senado.`)}</p><p class="muted" style="margin:6px 0 0;font-size:13px">${t('Fonds adverses estimés','Estimated opponent funds',`Fondos estimados del rival`)} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code',`código de partida`)} : <span class="mono">${codeOf(G.seed)}</span>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias',`sesgo estimado de las encuestas`)} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you',`para ti`)}`:''}</p></div>`:''}<div class="panel"${G.mode==='mid'?' hidden':''}><h3 style="font-size:20px">${t('Votre ticket','Your ticket',`Tu fórmula`)}</h3><p style="margin:6px 0 0">${G.cand?G.cand.n:(side()==='D'?'Elena Marsh':'Jack Holloway')} ${t('et','and',`y`)} ${G.vpName||t('colistier à choisir','running mate to be chosen',`compañero(a) de fórmula por elegir`)}.</p>${G.cand?`<p class="muted" style="margin:4px 0 0;font-size:13px">${candLine(G.cand)}</p>`:''}${G.opp?`<p class="muted" style="margin:4px 0 0;font-size:13px">${t('Adversaire','Opponent',`Rival`)} : ${candLine(G.opp)}</p>`:''}<p class="muted" style="margin:6px 0 0;font-size:13px">${t('Image nette','Net image',`Imagen neta`)} : <span class="mono">${fS(G.me*G.img)}</span> ${t('pour vous','for you',`para ti`)} · ${t('fonds adverses estimés','estimated opponent funds',`fondos estimados del rival`)} : <span class="mono">${fM(G.cashO)}</span>${G.seed!=null?` · ${t('code de partie','game code',`código de partida`)} : <span class="mono">${codeOf(G.seed)}</span> <button class="btn sm alt" data-act="copycode" style="min-height:28px;padding:2px 8px">${t('Copier','Copy',`Copiar`)}</button>`:''}${G.hint!=null?` · ${t('biais des sondages estimé','estimated poll bias',`sesgo estimado de las encuestas`)} : <span class="mono">${fS(G.hint)}</span> ${t('pour vous','for you',`para ti`)}`:''}</p></div>`;
   }else{
     h=`<div class="tog"><button class="btn sm alt" data-act="analyst">${G.analyst?t('Masquer les calculs détaillés','Hide detailed calculations',`Ocultar cálculos detallados`):t('Afficher les calculs détaillés','Show detailed calculations',`Mostrar cálculos detallados`)}</button><span class="muted">${t('Mode analyste : décomposition de la marge de chaque État.','Analyst mode: breakdown of each state’s margin.',`Modo analista: desglose del margen de cada estado.`)}</span></div><ul class="log">${G.log.map(e=>`<li class="${e.k}"><b>${t('S','W',`S`)}${e.w}</b><span>${t(e.t)}</span></li>`).join('')||`<li><b></b><span class="muted">${t('Rien à signaler pour l’instant.','Nothing to report yet.',`Nada que informar por ahora.`)}</span></li>`}</ul>`;
   }
@@ -905,7 +906,7 @@ function showBrief(){
   if(G.mode==='mid'){midstartBrief();return}
   const o=G.me*(G.env-PARAM.neutral),mood=o>1?t('plutôt porteuse pour votre camp','rather favorable to your side',`bastante favorable para tu bando`):o<-1?t('plutôt difficile pour votre camp','rather difficult for your side',`bastante difícil para tu bando`):t('incertaine','uncertain',`incierto`);
   const ec=G.econ>.6?t('tourne bien','is doing well',`va bien`):G.econ<-.6?t('ralentit','is slowing',`se ralentiza`):t('est stable','is stable',`está estable`);
-  showModal(`<h2>${G.scn?t(SCN[G.scn].head):t('Novembre 2028','November 2028',`Noviembre de 2028`)}</h2>${G.scn?`<p><b>${t(SCN[G.scn].tag)}</b></p><p>${t(SCN[G.scn].blurb)}</p>`:''}${G.pr&&G.pr.won?`<p><b>${t('Investiture remportée','Nomination won',`Nominación ganada`)}</b> : ${G.cand.n}, ${Math.round(G.pr.final.you*100)} % ${t('des délégués','of delegates',`de los delegados`)}.</p>`:''}<p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(G.cash)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(G.cash)} in the bank and 12 weeks ahead.`,`El partido ${incName()} ocupa la Casa Blanca. El clima nacional es ${mood}. La economía ${ec}. Tienes ${fm0(G.cash)} en caja y 12 semanas por delante.`)}</p>${G.seed!=null?`<p class="muted" style="font-size:13px">${G.daily?t('Défi du jour','Daily challenge',`Desafío del día`)+' · ':''}${t('Code de partie','Game code',`Código de partida`)} : <span class="mono">${codeOf(G.seed)}</span></p>`:''}<p><b>${t('Choisissez votre colistier.','Choose your running mate.',`Elige a tu compañero(a) de fórmula.`)}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
+  showModal(`<h2>${G.scn?t(SCN[G.scn].head):t('Novembre 2028','November 2028',`Noviembre de 2028`)}</h2>${G.scn?`<p><b>${t(SCN[G.scn].tag)}</b></p><p>${t(SCN[G.scn].blurb)}</p>`:''}${G.pr&&G.pr.won?`<p><b>${t('Investiture remportée','Nomination won',`Nominación ganada`)}</b> : ${G.cand.n}, ${Math.round(G.pr.final.you*100)} % ${t('des délégués','of delegates',`de los delegados`)}.</p>`:''}<p>${t(`Le parti ${incName()} tient la Maison-Blanche. L’humeur du pays est ${mood}. L’économie ${ec}. Vous avez ${fm0(G.cash)} en caisse et 12 semaines devant vous.`,`The ${incName()} party holds the White House. The national mood is ${mood}. The economy ${ec}. You have ${fm0(G.cash)} in the bank and 12 weeks ahead.`,`El partido ${incName()} ocupa la Casa Blanca. El clima nacional es ${mood}. La economía ${ec}. Tienes ${fm0(G.cash)} en caja y 12 semanas por delante.`)}</p>${G.opp&&G.opp.pf?`<p>${t('Votre adversaire','Your opponent','Tu rival')} : <b>${G.opp.n}</b>. ${rivalLine()}</p>`:''}${G.seed!=null?`<p class="muted" style="font-size:13px">${G.daily?t('Défi du jour','Daily challenge',`Desafío del día`)+' · ':''}${t('Code de partie','Game code',`Código de partida`)} : <span class="mono">${codeOf(G.seed)}</span></p>`:''}<p><b>${t('Choisissez votre colistier.','Choose your running mate.',`Elige a tu compañero(a) de fórmula.`)}</b></p>${VPS[side()].map((v,i)=>`<button class="ch" data-act="vp" data-i="${i}"><b>${v.n}</b><small>${t(v.r)}. ${t(v.d)}.</small></button>`).join('')}`);
 }
 function election(){
   G.phase='over';const eN=randn()*1.5;
@@ -2018,6 +2019,30 @@ function tipsList(){
 function tipsHTML(){
   if(!hintsOn())return'';const l=tipsList();if(!l.length)return'';
   return`<div class="tips"><b>${t('Conseils du directeur de campagne','Campaign manager tips','Consejos del director de campaña')}</b>${l.map(x=>`<p>${x}</p>`).join('')}</div>`;
+}
+/* ---------- Profils de rival ---------- */
+// Each rival has one playing style, shown from the start (brief + Actions tab). Effects are small and roughly balanced.
+const RIVALS={
+ attack:{n:B('Attaquant','Attack dog','Atacante'),d:B('Lance des publicités d’attaque qui entament votre image, mais dépense moins sur le terrain.','Runs attack ads that dent your image, but spends less on the ground.','Lanza anuncios de ataque que dañan tu imagen, pero gasta menos sobre el terreno.')},
+ careful:{n:B('Prudent','Cautious','Prudente'),d:B('Garde son argent et frappe fort en fin de campagne ; ajuste rarement ses positions.','Hoards cash and spends heavily late; rarely shifts its positions.','Ahorra y gasta mucho al final; rara vez cambia de posición.')},
+ centrist:{n:B('Centriste','Centrist','Centrista'),d:B('Se repositionne vite vers les États serrés et réagit à vos changements de position.','Repositions fast toward close states and reacts to your position changes.','Se reposiciona rápido hacia los estados reñidos y reacciona a tus cambios de posición.')},
+ populist:{n:B('Populiste','Populist','Populista'),d:B('Enchaîne les meetings, mais commet des gaffes qui vous profitent.','Piles on rallies, but makes gaffes that help you.','Encadena mítines, pero comete deslices que te benefician.')},
+ moneyed:{n:B('Bien financé','Well-funded','Bien financiado'),d:B('Reçoit plus d’argent chaque semaine, mais ouvre moins de bureaux.','Gets more money every week, but opens fewer offices.','Recibe más dinero cada semana, pero abre menos oficinas.')},
+ digital:{n:B('Numérique','Digital-first','Digital'),d:B('Multiplie les offensives en ligne, qui font monter la rumeur dans plusieurs États.','Launches online offensives that stir buzz in several states.','Multiplica las ofensivas en línea, que generan rumor en varios estados.')}
+};
+const pfO=()=>G&&G.opp&&G.opp.pf||null;
+const rivalLine=()=>{const k=pfO();return k?`<b>${t(RIVALS[k].n)}</b> : ${t(RIVALS[k].d)}`:''};
+function rivalPanel(){
+  if(!G.opp||G.mode==='mid'||!pfO())return'';
+  return`<div class="panel"><h3 style="font-size:20px">${t('Votre adversaire','Your opponent','Tu rival')}</h3><p style="margin:6px 0 2px"><b>${G.opp.n}</b> · ${roleTxt(G.opp)}</p><p class="muted" style="margin:0;font-size:14px">${rivalLine()}</p></div>`;
+}
+// rival-specific weekly behaviour (called from oppTurn); pub = log lines
+function rivalWeek(pub,top){
+  const k=pfO();if(!k)return 0;let extra=0;
+  if(k==='attack'&&rnd()<.35){H.img(-.12);extra+=.8;pub.push(B('L’adversaire diffuse une publicité d’attaque contre vous.','Your opponent airs an attack ad against you.','El rival emite un anuncio de ataque contra ti.'))}
+  if(k==='populist'&&rnd()<.15){H.img(.12);pub.push(B('L’adversaire commet une gaffe en meeting.','Your opponent makes a gaffe at a rally.','El rival comete un desliz en un mitin.'))}
+  if(k==='digital'){top.slice(2,5).sort(()=>rnd()-.5).slice(0,2).forEach(x=>{x.s.buzzO=Math.min(2.4,x.s.buzzO+.8);extra+=.3});if(rnd()<.4)pub.push(B('Offensive en ligne de l’adversaire.','Online offensive by your opponent.','Ofensiva en línea del rival.'))}
+  return extra;
 }
 </script>
 

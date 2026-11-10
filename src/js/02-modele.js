@@ -64,7 +64,7 @@ function newGame(me,diff,seed,daily,mode){
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
      pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'cand',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
   G.deck=mkDeck();
-  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
+  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.opp.pf=pickR(Object.keys(RIVALS));G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
   G.regSh=RSH;G.tur=randn();
