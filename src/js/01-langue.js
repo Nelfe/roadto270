@@ -79,6 +79,7 @@ const GCOL=['hsl(28 62% 48%)','hsl(200 56% 45%)','hsl(268 40% 56%)','hsl(150 48%
 const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4,adapt:1,midEnv:2.4,midBase:226,pk:1.5,adG:.35,adG2:.2,rivM:.22,rivR:.25,dec:.65,pcash:24};
 let SIM=false;
 let G=null,UI={tab:'map',sel:null,night:null};
+try{UI.skipPrim=!!localStorage.getItem('cap270.skipPrim')}catch(e){}
 const KEY='cap270.save.v4',slotKey=n=>KEY+'.'+n;
 const ST=ab=>G.states.find(s=>s.ab===ab);
 const side=()=>G.me===1?'D':'R', oside=()=>G.me===1?'R':'D';

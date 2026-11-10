@@ -8,7 +8,7 @@ const STAFF=[
 ];
 const SKN=['','I','II','III'];
 const sk=id=>G&&G.staff&&G.staff[id]?G.staff[id].sk:0;
-const staffCost=()=>Object.values(G.staff||{}).reduce((a,x)=>a+x.sal,0);
+const staffCost=()=>Object.values(G.staff||{}).reduce((a,x)=>a+x.sal,0)*(trP().includes('frugal')?.75:1);
 const pollCost=()=>1-.2*sk('pol');
 function genNamePick(used){let n;do{n=pickR(FIRSTN[rnd()<.5?'f':'m'])+' '+pickR(LASTN)}while(used.includes(n));used.push(n);return n}
 function genOffers(used){
@@ -46,7 +46,7 @@ const VIR=[
 function rollViral(){if(rnd()<.45){const q=pickR(VIR);G.viral={t:q.t,v:q.v,resp:false}}else G.viral=null}
 function applyViral(){
   const V=G.viral;if(!V)return;
-  const k=V.resp?(V.v<0?.35:1.6):1,v=V.v*k;H.img(v);
+  const k=(V.resp?(V.v<0?.35:1.6):1)*(V.v<0&&trP().includes('crisis')?.7:1),v=V.v*k;H.img(v);
   L('news',both(()=>t(`${t(V.t)} ${v>0?'(effet favorable)':'(effet défavorable)'}`,`${t(V.t)} ${v>0?'(favorable effect)':'(unfavorable effect)'}`)));
   G.viral=null;
 }

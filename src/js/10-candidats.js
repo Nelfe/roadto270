@@ -16,12 +16,22 @@ const TRAITS={
  funds:{n:B('Collecteur de fonds','Fundraiser'),d:B('+1,5 M$ par semaine, collectes plus fructueuses aux primaires.','+$1.5M per week, stronger fundraising in the primaries.')},
  org:{n:B('Organisateur','Organizer'),d:B('Bureaux de terrain 25 % moins chers, tournées plus efficaces.','Field offices 25% cheaper, more effective tours.')},
  debate:{n:B('Débatteur','Debater'),d:B('+0,3 aux débats.','+0.3 in debates.')},
- home:{n:B('Ancrage local','Home turf'),d:B('+2,5 dans son État d’origine.','+2.5 in its home state.')}
+ home:{n:B('Ancrage local','Home turf'),d:B('+2,5 dans son État d’origine.','+2.5 in its home state.')},
+ media:{n:B('Télégénique','Telegenic','Telegénico'),d:B('Publicités télévisées 15 % plus efficaces.','TV ads 15% more effective.','Anuncios de TV un 15 % más eficaces.')},
+ frugal:{n:B('Gestionnaire rigoureux','Tight ship','Gestor riguroso'),d:B('+0,5 M$ par semaine et salaires d’équipe −25 %.','+$0.5M per week and staff salaries −25%.','+0,5 M$ por semana y salarios del equipo −25 %.')},
+ bridge:{n:B('Rassembleur','Bridge-builder','Conciliador'),d:B('L’indépendant s’effondre plus vite ; +0,1 aux primaires.','The independent fades faster; +0.1 in the primaries.','El independiente se desinfla antes; +0,1 en las primarias.')},
+ vet:{n:B('Expérimenté','Seasoned','Veterano'),d:B('Image +0,2 ; +0,15 aux primaires.','Image +0.2; +0.15 in the primaries.','Imagen +0,2; +0,15 en las primarias.')},
+ swing:{n:B('Voix des modérés','Voice of moderates','Voz de los moderados'),d:B('+0,6 dans les États serrés (marge de base sous 4 pts).','+0.6 in close states (baseline margin under 4 pts).','+0,6 en estados reñidos (margen base inferior a 4 pts).')},
+ youth:{n:B('Idole des jeunes','Youth favorite','Ídolo de los jóvenes'),d:B('Les jeunes électeurs penchent pour vous dès le départ.','Young voters lean your way from the start.','Los jóvenes se inclinan por ti desde el principio.')},
+ crisis:{n:B('Gestionnaire de crise','Crisis manager','Gestor de crisis'),d:B('Les tempêtes virales font 30 % moins de dégâts.','Viral storms do 30% less damage.','Las tormentas virales hacen un 30 % menos de daño.')}
 };
 const WEAKS={
  gaffe:{n:B('Gaffeur','Gaffe-prone'),d:B('Les grandes interviews dérapent plus souvent.','Major interviews slip more often.')},
  scandal:{n:B('Passé encombrant','Baggage'),d:B('Les révélations de dernière minute vous visent plus souvent.','Last-minute revelations hit you more often.')},
- unknown:{n:B('Peu connu','Low name ID'),d:B('Image −0,4 au départ, plus difficile aux primaires.','Image −0.4 at the start, harder in the primaries.')}
+ unknown:{n:B('Peu connu','Low name ID'),d:B('Image −0,4 au départ, plus difficile aux primaires.','Image −0.4 at the start, harder in the primaries.')},
+ broke:{n:B('Finances brouillonnes','Sloppy books','Cuentas desordenadas'),d:B('−1 M$ par semaine.','−$1M per week.','−1 M$ por semana.')},
+ stiff:{n:B('Terne','Stiff on stage','Soso'),d:B('Image −0,25 au départ ; −0,15 aux primaires.','Image −0.25 at the start; −0.15 in the primaries.','Imagen −0,25 al inicio; −0,15 en las primarias.')},
+ divisive:{n:B('Clivant','Divisive','Polarizador'),d:B('L’indépendant retient mieux ses électeurs.','The independent holds on to its voters better.','El independiente retiene mejor a sus votantes.')}
 };
 const pickR=a=>a[Math.floor(rnd()*a.length)];
 function genCand(sd,used){
@@ -44,6 +54,10 @@ function applyCand(c,mine){
   if(!c)return;const sg=mine?G.me:-G.me;
   if(c.tr.includes('charm'))G.img+=sg*.4;
   if(c.wk==='unknown')G.img-=sg*.4;
+  if(c.wk==='stiff')G.img-=sg*.25;
+  if(c.tr.includes('vet'))G.img+=sg*.2;
+  if(c.tr.includes('swing'))G.states.forEach(q=>{if(Math.abs(q.lean)<4)q[mine?'vpP':'vpO']+=.6});
+  if(c.tr.includes('youth')&&mine)H.target('jeu',.5);
   if(c.tr.includes('home')){const q=ST(c.hs);if(q)q[mine?'vpP':'vpO']+=2.5}
 }
 function candCard(c,i){

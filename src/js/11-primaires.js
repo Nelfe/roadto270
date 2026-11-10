@@ -10,7 +10,7 @@ function initPrim(){
   G.pr.hint=2*G.pr.e+randn()*.45;G.pr.pn=newPn();
 }
 function newPn(){const o={you:randn()*.15};G.pr&&G.pr.riv.forEach((q,i)=>o[i]=randn()*.15);return o}
-const primBase=()=>(trP().includes('charm')?.35:0)+(trP().includes('org')?.2:0)+(trP().includes('funds')?.15:0)-(wkP()==='unknown'?.4:0)-(wkP()==='gaffe'?.1:0);
+const primBase=()=>(trP().includes('charm')?.35:0)+(trP().includes('org')?.2:0)+(trP().includes('funds')?.15:0)-(wkP()==='unknown'?.4:0)-(wkP()==='gaffe'?.1:0)+(trP().includes('vet')?.15:0)+(trP().includes('bridge')?.1:0)-(wkP()==='stiff'?.15:0);
 const pcands=()=>[{k:'you',x:G.pr.x,b:primBase(),mom:G.pr.mom},...G.pr.riv.map((q,i)=>({k:i,x:q.x,b:q.b,mom:q.mom,out:q.out}))].filter(q=>!q.out);
 function prShares(nz){
   const xs=2*G.pr.e,L=pcands().map(q=>({k:q.k,v:Math.exp(PARAM.pk*(q.b+q.mom-.5*Math.abs(q.x-xs)+(nz?nz[q.k]||0:0)))})),T=L.reduce((a,q)=>a+q.v,0),o={};
@@ -87,7 +87,7 @@ function renderPrim(){
   const m=$('#main');
   if(G.phase==='cand'){
     $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Votre candidat','Your candidate')}</span><span class="rt"><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual')}">?</button></span></div>`;
-    m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.')}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('');
+    m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.')}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('')+`<div class="panel"><button class="btn alt full" data-act="rerollc">${t('Tirer trois autres candidats','Draw three other candidates','Sortear otros tres candidatos')}</button><label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer"><input type="checkbox" data-act="skipp" ${UI.skipPrim?'checked':''} style="margin-top:3px"><span><b>${t('Passer les primaires','Skip the primaries','Omitir las primarias')}</b><br><span class="muted" style="font-size:13px">${t('Votre choix devient le candidat du parti et la campagne générale commence directement.','Your pick becomes the party nominee and the general election starts right away.','Tu elección es el candidato del partido y la campaña general empieza directamente.')}</span></span></label></div>`;
     return;
   }
   const pr=G.pr,r=Math.min(pr.r,NR()-1),rd=PRDS()[r],myCol=myC();
@@ -105,8 +105,8 @@ function renderPrim(){
   <h2 class="sect">${t('Sondages de primaire','Primary polls')}</h2><div class="panel">${bars}<p class="muted" style="font-size:13px;margin:8px 0 0">${t('Les électeurs de primaire semblent','Primary voters seem')} <b>${moodLabel(pr.hint)}</b>. ${t('Poids de ce scrutin','Weight of this contest')} : ${Math.round(rd.w*100)} %.</p>${hist}${out}</div>
   <h3 class="sect" style="font-size:18px">${t('Votre positionnement','Your positioning')}</h3><div class="panel"><div class="stance">${st}</div><p class="muted" style="font-size:13px;margin:4px 0 0">${t('Aller vers la base conforte la ligne du parti ; aller vers le centre aide en novembre mais déplace vos positions sur les enjeux au moment de l’investiture.','Moving toward the base reinforces the party line; moving to the center helps in November but shifts your issue positions once you are nominated.')}</p></div>
   <h3 class="sect" style="font-size:18px">${t('Actions','Actions')}</h3><div class="pg">
-   <button class="btn sm" data-act="pbase"><b>${t('Mobiliser la base','Rally the base')}</b><small>${t('Positionnement +1','Positioning +1')}</small></button>
    <button class="btn sm" data-act="pcenter"><b>${t('Viser le centre','Court the center')}</b><small>${t('Positionnement −1','Positioning −1')}</small></button>
+   <button class="btn sm" data-act="pbase"><b>${t('Mobiliser la base','Rally the base')}</b><small>${t('Positionnement +1','Positioning +1')}</small></button>
    <button class="btn sm" data-act="pads"><b>${t('Publicité','Ads')}</b><small>${fm0(4)}</small></button>
    <button class="btn sm" data-act="ptour"><b>${t('Tournée de terrain','Barnstorm')}</b><small>${t('Gratuit','Free')}</small></button>
    <button class="btn sm" data-act="pfund"><b>${t('Collecte de fonds','Fundraise')}</b><small>${t('+5 à 7 M$','+$5M to $7M')}</small></button>

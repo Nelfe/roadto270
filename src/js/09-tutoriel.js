@@ -33,7 +33,7 @@ function helpHTML(canReplay){
 <details open><summary>But et déroulé</summary><p>Vous menez une campagne présidentielle fictive de 12 semaines, du 14 août au 7 novembre 2028. Il faut au moins <b>270 des 538 grands électeurs</b>.</p>
 <ul><li>Chaque semaine, vous dépensez vos <b>3 actions</b> et votre argent.</li><li>Vous terminez la semaine : l’adversaire joue, l’économie évolue, un événement vous demande de choisir.</li><li>Le soir du scrutin, les résultats tombent État par État avec une part de hasard : les sondages peuvent se tromper.</li></ul></details>
 <details><summary>Candidats et primaires</summary><ul>
-<li>Vous choisissez parmi <b>3 candidats générés</b> : deux atouts et une faiblesse chacun (image, fonds, bureaux moins chers, débats, ancrage local ; interviews risquées, passé encombrant, faible notoriété).</li>
+<li>Vous choisissez parmi <b>3 candidats générés</b> (« Tirer trois autres candidats » si aucun ne vous plaît ; case « Passer les primaires » pour aller directement à la présidentielle) : deux atouts et une faiblesse chacun (image, fonds, bureaux moins chers, débats, ancrage local ; interviews risquées, passé encombrant, faible notoriété).</li>
 <li>Les <b>primaires</b> comptent 4 scrutins (le Super Tuesday pèse le plus). Vous avez 2 actions par tour : mobiliser la base ou viser le centre, publicité (4 M$), tournée, collecte, attaque d’un rival.</li>
 <li>Les électeurs de primaire ont une <b>humeur</b> indiquée sous les sondages. Se placer près d’elle aide, mais votre positionnement déplace vos positions sur les enjeux à l’investiture.</li>
 <li>Attaquer affaiblit un rival mais coûte de l’image face à l’adversaire. L’argent restant passe en campagne générale.</li>
@@ -106,7 +106,7 @@ function helpHTML(canReplay){
 <details open><summary>Goal and flow</summary><p>You run a fictional 12-week presidential campaign, from August 14 to November 7, 2028. You need at least <b>270 of the 538 electoral votes</b>.</p>
 <ul><li>Each week, you spend your <b>3 actions</b> and your money.</li><li>You end the week: your opponent plays, the economy moves, and an event asks you to choose.</li><li>On election night, results come in state by state with some randomness: polls can be wrong.</li></ul></details>
 <details><summary>Candidates and primaries</summary><ul>
-<li>You choose among <b>3 generated candidates</b>: two strengths and one weakness each (image, funds, cheaper offices, debates, home turf; risky interviews, baggage, low name ID).</li>
+<li>You choose among <b>3 generated candidates</b> (“Draw three other candidates” if none appeal; tick “Skip the primaries” to go straight to the general election): two strengths and one weakness each (image, funds, cheaper offices, debates, home turf; risky interviews, baggage, low name ID).</li>
 <li>The <b>primaries</b> are 4 contests (Super Tuesday counts the most). You get 2 actions per round: rally the base or court the center, ads ($4M), barnstorm, fundraise, attack a rival.</li>
 <li>Primary voters have a <b>mood</b>, shown under the polls. Positioning near it helps, but your stance shifts your issue positions once you are nominated.</li>
 <li>Attacking weakens a rival but costs image against your general-election opponent. Money left over carries into the general campaign.</li>

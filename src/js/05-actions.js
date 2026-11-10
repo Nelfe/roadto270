@@ -6,7 +6,7 @@ const noAP=()=>toast(t('Plus assez d’actions.','Not enough actions.'));
 const A={
  sel(d){UI.sel=d.ab;render()},
  tab(d){UI.tab=d.tab;if(d.tab==='log')G.seen=G.log.length;render();window.scrollTo(0,0)},
- ads(d){if(!can())return;const s=ST(UI.sel),ch=UI.ch||'tv',n=+d.n,c=adCost(s)*n*CHC[ch];if(!needCash(c))return;const u=adCost(s)*n*chPow(s,ch);if(ch==='tv')s.tvP+=u;else if(ch==='dig')s.dgP+=u;else s.raP+=u;s.adsP=s.tvP+s.dgP+s.raP;s.spP+=c;save();render()},
+ ads(d){if(!can())return;const s=ST(UI.sel),ch=UI.ch||'tv',n=+d.n,c=adCost(s)*n*CHC[ch];if(!needCash(c))return;const u=adCost(s)*n*chPow(s,ch)*(ch==='tv'&&trP().includes('media')?1.15:1);if(ch==='tv')s.tvP+=u;else if(ch==='dig')s.dgP+=u;else s.raP+=u;s.adsP=s.tvP+s.dgP+s.raP;s.spP+=c;save();render()},
  ch(d){UI.ch=d.c;render()},
  early(){if(!can())return;const s=ST(UI.sel);if(G.wk<8){toast(t('Le vote anticipé s’ouvre à la semaine 8.','Early voting opens in week 8.'));return}if(s.ebP>=3){toast(t('Maximum atteint.','Maximum reached.'));return}if(G.ap<1){noAP();return}if(!needCash(2))return;G.ap--;s.ebP++;s.spP+=2;L('you',both(()=>t(`Opération vote anticipé en ${sn(s)}.`,`Early-vote drive in ${sn(s)}.`)));save();render()},
  hire(d){if(!can())return;const o=G.offers[d.r][+d.i];if(G.cash<o.sal){toast(t('Fonds insuffisants.','Not enough funds.'));return}G.cash-=o.sal;G.staff[d.r]=o;const r=STAFF.find(q=>q.id===d.r);L('you',both(()=>t(`Recrutement : ${o.n} (${r.n.fr}, niveau ${SKN[o.sk]}).`,`Hired ${o.n} (${r.n.en}, level ${SKN[o.sk]}).`)));save();render()},
@@ -42,21 +42,25 @@ const A={
  tutoRestart(){hideModal();tutoGo(0)},
  lang(d){setLang(d.l)},
  midstart(){G.phase='play';snap();hideModal();save();render()},
- pickc(d){G.cand=G.cands[+d.i];initPrim();G.phase='prim';save();render();window.scrollTo(0,0)},
+ pickc(d){G.cand=G.cands[+d.i];
+  if(UI.skipPrim){G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=clamp(PARAM.pcash+4+DM.cash[G.diff],16,46);G.phase='vp';L('news',both(()=>t(`${G.cand.n} est le candidat de votre parti (primaires sautées). L’adversaire : ${G.opp.n}.`,`${G.cand.n} is your party’s nominee (primaries skipped). The opponent: ${G.opp.n}.`,`${G.cand.n} es el candidato de tu partido (primarias omitidas). El rival: ${G.opp.n}.`)));save();render();showBrief();window.scrollTo(0,0);return}
+  initPrim();G.phase='prim';save();render();window.scrollTo(0,0)},
+ rerollc(){const used=[G.opp.n];G.cands=[0,1,2].map(()=>genCand(side(),used));save();render();window.scrollTo(0,0)},
+ skipp(){UI.skipPrim=!UI.skipPrim;try{localStorage.setItem('cap270.skipPrim',UI.skipPrim?'1':'')}catch(e){}render()},
  pbase(){primAct('base')},pcenter(){primAct('center')},pads(){primAct('ads')},ptour(){primAct('tour')},pfund(){primAct('fund')},patk(d){primAct('attack',d)},pend(){endRound();window.scrollTo(0,0)},
  restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');renderTitle();$('#title').hidden=false}
 };
 
 function endWeek(){
   if(!can())return;
-  G.cash+=PARAM.income+(trP().includes('funds')?1.5:0)+.3*sk('fin')-staffCost()-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
+  G.cash+=PARAM.income+(trP().includes('funds')?1.5:0)+(trP().includes('frugal')?.5:0)-(wkP()==='broke'?1:0)+.3*sk('fin')-staffCost()-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
   G.cash=Math.max(0,G.cash);
   oppTurn();
   G.states.forEach(s=>{s.tvP*=.85;s.dgP*=.72;s.raP*=.9;s.adsP=s.tvP+s.dgP+s.raP;s.adsO*=.85;s.buzzP*=.5;s.buzzO*=.5;s.noise=randn()*1.2*DM.noise[G.diff];s.internal=null;s.shock*=.88});
   G.tgtP=G.tgtP.map(v=>v*.75);G.tgtO=G.tgtO.map(v=>v*.75);
   G.econ=clamp(G.econ*.9+randn()*.18,-3,3);
   G.env+=randn()*.25;G.sal=G.sal.map((v,i)=>v+(((G.sal0||S0)[i])-v)*.12);
-  applyViral();if(G.third&&G.third.on)G.third.pow*=G.wk<8?.98:.88;
+  applyViral();if(G.third&&G.third.on)G.third.pow*=(G.wk<8?.98:.88)*(trP().includes('bridge')?.96:1)*(wkP()==='divisive'?1.03:1);
   if(sk('pol')>=2)G.hint=G.me*G.pbNat+randn()*(1.1-.25*sk('pol'));
   G.wk++;
   if(G.wk>12){election();return}
