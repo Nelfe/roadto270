@@ -18,6 +18,9 @@ jobs:
       - run: node tests/post.js
       - run: node tests/long.js
       - run: node tests/events.js
+      - run: node tests/cand.js
+      - run: node tests/media.js
+      - run: node tests/donors.js
       - run: node tests/snapshot.js
       - run: node tools/i18n-extract.js --check
       - name: Telemetry stays silent unless enabled

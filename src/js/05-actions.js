@@ -37,6 +37,7 @@ const A={
  copycode(){copyText(codeOf(G.seed))},
  share(){if(navigator.share)navigator.share({text:UI.share}).catch(()=>{});else copyText(UI.share)},
  closeHelp(){hideModal();if(G){if(G.phase==='event')showEvent();else if(G.phase==='vp')showBrief()}},
+ donoryes(d){donorDo(+d.i,true)},donorno(d){donorDo(+d.i,false)},
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
  tutoNext(){if(UI.tuto>=TUTO.length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  tutoSkip(){UI.tuto=null;tutoMark();render()},
@@ -66,5 +67,5 @@ function endWeek(){
   G.wk++;
   if(G.wk>12){election();return}
   G.ap=Math.max(0,3+G.apNext);G.apNext=0;
-  rollViral();rollMedia();nextEvent();snap();save();render();showEvent();
+  rollViral();rollMedia();rollDonors();nextEvent();snap();save();render();showEvent();
 }
