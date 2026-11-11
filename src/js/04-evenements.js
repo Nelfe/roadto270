@@ -1,6 +1,6 @@
 /* ---------- Événements ---------- */
 const H={
- img(x){G.img+=G.me*x*(x<0?DM.neg[G.diff]:1)},incHit(x){G.env+=(G.inc==='D'?-x:x)},
+ img(x){G.img+=G.me*x*(x<0?DM.neg[G.diff]*(1-.08*sk('spk')):1)},oppImg(v){H.img(-v)},incHit(x){G.env+=(G.inc==='D'?-x:x)},
  shock(l,v){l.forEach(a=>{const s=ST(a);if(s)s.shock+=v})},
  target(id,v){const i=GROUPS.findIndex(g=>g.id===id);G.tgtP[i]=clamp(G.tgtP[i]+v,-2,2)},
  sal(id,dv){const i=ISSUES.findIndex(q=>q.id===id);G.sal[i]=clamp(G.sal[i]+dv,.1,1.6)},
@@ -108,7 +108,7 @@ function nextEvent(){
   let id;
   if(G.mode!=='mid'&&(G.wk===5||G.wk===9))id='debate';else if(G.long&&G.wk===7)id='vpdebate';else if(G.wk===11)id='surprise';
   else if(G.third&&!G.third.on&&G.wk>=G.third.wk)id='third';
-  else{if(!G.deck||!G.deck.length)G.deck=mkDeck();id=G.deck.shift();G.used.push(id)}
+  else{if(!G.deck||!G.deck.length)G.deck=mkDeck();let g=0;do{id=G.deck.shift();const e=EVENTS.find(q=>q.id===id);if(e&&e.req&&!e.req()&&g++<30){G.deck.push(id);id=null}if(!G.deck.length)G.deck=mkDeck()}while(!id);G.used.push(id)}
   G.ev={id,res:null};G.phase='event';
   EVENTS.find(e=>e.id===id).pre?.();
 }

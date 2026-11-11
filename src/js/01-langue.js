@@ -74,7 +74,7 @@ function midResult(){
   return{hD,hR:435-hD,sD,sR:100-sD,hCtl:hD>=218?'D':'R',sCtl};
 }
 const CHC={tv:1,dig:.8,rad:.5};
-const chPow=(s,c)=>c==='dig'?s.fd*.95:c==='rad'?.55*s.fr:1;
+const chPow=(s,c)=>c==='dig'?s.fd*.95*(1+.08*sk('dig')):c==='rad'?.55*s.fr:1;
 const GCOL=['hsl(28 62% 48%)','hsl(200 56% 45%)','hsl(268 40% 56%)','hsl(150 48% 38%)','hsl(46 76% 48%)','hsl(338 52% 50%)','hsl(95 40% 38%)'];
 const PARAM={prep:.25,pivotWeeks:[3,6,9],kIss:1.0,neutral:2.6,income:7,pivotMin:.2,oppIncome:3.5,oppHard:1.2,tgtCoef:4,adapt:1,midEnv:2.4,midBase:226,pk:1.5,adG:.35,adG2:.2,rivM:.22,rivR:.25,dec:.65,pcash:24};
 let SIM=false;

@@ -4,7 +4,11 @@ const STAFF=[
  {id:'pol',n:B('Sondeur','Pollster'),e:B('Sondages internes moins chers, sondages publics moins bruités ; dès le niveau 2, estimation du biais des sondages.','Cheaper internal polls, less noisy public polls; from level 2, an estimate of the polling bias.')},
  {id:'fld',n:B('Directeur de terrain','Field director'),e:B('Bureaux de terrain +10 % d’efficacité et 5 % moins chers par niveau.','Field offices 10% more effective and 5% cheaper per level.')},
  {id:'com',n:B('Directeur de la communication','Communications director'),e:B('Publicité +6 % d’efficacité par niveau, interviews plus sûres.','Ads 6% more effective per level, safer interviews.')},
- {id:'fin',n:B('Directeur financier','Finance director'),e:B('+0,5 M$ par collecte et +0,3 M$ par semaine, par niveau.','+$0.5M per fundraiser and +$0.3M per week, per level.')}
+ {id:'fin',n:B('Directeur financier','Finance director'),e:B('+0,5 M$ par collecte et +0,3 M$ par semaine, par niveau.','+$0.5M per fundraiser and +$0.3M per week, per level.')},
+ {id:'spk',n:B('Porte-parole','Press secretary','Portavoz'),e:B('Réduit de 8 % par niveau les dégâts d’image des mauvaises nouvelles.','Cuts image damage from bad news by 8% per level.','Reduce un 8 % por nivel el daño a la imagen de las malas noticias.')},
+ {id:'dig',n:B('Directeur du numérique','Digital director','Director digital'),e:B('Publicité en ligne +8 % d’efficacité par niveau.','Online ads +8% effective per level.','Publicidad en línea un 8 % más eficaz por nivel.')},
+ {id:'gotv',n:B('Responsable de la mobilisation','GOTV director','Responsable de movilización'),e:B('Le vote anticipé rapporte 12 % de plus par niveau.','Early voting yields 12% more per level.','El voto anticipado rinde un 12 % más por nivel.')},
+ {id:'leg',n:B('Conseiller juridique','Legal counsel','Asesor jurídico'),e:B('Meilleures chances lors d’un recomptage ou d’une contestation, par niveau.','Better odds in a recount or legal challenge, per level.','Mejores opciones en un recuento o impugnación, por nivel.')}
 ];
 const SKN=['','I','II','III'];
 const sk=id=>G&&G.staff&&G.staff[id]?G.staff[id].sk:0;
@@ -20,7 +24,7 @@ function teamHTML(){
     const cur=G.staff[r.id];
     return`<div class="panel staff"><h3 style="font-size:20px">${t(r.n)}</h3><p class="muted" style="margin:2px 0 8px;font-size:13px">${t(r.e)}</p>
     ${cur?`<div class="kv" style="border:0"><span><b>${cur.n}</b> · ${t('niveau','level')} ${SKN[cur.sk]}</span><span>${fM(cur.sal)}${t('/sem.','/wk')}</span></div><button class="btn sm alt" data-act="fire" data-r="${r.id}">${t('Licencier','Dismiss')}</button>`:`<p class="muted" style="margin:0 0 6px;font-size:13px">${t('Poste vacant.','Vacant.')}</p>`}
-    <div class="pg">${G.offers[r.id].map((o,i)=>`<button class="btn sm" data-act="hire" data-r="${r.id}" data-i="${i}" ${ok&&!(cur&&cur.n===o.n)&&G.cash>=o.sal?'':'disabled'}><b>${o.n}</b><small>${t('Niveau','Level')} ${SKN[o.sk]} · ${fM(o.sal)}${t('/sem.','/wk')}</small></button>`).join('')}</div></div>`}).join('');
+    <div class="pg">${(G.offers[r.id]||[]).map((o,i)=>`<button class="btn sm" data-act="hire" data-r="${r.id}" data-i="${i}" ${ok&&!(cur&&cur.n===o.n)&&G.cash>=o.sal?'':'disabled'}><b>${o.n}</b><small>${t('Niveau','Level')} ${SKN[o.sk]} · ${fM(o.sal)}${t('/sem.','/wk')}</small></button>`).join('')}</div></div>`}).join('');
 }
 function thirdEff(s){
   const T=G.third;if(!T||!T.on||G.mode==='mid')return 0;

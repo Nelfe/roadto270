@@ -41,7 +41,7 @@ function parts(s){const me=G.me;return[
  [PL.base,s.lean],[PL.env,G.env+ownEff()],[PL.eco,econSign()*.8*ecoOf(s)],[PL.iss,issueEff(s,G.pos.D,G.pos.R)],
  [PL.enth,-.25*dev('D')+.25*dev('R')],[G.mode==='mid'?PL.pimg:PL.img,G.img],[PL.tgt,tgtEff(s)],
  [PL.ads,me*(adsEff(s.adsP,s.ev)*(1+.06*sk('com'))-adsEff(s.adsO,s.ev))],[PL.fld,me*(fieldEff(s.fieldP)*(1+.1*sk('fld'))-fieldEff(s.fieldO))*(s.fm||1)],
- [PL.eb,me*.55*(s.ebP-s.ebO)*s.ei],[PL.third,thirdEff(s)],
+ [PL.eb,me*.55*(s.ebP*(1+.12*sk('gotv'))-s.ebO)*s.ei],[PL.third,thirdEff(s)],
  [PL.bz,me*(s.buzzP-s.buzzO)],[PL.vp,me*(s.vpP-s.vpO)]]}
 const margin=s=>parts(s).reduce((a,x)=>a+x[1],0);
 const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));

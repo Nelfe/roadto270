@@ -52,7 +52,7 @@ A.postch=function(x){
     const cost=w.defending?[0,3][i]:[0,2,6][i];G.cash=Math.max(0,G.cash-cost);
     if(!w.defending&&i===0){res=B('Vous reconnaissez votre défaite.','You concede the race.','Reconoces la derrota.');p.rc='skip'}
     else{
-      let sh=randn()*.14+(w.defending?.05:[0,.04,.09][i]);if(w.defending&&i===1&&sh>0)sh*=.5;
+      let sh=randn()*.14+(w.defending?.05:[0,.04,.09][i])+(w.defending?0:.02*sk('leg'));if(w.defending&&i===1&&sh>0)sh*=.5;
       const before=Math.sign(s.final);s.final+=w.dir*sh;const flipped=Math.sign(s.final)!==before;
       if(flipped){if(w.defending){res=B(`Le recomptage fait basculer ${sn(s).replace(/^/,'')} : le résultat s’inverse.`,`The recount flips ${sn(s)}: the result reverses.`,`El recuento vuelca ${sn(s)}: el resultado se invierte.`)}else{res=B(`Le recomptage vous donne ${sn(s)} : le résultat s’inverse en votre faveur !`,`The recount gives you ${sn(s)}: the result flips your way!`,`¡El recuento te da ${sn(s)}: el resultado se invierte a tu favor!`);p.wonRecount=1}}
       else res=B(`Le recomptage confirme le résultat dans ${sn(s)} (écart ${f1(Math.abs(s.final))} point).`,`The recount confirms the result in ${sn(s)} (${f1(Math.abs(s.final))} point margin).`,`El recuento confirma el resultado en ${sn(s)} (diferencia de ${f1(Math.abs(s.final))} punto).`);
