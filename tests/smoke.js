@@ -5,7 +5,7 @@ const {chromium}=require('playwright');const path=require('path');
  for(const lang of ['en','fr','es']){
   const ctx=await b.newContext({viewport:{width:390,height:844}});const p=await ctx.newPage();
   const errs=[];p.on('pageerror',e=>errs.push(e.message));
-  await p.addInitScript(l=>{try{localStorage.setItem('cap270.lang',l);localStorage.setItem('cap270.tuto','1')}catch(e){}},lang);
+  await p.addInitScript(l=>{try{localStorage.setItem('cap270.lang',l);localStorage.setItem('cap270.tuto','1');localStorage.setItem('cap270.tuto.mid','1');localStorage.setItem('cap270.tips','["cand","prim"]')}catch(e){}},lang);
   await p.goto('file://'+(process.env.GAME_FILE||path.join(__dirname,'..','index.html')));
   const probs=await p.evaluate(()=>{
    const out=[];const chk=w=>{const t=document.body.innerText;if(/undefined|NaN|\[object/.test(t))out.push(w+': '+(t.match(/.{0,30}(undefined|NaN|\[object).{0,20}/)||[''])[0])};

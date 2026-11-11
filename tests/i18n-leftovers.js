@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const path=require('path');
 const lang=process.argv[2]||'es';
 const EN=/\b(the|and|you|your|of|to|with|for|week|state|this|that|are|will|not|from|in|on)\b/i;
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});
- await p.addInitScript(l=>{localStorage.setItem('cap270.lang',l);localStorage.setItem('cap270.tuto','1')},lang);
+ await p.addInitScript(l=>{localStorage.setItem('cap270.lang',l);localStorage.setItem('cap270.tuto','1');localStorage.setItem('cap270.tuto.mid','1');localStorage.setItem('cap270.tips','["cand","prim"]')},lang);
  await p.goto('file://'+(process.env.GAME_FILE||path.join(__dirname,'..','index.html')));
  const lines=await p.evaluate(()=>{const seen=new Set();const grab=()=>document.body.innerText.split('\n').map(s=>s.trim()).filter(Boolean).forEach(s=>seen.add(s));
   grab();

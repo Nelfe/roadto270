@@ -1,5 +1,5 @@
 /* ---------- Tutoriel et manuel ---------- */
-const TUTO=[
+const TUTO_BASE=[
  {tab:'map',hl:'#hudTop .evbar',t:B('Votre objectif','Your goal'),x:B('Il faut 270 grands électeurs sur 538 en 12 semaines. Cette barre projette le résultat d’après les sondages : votre couleur à gauche, l’adversaire à droite, le trait marque 270.','You need 270 of 538 electoral votes in 12 weeks. This bar projects the result from the polls: your color on the left, your opponent on the right, the line marks 270.')},
  {tab:'map',sel:'PA',hl:'.map',t:B('La carte','The map'),x:B('Chaque case est un État, colorée selon la moyenne des sondages. Les cases hachurées sont trop serrées pour trancher. Touchez un État : son détail s’affiche en dessous.','Each tile is a state, colored by its poll average. Hatched tiles are too close to call. Tap a state: its details appear below.')},
  {tab:'map',sel:'PA',hl:'.acts',t:B('Agir sur un État','Acting in a state'),x:B('La publicité coûte de l’argent, le bureau de terrain de l’argent et 1 action (effet durable), la visite 1 action (effet court). Le sondage interne coûte 1 M$ et révèle la vraie marge.','Ads cost money, a field office costs money and 1 action (lasting effect), a visit costs 1 action (short-lived effect). An internal poll costs $1M and reveals the true margin.')},
@@ -10,23 +10,38 @@ const TUTO=[
  {tab:'actions',hl:'.card',t:B('Campagne nationale','National campaign'),x:B('Collecte de fonds, grande interview et préparation du débat (semaines 5 et 9) se font ici. Pensez à collecter régulièrement : l’argent est le nerf de la guerre.','Fundraising, major interviews and debate prep (weeks 5 and 9) happen here. Fundraise regularly: money is the lifeblood of a campaign.')},
  {tab:'map',hl:'#endBtn',t:B('Terminer la semaine','End the week'),x:B('L’adversaire joue, l’économie bouge, puis un événement vous demande de choisir. Le bouton ? en haut à droite rouvre le manuel à tout moment. Bonne campagne.','Your opponent plays, the economy moves, then an event asks you to choose. The ? button at the top right reopens the manual at any time. Good luck.')}
 ];
-const tutoSeen=()=>{try{return localStorage.getItem('cap270.tuto')==='1'}catch(e){return false}};
-const tutoMark=()=>{try{localStorage.setItem('cap270.tuto','1')}catch(e){}};
+const tutoKey=()=>G&&G.mode==='mid'?'cap270.tuto.mid':'cap270.tuto';
+const tutoSeen=()=>{try{return localStorage.getItem(tutoKey())==='1'}catch(e){return false}};
+const tutoMark=()=>{try{localStorage.setItem(tutoKey(),'1')}catch(e){}};
+const tuAct=()=>!!UI.tuBase&&(G.ap<UI.tuBase.ap||G.spentP>UI.tuBase.sp+1e-9);
+// Steps: the first ones wait for you to actually do something (need), the last one ends when you end the week.
+function tutoSteps(){
+  const b=TUTO_BASE,mid=G&&G.mode==='mid',S=[];
+  S.push(mid?{tab:'map',hl:'#hudTop .evbar',t:B('Votre mission','Your mission','Tu misión'),x:B('Contrôlez la Chambre (218 sièges) et, si possible, le Sénat. Cette barre projette le résultat d’après les sondages : votre couleur à gauche, l’adversaire à droite.','Control the House (218 seats) and the Senate too if you can. This bar projects the result from the polls: your color on the left, your opponent on the right.','Controla la Cámara (218 escaños) y, si puedes, el Senado. Esta barra proyecta el resultado según las encuestas: tu color a la izquierda, el rival a la derecha.')}:b[0]);
+  S.push(Object.assign({},b[1],{sel:'',need:()=>!!UI.sel,do:B('Touchez un État sur la carte.','Tap a state on the map.','Toca un estado en el mapa.')}));
+  S.push(Object.assign({},b[2],{sel:()=>UI.sel||'PA',need:tuAct,do:B('Faites une action : publicité, bureau de terrain, visite ou sondage.','Take one action: an ad, a field office, a visit or a poll.','Haz una acción: un anuncio, una oficina de campo, una visita o una encuesta.')}));
+  S.push(b[3],b[4],b[5],b[6],b[7]);
+  S.push({tab:'actions',hl:'#pMedia',t:B('Médias et donateurs','Media and donors','Medios y donantes'),x:B('Chaque semaine peuvent arriver des invitations médias (allez-y ou envoyez un porte-parole) et des offres de donateurs : de l’argent, mais avec des contreparties et un risque de scandale.','Every week media invitations may show up (go yourself or send a surrogate) along with donor offers: money, but with strings attached and a risk of scandal.','Cada semana pueden llegar invitaciones de medios (ve tú o envía a un sustituto) y ofertas de donantes: dinero, pero con contrapartidas y riesgo de escándalo.')});
+  if(!mid)S.push({tab:'actions',hl:'#pRival',t:B('Votre adversaire','Your opponent','Tu rival'),x:B('Il a un style de jeu propre : attaquant, prudent, centriste, populiste, bien financé ou numérique. Lisez son profil et adaptez votre campagne.','It has its own playing style: attack dog, cautious, centrist, populist, well-funded or digital. Read its profile and adapt your campaign.','Tiene su propio estilo de juego: atacante, prudente, centrista, populista, bien financiado o digital. Lee su perfil y adapta tu campaña.')});
+  S.push(Object.assign({},b[8],{last:true,hl:'#endBtn',do:B('Touchez « Fin de semaine » pour lancer votre première semaine.','Tap “End week” to run your first week.','Toca «Fin de semana» para jugar tu primera semana.')}));
+  return S;
+}
 function tutoGo(i){
-  UI.tuto=i;const st=TUTO[i];UI.tab=st.tab;if(st.sel)UI.sel=st.sel;
+  const S=tutoSteps(),st=S[i];UI.tuto=i;UI.tab=st.tab;if('sel' in st)UI.sel=typeof st.sel==='function'?st.sel():st.sel;
+  UI.tuBase={ap:G.ap,sp:G.spentP};
   render();const e=st.hl&&document.querySelector(st.hl);if(e)e.scrollIntoView({block:'center',behavior:'smooth'});
 }
 function renderCoach(){
   const c=$('#coach');document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
   const on=!SIM&&G&&UI.tuto!=null&&G.phase==='play';
   c.hidden=!on;document.body.classList.toggle('tuto',!!on);if(!on)return;
-  const st=TUTO[UI.tuto],last=UI.tuto===TUTO.length-1;
-  c.innerHTML=`<div class="cn">${t('Tutoriel · étape','Tutorial · step')} ${UI.tuto+1}/${TUTO.length}</div><h3>${t(st.t)}</h3><p>${t(st.x)}</p><div class="cb">${last?'':`<button class="btn sm alt" data-act="tutoSkip">${t('Passer','Skip')}</button>`}<button class="btn sm" data-act="tutoNext">${last?t('Commencer','Start'):t('Suivant','Next')}</button></div>`;
+  const S=tutoSteps(),st=S[UI.tuto],last=!!st.last,blocked=st.need?!st.need():false;
+  c.innerHTML=`<div class="cn">${t('Tutoriel · étape','Tutorial · step','Tutorial · paso')} ${UI.tuto+1}/${S.length}</div><h3>${t(st.t)}</h3><p>${t(st.x)}</p>${st.do?`<p class="todo${blocked||last?'':' done'}">${blocked||last?'👉':'✔'} ${t(st.do)}</p>`:''}<div class="cb">${last?'':`<button class="btn sm alt" data-act="tutoSkip">${t('Passer','Skip','Saltar')}</button>`}${last?`<button class="btn sm alt" data-act="tutoSkip">${t('Fermer','Close','Cerrar')}</button>`:`<button class="btn sm" data-act="tutoNext" ${blocked?'disabled':''}>${t('Suivant','Next','Siguiente')}</button>`}</div>`;
   const e=document.querySelector(st.hl);if(e)e.classList.add('hl');
 }
 function langSw(){return`<div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-l="en" aria-pressed="${LANG==='en'}">English</button><button data-act="lang" data-l="fr" aria-pressed="${LANG==='fr'}">Français</button><button data-act="lang" data-l="es" aria-pressed="${LANG==='es'}">Español</button></div>`}
 function helpHTML(canReplay){
-  const replay=canReplay?`<button class="btn alt" data-act="tutoRestart">${t('Rejouer le tutoriel','Replay the tutorial')}</button>`:'';
+  const replay=canReplay?`<button class="btn alt" data-act="tutoRestart">${t('Rejouer le tutoriel','Replay the tutorial')}</button>`:`<button class="btn alt" data-act="tutoReset">${t('Relancer le tutoriel à la prochaine partie','Show the tutorial again in the next game','Mostrar el tutorial en la próxima partida')}</button>`;
   const head=`<div class="man"><div class="mhead"><h2>${t('Manuel','Manual')}</h2><button class="btn sm alt" data-act="closeHelp">${t('Fermer','Close')}</button></div>${langSw()}<div style="margin-bottom:8px"><button class="btn sm alt" data-act="settings">⚙ ${t('Réglages','Settings')}</button></div>`;
   const foot=`<div class="irow" style="margin-top:12px">${replay}<button class="btn" data-act="closeHelp">${t('Fermer','Close')}</button></div></div>`;
   if(FR())return head+`
@@ -174,4 +189,16 @@ function helpHTML(canReplay){
 <details><summary>Comfort</summary><ul><li><b>↶ Undo</b>: the button next to ? undoes up to 5 actions of the current week (not after “End week”).</li><li><b>Fast-forward</b> (Actions tab): skip 1 week, 3 weeks or straight to election day without acting; events are settled the safest way.</li><li><b>Sound, music, animations</b>: synthesized, adjustable or switched off in Settings.</li></ul></details>
 <details><summary>Historical scenarios</summary><p>Replay 2016, 2020 or 2024: the map uses each state’s real margins, with the year’s economy, dominant issues and independent candidate. No primaries; candidates remain fictional. Winning with the side that actually lost unlocks an achievement.</p></details>
 <details><summary>Difficulty</summary><p>On Easy, the national mood favors you. On Hard, it works against you, your opponent has more money, polls are noisier, scandals cost more and you only get three undos per game. On Easy, polls are more reliable and the game flags states within reach (blinking on the map) with tips (can be turned off in settings).</p></details>`+foot;
+}
+/* Astuces ponctuelles (une seule fois) */
+const TIPS={
+ cand:{t:B('Choisir votre candidat','Pick your candidate','Elige a tu candidato'),x:B('Chaque candidat a un parcours, des atouts et une faiblesse qui jouent sur la campagne (argent, image, État d’origine…). Aucun ne vous plaît ? « Tirer trois autres candidats ». Pas envie des primaires ? Cochez « Passer les primaires ».','Each candidate has a background, strengths and a weakness that shape the campaign (money, image, home state…). None appeal? “Draw three other candidates”. Not into primaries? Tick “Skip the primaries”.','Cada candidato tiene una trayectoria, virtudes y una debilidad que influyen en la campaña (dinero, imagen, estado natal…). ¿Ninguno te convence? «Sortear otros tres candidatos». ¿Sin ganas de primarias? Marca «Omitir las primarias».')},
+ prim:{t:B('Les primaires','The primaries','Las primarias'),x:B('Quatre scrutins, deux actions chacun. Aller vers la base plaît aux électeurs de primaire ; aller vers le centre aide en novembre mais déplace vos positions. Publicité, tournée et collecte de fonds vous aident ; attaquer un rival affaiblit son image. Il faut finir en tête pour être investi.','Four contests, two actions each. Moving to the base pleases primary voters; moving to the center helps in November but shifts your positions. Ads, touring and fundraising help; attacking a rival weakens its image. You must finish first to win the nomination.','Cuatro votaciones, dos acciones cada una. Ir a la base gusta a los votantes de primarias; ir al centro ayuda en noviembre pero cambia tus posturas. Anuncios, giras y recaudación ayudan; atacar a un rival debilita su imagen. Hay que terminar primero para ser nominado.')}
+};
+function firstTip(id){
+  if(SIM||!TIPS[id])return;
+  let seen=[];try{seen=JSON.parse(localStorage.getItem('cap270.tips')||'[]')}catch(e){}
+  if(seen.includes(id))return;
+  try{seen.push(id);localStorage.setItem('cap270.tips',JSON.stringify(seen))}catch(e){}
+  showModal(`<h2>${t(TIPS[id].t)}</h2><p>${t(TIPS[id].x)}</p><div class="irow"><button class="btn" data-act="closeHelp">${t('Compris','Got it','Entendido')}</button></div>`,'tip');
 }

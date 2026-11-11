@@ -39,7 +39,8 @@ const A={
  closeHelp(){hideModal();if(G){if(G.phase==='event')showEvent();else if(G.phase==='vp')showBrief()}},
  donoryes(d){donorDo(+d.i,true)},donorno(d){donorDo(+d.i,false)},
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
- tutoNext(){if(UI.tuto>=TUTO.length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
+ tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
+ tutoReset(){try{localStorage.removeItem('cap270.tuto');localStorage.removeItem('cap270.tuto.mid');localStorage.removeItem('cap270.tips')}catch(e){}toast(t('Le tutoriel et les astuces réapparaîtront à la prochaine partie.','The tutorial and tips will show again in your next game.','El tutorial y los consejos volverán a aparecer en la próxima partida.'))},
  tutoSkip(){UI.tuto=null;tutoMark();render()},
  tutoRestart(){hideModal();tutoGo(0)},
  lang(d){setLang(d.l)},
@@ -55,6 +56,7 @@ const A={
 
 function endWeek(){
   if(!can())return;
+  if(UI.tuto!=null){UI.tuto=null;tutoMark()}
   G.cash+=PARAM.income+(trP().includes('funds')?1.5:0)+(trP().includes('frugal')?.5:0)-(wkP()==='broke'?1:0)+.3*sk('fin')-staffCost()-.08*G.states.reduce((a,s)=>a+s.fieldP*fieldCost(s),0);
   G.cash=Math.max(0,G.cash);
   oppTurn();

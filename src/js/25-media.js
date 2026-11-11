@@ -36,6 +36,6 @@ function mediaDo(i,sur){
 }
 function mediaHTML(){
   const ok=can(),l=G.media||[];
-  return`<div class="panel"><h3 style="font-size:20px">${t('Invitations médias','Media invitations','Invitaciones de medios')}</h3>`+(l.length?l.map((iv,i)=>{const M=MEDIA.find(x=>x.id===iv.id);
+  return`<div class="panel" id="pMedia"><h3 style="font-size:20px">${t('Invitations médias','Media invitations','Invitaciones de medios')}</h3>`+(l.length?l.map((iv,i)=>{const M=MEDIA.find(x=>x.id===iv.id);
    return`<div style="margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line)"><b>${t(M.n)}</b>${iv.ab?` · ${sn(ST(iv.ab))}`:''} <span class="muted" style="font-size:12px">· ${iv.until>=G.wk?t(`jusqu’à la semaine ${iv.until}`,`until week ${iv.until}`,`hasta la semana ${iv.until}`):''}</span><p class="muted" style="margin:4px 0 8px;font-size:13px">${t(M.d)}</p><div class="irow"><button class="btn sm" data-act="mediago" data-i="${i}" ${ok&&G.ap>=1?'':'disabled'}><b>${t('Y aller','Go yourself','Ir en persona')}</b><small>${ONEA()}</small></button><button class="btn sm alt" data-act="mediasur" data-i="${i}" ${ok&&G.cash>=.4?'':'disabled'}><b>${t('Envoyer un porte-parole','Send a surrogate','Enviar a un sustituto')}</b><small>0,4 M$</small></button></div></div>`}).join(''):`<p class="muted" style="margin:6px 0 0;font-size:13px">${t('Aucune invitation pour le moment. Elles arrivent au fil des semaines.','No invitations right now. They arrive as the weeks go by.','No hay invitaciones por ahora. Llegan con las semanas.')}</p>`)+`</div>`;
 }

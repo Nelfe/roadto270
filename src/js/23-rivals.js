@@ -12,7 +12,7 @@ const pfO=()=>G&&G.opp&&G.opp.pf||null;
 const rivalLine=()=>{const k=pfO();return k?`<b>${t(RIVALS[k].n)}</b> : ${t(RIVALS[k].d)}`:''};
 function rivalPanel(){
   if(!G.opp||G.mode==='mid'||!pfO())return'';
-  return`<div class="panel"><h3 style="font-size:20px">${t('Votre adversaire','Your opponent','Tu rival')}</h3><p style="margin:6px 0 2px"><b>${G.opp.n}</b> · ${roleTxt(G.opp)}</p><p class="muted" style="margin:0;font-size:14px">${rivalLine()}</p></div>`;
+  return`<div class="panel" id="pRival"><h3 style="font-size:20px">${t('Votre adversaire','Your opponent','Tu rival')}</h3><p style="margin:6px 0 2px"><b>${G.opp.n}</b> · ${roleTxt(G.opp)}</p><p class="muted" style="margin:0;font-size:14px">${rivalLine()}</p></div>`;
 }
 // rival-specific weekly behaviour (called from oppTurn); pub = log lines
 function rivalWeek(pub,top){

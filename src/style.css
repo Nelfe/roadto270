@@ -233,3 +233,5 @@ html[data-anim="0"] *{animation:none!important;transition:none!important}
 .tips{border:1px dashed var(--gold);border-radius:10px;padding:8px 12px;margin:12px 0 4px;background:color-mix(in srgb,var(--gold) 8%,transparent);font-size:13px}
 .tips b{display:block;margin-bottom:2px}.tips p{margin:4px 0}
 .panel .irow .btn small{display:block;font-weight:400;opacity:.8;font-size:12px}
+.coach .todo{font-weight:600;color:var(--ink)}.coach .todo.done{color:var(--muted);font-weight:400}
+.coach .btn[disabled]{opacity:.45}

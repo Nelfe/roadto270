@@ -1,7 +1,7 @@
 // Long campaign: 8 primary rounds, primary debates, convention, VP debate.
 const {chromium}=require('playwright');const path=require('path');
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
- await p.addInitScript(()=>{localStorage.setItem('cap270.lang','en');localStorage.setItem('cap270.tuto','1')});
+ await p.addInitScript(()=>{localStorage.setItem('cap270.lang','en');localStorage.setItem('cap270.tuto','1');localStorage.setItem('cap270.tuto.mid','1');localStorage.setItem('cap270.tips','["cand","prim"]')});
  await p.goto('file://'+(process.env.GAME_FILE||path.join(__dirname,'..','index.html')));
  const o=await p.evaluate(()=>{const o={};
   newGame(1,1,21,null,'long');o.long=G.long===true&&G.mode==='pres';

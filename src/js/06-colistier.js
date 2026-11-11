@@ -16,5 +16,5 @@ function pickVP(i){
 }
 function vpTail(v,ov){
   G.phase='play';snap();L('news',both(()=>t(`${v.n} rejoint votre ticket. L’adversaire choisit un colistier lié à ${sn(ov)}.`,`${v.n} joins your ticket. Your opponent picks a running mate tied to ${sn(ov)}.`)));
-  hideModal();save();if(!SIM&&!tutoSeen())UI.tuto=0;render();if(UI.tuto===0)tutoGo(0);
+  hideModal();save();UI.tutoPending=!SIM;render();
 }
