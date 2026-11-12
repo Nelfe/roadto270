@@ -23,6 +23,7 @@ const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
 const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':LANG==='es'?'es-ES':'en-US',{day:'numeric',month:'short'});
 const slotLabel=sv=>`${sv.mode==='mid'?t('Midterms','Midterms')+' · ':sv.scn?sv.scn+' · ':''}${sv.me===1?t('Démocrate','Democrat'):t('Républicain','Republican')} · ${DIFFN()[sv.diff]} · ${sv.phase==='term'?t('Mandat','In office','En el cargo'):sv.phase==='over'?t('Soirée électorale','Election night'):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries'):t('Semaine','Week')+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
 function finish(win,mine,theirs){
+  if(G.dbg){G.rec=true;G.newA=[];return[]}
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
   S.best=Math.max(S.best,mine);S.st=win?S.st+1:0;S.bst=Math.max(S.bst,S.st);

@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');const path=require('path');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:800}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.addInitScript(()=>{try{localStorage.clear();localStorage.setItem('cap270.tuto','1');localStorage.setItem('cap270.tuto.mid','1');localStorage.setItem('cap270.tips','["cand","prim","term"]')}catch(e){}});
+await p.goto('file://'+path.resolve('index.html'));
+const off=await p.evaluate(()=>!document.querySelector('#dbgBtn'));
+await p.goto('file://'+path.resolve('index.html')+'?debug=1');
+const on=await p.evaluate(()=>!!document.querySelector('#dbgBtn'));
+const r=await p.evaluate(()=>{const o={};
+ dbgRun('term');o.term=G.phase==='term'&&G.dbg;dbgRun('t_end');hideModal();
+ dbgRun('mid');o.mid=G.mode==='mid'&&G.dbg;
+ dbgRun('reel');o.reel=!!G.reel&&G.dbg;
+ dbgRun('play');o.play=G.phase==='vp'&&G.dbg;
+ pickVP(0);hideModal();dbgRun('win');o.won=G.phase==='over';
+ o.stats=JSON.stringify(getStats().g||0);return o});
+const ok=off&&on&&Object.values(r).every(v=>v)||off&&on&&r.stats==='0'&&r.term&&r.mid&&r.reel&&r.play&&r.won;
+console.log(ok&&!errs.length?'ok':'FAIL',off,on,JSON.stringify(r),errs);await b.close();process.exit(ok&&!errs.length?0:1)})();

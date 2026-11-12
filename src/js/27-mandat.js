@@ -74,7 +74,7 @@ function newTerm(extra){
 }
 function mkShell(T,keep){
   const k=keep||G;
-  G={v:3,mode:'term',me:k.me,diff:k.diff,seed:k.seed,slot:k.slot,inc:side(),phase:'term',term:T,rec:false,log:[],hist:[],wk:1,t:Date.now(),daily:null,pr:null,cand:T.cand,states:[],long:false};
+  G={dbg:k.dbg||T.dbg||false,v:3,mode:'term',me:k.me,diff:k.diff,seed:k.seed,slot:k.slot,inc:side(),phase:'term',term:T,rec:false,log:[],hist:[],wk:1,t:Date.now(),daily:null,pr:null,cand:T.cand,states:[],long:false};
   newAgenda();save();
 }
 function newAgenda(){
@@ -161,9 +161,9 @@ function showTermEnd(){
   showModal(`<h2>${first?t('Mi-mandat','Midterm moment','A mitad de mandato'):t('Fin du mandat','End of the term','Fin del mandato')}</h2>${recordSummary(T)}<p>${first?t('Les midterms arrivent : le bilan de ces deux années pèsera sur le résultat, ainsi que votre capacité à mobiliser votre base.','The midterms are here: your two-year record will weigh on the result, along with your ability to energize your base.','Llegan las elecciones intermedias: el balance de estos dos años pesará en el resultado, junto con tu capacidad de movilizar a tu base.'):t('La réélection se joue maintenant : vos lois, la popularité et l’économie dessineront le climat de la campagne.','Re-election is on the line: your laws, approval and the economy will set the campaign’s climate.','La reelección está en juego: tus leyes, la aprobación y la economía marcarán el clima de la campaña.')}</p><button class="btn full" data-act="${first?'termmid':'termreel'}">${first?t('Lancer la campagne des midterms','Launch the midterm campaign','Lanzar la campaña de las intermedias'):t('Lancer la campagne de réélection','Launch the re-election campaign','Lanzar la campaña de reelección')}</button>`);
 }
 function termToMid(){
-  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed;
+  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,dbg=G.dbg;
   newGame(me,diff,(seed|0)+101,null,'mid');
-  G.slot=slot;G.chain=T;G.inc=side();G.econ=T.econ;
+  G.dbg=dbg;G.slot=slot;G.chain=T;G.inc=side();G.econ=T.econ;
   G.env=PARAM.neutral-me*(PARAM.midEnv+randn()*1.4)+me*({0:1.2,1:0,2:-1.2}[diff])+me*shiftOf(T);
   UI.tutoPending=!SIM;save();hideModal();render();showBrief();
 }
@@ -174,9 +174,9 @@ function chainNext(){ // après les midterms : seconde moitié du mandat
   hideModal();mkShell(T,G);render();
 }
 function termToReel(){
-  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand;
+  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand,dbg=G.dbg;
   newGame(me,diff,(seed|0)+202,null,'pres');
-  G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
+  G.dbg=dbg;G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
   G.env=PARAM.neutral+me*((T.pop-45)*.09+.12*Math.min(4,T.base)-.15*Math.min(4,T.back)+T.econ*.3+(T.midWon?.4:-.2)+randn()*.9)+me*({0:1.2,1:0,2:-1.2}[diff])*.5;
   G.cand=cand;G.cands=[cand];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);
   G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp';

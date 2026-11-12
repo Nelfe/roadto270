@@ -45,6 +45,7 @@ function nightMid(first){
   if(!done){clearTimeout(nightTick.h);nightTick.h=setTimeout(()=>{n.idx++;nightTick()},first?700:130)}
 }
 function finishMid(win,won,hM,sM){
+  if(G.dbg){G.rec=true;G.newA=[];return[]}
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
   S.st=win?S.st+1:0;S.bst=Math.max(S.bst,S.st);

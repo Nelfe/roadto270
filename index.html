@@ -712,6 +712,7 @@ const A={
  donoryes(d){donorDo(+d.i,true)},donorno(d){donorDo(+d.i,false)},
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
  tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
+ dbg(d){dbgRun(d.k)},
  tprop(d){termTry(d.id,'p')},tpush(d){termTry(d.id,'push')},tord(d){termTry(d.id,'ord')},tnuke(){termNuke()},tend(){termEndQ()},tev(d){tevChoose(+d.i)},tevnext(){hideModal();afterQ()},
  termstart(){termStart()},termmid(){termToMid()},termreel(){termToReel()},chainnext(){chainNext()},
  tutoReset(){try{localStorage.removeItem('cap270.tuto');localStorage.removeItem('cap270.tuto.mid');localStorage.removeItem('cap270.tips')}catch(e){}toast(t('Le tutoriel et les astuces réapparaîtront à la prochaine partie.','The tutorial and tips will show again in your next game.','El tutorial y los consejos volverán a aparecer en la próxima partida.'))},
@@ -946,6 +947,7 @@ function nightMid(first){
   if(!done){clearTimeout(nightTick.h);nightTick.h=setTimeout(()=>{n.idx++;nightTick()},first?700:130)}
 }
 function finishMid(win,won,hM,sM){
+  if(G.dbg){G.rec=true;G.newA=[];return[]}
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
   S.st=win?S.st+1:0;S.bst=Math.max(S.bst,S.st);
@@ -1463,6 +1465,7 @@ const DIFFN=()=>[t('Facile','Easy',`Fácil`),'Normal',t('Difficile','Hard',`Dif�
 const fDate=ts=>new Date(ts||Date.now()).toLocaleDateString(FR()?'fr-FR':LANG==='es'?'es-ES':'en-US',{day:'numeric',month:'short'});
 const slotLabel=sv=>`${sv.mode==='mid'?t('Midterms','Midterms',`Mitad de mandato`)+' · ':sv.scn?sv.scn+' · ':''}${sv.me===1?t('Démocrate','Democrat',`Demócrata`):t('Républicain','Republican',`Republicano`)} · ${DIFFN()[sv.diff]} · ${sv.phase==='term'?t('Mandat','In office','En el cargo'):sv.phase==='over'?t('Soirée électorale','Election night',`Noche electoral`):(sv.phase==='cand'||sv.phase==='prim')?t('Primaires','Primaries',`Primarias`):t('Semaine','Week',`Semana`)+' '+Math.min(sv.wk,12)+'/12'} · ${fDate(sv.t)}`;
 function finish(win,mine,theirs){
+  if(G.dbg){G.rec=true;G.newA=[];return[]}
   const S=getStats(),sd=side();
   S.g++;if(win)S.w++;S.sd[sd][0]++;if(win)S.sd[sd][1]++;S.df[G.diff][0]++;if(win)S.df[G.diff][1]++;
   S.best=Math.max(S.best,mine);S.st=win?S.st+1:0;S.bst=Math.max(S.bst,S.st);
@@ -2295,7 +2298,7 @@ function newTerm(extra){
 }
 function mkShell(T,keep){
   const k=keep||G;
-  G={v:3,mode:'term',me:k.me,diff:k.diff,seed:k.seed,slot:k.slot,inc:side(),phase:'term',term:T,rec:false,log:[],hist:[],wk:1,t:Date.now(),daily:null,pr:null,cand:T.cand,states:[],long:false};
+  G={dbg:k.dbg||T.dbg||false,v:3,mode:'term',me:k.me,diff:k.diff,seed:k.seed,slot:k.slot,inc:side(),phase:'term',term:T,rec:false,log:[],hist:[],wk:1,t:Date.now(),daily:null,pr:null,cand:T.cand,states:[],long:false};
   newAgenda();save();
 }
 function newAgenda(){
@@ -2382,9 +2385,9 @@ function showTermEnd(){
   showModal(`<h2>${first?t('Mi-mandat','Midterm moment','A mitad de mandato'):t('Fin du mandat','End of the term','Fin del mandato')}</h2>${recordSummary(T)}<p>${first?t('Les midterms arrivent : le bilan de ces deux années pèsera sur le résultat, ainsi que votre capacité à mobiliser votre base.','The midterms are here: your two-year record will weigh on the result, along with your ability to energize your base.','Llegan las elecciones intermedias: el balance de estos dos años pesará en el resultado, junto con tu capacidad de movilizar a tu base.'):t('La réélection se joue maintenant : vos lois, la popularité et l’économie dessineront le climat de la campagne.','Re-election is on the line: your laws, approval and the economy will set the campaign’s climate.','La reelección está en juego: tus leyes, la aprobación y la economía marcarán el clima de la campaña.')}</p><button class="btn full" data-act="${first?'termmid':'termreel'}">${first?t('Lancer la campagne des midterms','Launch the midterm campaign','Lanzar la campaña de las intermedias'):t('Lancer la campagne de réélection','Launch the re-election campaign','Lanzar la campaña de reelección')}</button>`);
 }
 function termToMid(){
-  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed;
+  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,dbg=G.dbg;
   newGame(me,diff,(seed|0)+101,null,'mid');
-  G.slot=slot;G.chain=T;G.inc=side();G.econ=T.econ;
+  G.dbg=dbg;G.slot=slot;G.chain=T;G.inc=side();G.econ=T.econ;
   G.env=PARAM.neutral-me*(PARAM.midEnv+randn()*1.4)+me*({0:1.2,1:0,2:-1.2}[diff])+me*shiftOf(T);
   UI.tutoPending=!SIM;save();hideModal();render();showBrief();
 }
@@ -2395,9 +2398,9 @@ function chainNext(){ // après les midterms : seconde moitié du mandat
   hideModal();mkShell(T,G);render();
 }
 function termToReel(){
-  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand;
+  const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand,dbg=G.dbg;
   newGame(me,diff,(seed|0)+202,null,'pres');
-  G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
+  G.dbg=dbg;G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
   G.env=PARAM.neutral+me*((T.pop-45)*.09+.12*Math.min(4,T.base)-.15*Math.min(4,T.back)+T.econ*.3+(T.midWon?.4:-.2)+randn()*.9)+me*({0:1.2,1:0,2:-1.2}[diff])*.5;
   G.cand=cand;G.cands=[cand];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);
   G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp';
@@ -2426,6 +2429,61 @@ function renderTerm(){
   <button class="btn full" data-act="tend" ${T.ev?'disabled':''}>${t('Fin du trimestre','End the quarter','Fin del trimestre')}</button>
   <div class="irow" style="margin-top:10px"><button class="btn alt sm" data-act="restart">${t('Menu (partie sauvegardée)','Menu (game saved)','Menú (partida guardada)')}</button></div>`;
 }
+/* ---------- Mode debug (caché, pour tester vite) ----------
+   Activation : ouvrir la page avec ?debug=1 (ou ?debug=0 pour couper), ou toucher 5 fois le titre.
+   Les parties lancées depuis ici ne comptent pas dans les statistiques. */
+const DBG=()=>{try{return localStorage.getItem('cap270.debug')==='1'}catch(e){return false}};
+(function(){try{const m=/[?&]debug=([01])/.exec(location.search);if(m)localStorage.setItem('cap270.debug',m[1])}catch(e){}})();
+function dbgRow(k,l){return`<button class="btn alt sm" style="margin:3px 3px 0 0" data-act="dbg" data-k="${k}">${l}</button>`}
+function dbgPanel(){
+  const inG=!!G,ph=inG?G.phase:'';
+  let h=`<h2>🛠 Debug</h2><p class="muted" style="font-size:13px">${t('Les parties lancées ici ne comptent pas dans vos statistiques.','Games started here do not count in your stats.','Las partidas iniciadas aquí no cuentan en tus estadísticas.')}</p>`;
+  h+=`<p style="margin:8px 0 2px"><b>${t('Lancer directement','Jump straight to','Ir directamente a')}</b></p>${dbgRow('term','Mandat')}${dbgRow('mid','Midterms')}${dbgRow('reel','Réélection')}${dbgRow('play','Campagne (sans primaires)')}`;
+  if(inG&&ph==='term')h+=`<p style="margin:8px 0 2px"><b>Mandat</b></p>${dbgRow('t_pc','Capital 12 ◆')}${dbgRow('t_popu','Pop +10')}${dbgRow('t_popd','Pop −10')}${dbgRow('t_maj','Congrès : majorité nette')}${dbgRow('t_min','Congrès : minorité')}${dbgRow('t_end','Aller à la fin du mandat')}${dbgRow('t_ev','Forcer un événement')}${dbgRow('t_ag','Nouvel agenda')}`;
+  if(inG&&ph==='play')h+=`<p style="margin:8px 0 2px"><b>Campagne</b></p>${dbgRow('cash','+50 M$')}${dbgRow('ap','+3 actions')}${dbgRow('win','Forcer la victoire → soirée')}${dbgRow('lose','Forcer la défaite → soirée')}${dbgRow('skip','Passer à la semaine 12')}`;
+  h+=`<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="dbg" data-k="off">${t('Désactiver le debug','Turn debug off','Desactivar el debug')}</button><button class="btn" data-act="closeHelp">${t('Fermer','Close','Cerrar')}</button></div>`;
+  showModal(h,'dbg');
+}
+function dbgNew(mode){
+  const me=typeof pickedSide!=='undefined'?pickedSide:1,df=typeof pickedDiff!=='undefined'?pickedDiff:1;
+  newGame(me,df,null,null,mode);G.dbg=true;
+}
+function dbgRun(k){
+  const T=G&&G.term;
+  if(k==='off'){try{localStorage.setItem('cap270.debug','0')}catch(e){}hideModal();const b=$('#dbgBtn');if(b)b.remove();return}
+  if(k==='term'||k==='reel'){dbgNew('pres');G.cand=G.cands[0];G.natM=(G.me||1)*2.5;const nt=newTerm({dbg:true});if(k==='term'){hideModal();mkShell(nt,G);G.dbg=true;render();return}
+    nt.pop=52;nt.midWon=true;hideModal();mkShell(nt,G);G.dbg=true;termToReel();G.dbg=true;return}
+  if(k==='mid'){dbgNew('mid');UI.tutoPending=false;hideModal();render();showBrief();return}
+  if(k==='play'){dbgNew('pres');G.cand=G.cands[0];applyCand(G.cand,true);applyCand(G.opp,false);G.phase='vp';G.dbg=true;hideModal();render();showBrief();return}
+  if(!G)return;
+  if(k==='cash'){G.cash+=50}
+  else if(k==='ap'){G.ap+=3}
+  else if(k==='skip'){G.wk=12}
+  else if(k==='win'||k==='lose'){const s=k==='win'?G.me:-G.me;G.states.forEach(q=>{q.final=s*(4+Math.abs(q.lean)*.1);});hideModal();G.wk=13;G.phase='play';endWeek();return}
+  else if(T){
+    if(k==='t_pc')T.pc=12;
+    else if(k==='t_popu')adjT(T,{pop:10});
+    else if(k==='t_popd')adjT(T,{pop:-10});
+    else if(k==='t_maj'){const m=side(),o=oside();T.h[m]=250;T.h[o]=185;T.s[m]=60;T.s[o]=40}
+    else if(k==='t_min'){const m=side(),o=oside();T.h[m]=205;T.h[o]=230;T.s[m]=46;T.s[o]=54}
+    else if(k==='t_end'){T.q=T.qmax+1;save();render();showTermEnd();return}
+    else if(k==='t_ev'){const e=TEVENTS[Math.floor(rnd()*TEVENTS.length)];T.ev=e.id;T.evRes=null;save();render();showTev();return}
+    else if(k==='t_ag')newAgenda();
+  }
+  save();hideModal();render();
+}
+function dbgInstall(){
+  if(!DBG()||$('#dbgBtn'))return;
+  const b=document.createElement('button');b.id='dbgBtn';b.textContent='🛠';b.setAttribute('aria-label','Debug');
+  b.style.cssText='position:fixed;right:8px;top:8px;z-index:50;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);opacity:.75;font-size:16px;padding:0';
+  b.onclick=dbgPanel;document.body.appendChild(b);
+}
+let _dbgTaps=0,_dbgT=0;
+document.addEventListener('click',e=>{
+  if(e.target.closest&&e.target.closest('#title h1')){const n=Date.now();_dbgTaps=n-_dbgT<1500?_dbgTaps+1:1;_dbgT=n;
+    if(_dbgTaps>=5){_dbgTaps=0;try{localStorage.setItem('cap270.debug',DBG()?'0':'1')}catch(x){}const b=$('#dbgBtn');if(b)b.remove();dbgInstall();toast(DBG()?'Debug ON':'Debug OFF')}}
+});
+if(document.readyState!=='loading')dbgInstall();else document.addEventListener('DOMContentLoaded',dbgInstall);
 </script>
 
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
