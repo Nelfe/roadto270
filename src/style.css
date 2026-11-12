@@ -196,7 +196,7 @@ body.tuto{padding-block:0 330px}
 
 .pbar{display:grid;grid-template-columns:104px 1fr 44px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
 .pbar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pbar .tr{height:14px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.pbar .tr{position:relative;height:14px;border-radius:3px;background:var(--surface2);overflow:hidden}
 .pbar .tr i{display:block;height:100%}
 .pbar.you .nm{font-weight:600}
 .pbar .v{text-align:right;font-family:var(--f-mono)}

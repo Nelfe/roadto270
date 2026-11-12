@@ -40,6 +40,8 @@ const A={
  donoryes(d){donorDo(+d.i,true)},donorno(d){donorDo(+d.i,false)},
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
  tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
+ tprop(d){termTry(d.id,'p')},tpush(d){termTry(d.id,'push')},tord(d){termTry(d.id,'ord')},tnuke(){termNuke()},tend(){termEndQ()},tev(d){tevChoose(+d.i)},tevnext(){hideModal();afterQ()},
+ termstart(){termStart()},termmid(){termToMid()},termreel(){termToReel()},chainnext(){chainNext()},
  tutoReset(){try{localStorage.removeItem('cap270.tuto');localStorage.removeItem('cap270.tuto.mid');localStorage.removeItem('cap270.tips')}catch(e){}toast(t('Le tutoriel et les astuces réapparaîtront à la prochaine partie.','The tutorial and tips will show again in your next game.','El tutorial y los consejos volverán a aparecer en la próxima partida.'))},
  tutoSkip(){UI.tuto=null;tutoMark();render()},
  tutoRestart(){hideModal();tutoGo(0)},

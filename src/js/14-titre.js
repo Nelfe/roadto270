@@ -37,7 +37,7 @@ document.addEventListener('click',e=>{
   const db=e.target.closest('#pickDiff button');if(db){pickedDiff=+db.dataset.diff;document.querySelectorAll('#pickDiff button').forEach(b=>b.setAttribute('aria-pressed',b===db));return}
   const x=e.target.closest('[data-act]');if(!x)return;const a=x.dataset.act;
   if(a==='start'){const v=($('#codeIn')?.value||'').trim();newGame(pickedSide,pickedDiff,v?seedFrom(v):null,null,pickedMode==='hist'?'h'+pickedYear:pickedMode);if(G.mode==='mid')UI.tutoPending=!SIM;render();if(G.mode==='mid'||G.scn)showBrief();return}
-  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='conv')showConv();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
+  if(a==='cont'){const sv=loadSaves().find(q=>q.slot===+x.dataset.slot);if(sv){G=sv;G.hist=G.hist||[];if(G.rs)_s=G.rs>>>0;UI={tab:'map',sel:null,night:null};render();if(G.phase==='vp')showBrief();else if(G.phase==='event')showEvent();else if(G.phase==='conv')showConv();else if(G.phase==='term')termResume();else if(G.phase==='over'){UI.night={idx:G.order.length};nightTick()}}return}
   if(SET.vib&&['ads','field','visit','poll','pos','agenda','fund','media','prep','target','end','choose','vp'].includes(a))navigator.vibrate?.(a==='end'?20:8);
   A[a]&&A[a](x.dataset);
 });
