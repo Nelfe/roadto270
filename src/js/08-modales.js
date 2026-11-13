@@ -1,5 +1,5 @@
 /* ---------- Modales ---------- */
-function showModal(h,k){if(SIM)return;UI.mk=k||null;const m=$('#modal');m.innerHTML=`<div class="sheet">${h}</div>`;m.hidden=false}
+function showModal(h,k){if(SIM)return;const m=$('#modal'),same=!!k&&!m.hidden&&UI.mk===k,old=same&&m.querySelector('.sheet'),st=old?old.scrollTop:0;UI.mk=k||null;m.innerHTML=`<div class="sheet${same?' noanim':''}">${h}</div>`;m.hidden=false;if(same){const s=m.querySelector('.sheet');if(s)s.scrollTop=st}}
 function hideModal(){UI.mk=null;$('#modal').hidden=true}
 function showEvent(){
   if(SIM)return;
@@ -41,7 +41,7 @@ function nightMid(first){
     body+=`<div class="res"><b>${head}</b><br>${t('Chambre','House')} : ${hM}–${hO}. ${t('Sénat','Senate')} : ${sM}–${sO}${R.sD===50?` (${t('égalité : la vice-présidence tranche','tie: the vice-presidency decides')})`:''}. ${flips?`${t('Sièges du Sénat qui changent de camp','Senate seats that flip')} : ${flips}.`:t('Aucun siège du Sénat ne change de camp.','No Senate seat flips.')}</div>${recapHTML(hM,{lo:140,hi:300,thr:218})}${achHTML(newA)}${G.chain?`<button class="btn full" style="margin-top:12px" data-act="chainnext">${t('Poursuivre le mandat','Continue the term','Continuar el mandato')}</button>`:''}<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="share">${t('Partager','Share')}</button><button class="btn" data-act="restart">${t('Nouvelle partie','New game')}</button></div>`;
     if(G.chain)save();else dropSave(G.slot);
   }
-  showModal(body);
+  showModal(body,'night');
   if(!done){clearTimeout(nightTick.h);nightTick.h=setTimeout(()=>{n.idx++;nightTick()},first?700:130)}
 }
 function finishMid(win,won,hM,sM){
@@ -86,6 +86,6 @@ function nightTick(first){
     body+=`${G.post&&G.post.log.length?`<div class="muted" style="font-size:13px;margin-bottom:8px"><b>${t('Après le scrutin','After election night','Después del escrutinio')}</b><br>${G.post.log.map(l=>t(l)).join('<br>')}</div>`:''}<div class="res"><b>${head}</b><br>${t('Marge nationale approximative','Approximate national margin')} : ${fD(pop)}. ${close?`${t('États à moins d’un point','States within one point')} : ${close}.`:t('Aucun État à moins d’un point.','No state within one point.')} ${flips?`${t('Basculés par rapport à la tendance de fond','Flipped from the baseline')} : ${flips}.`:''} ${waste>0?`${t('Argent dépensé dans des États perdus de plus de 10 points','Money spent in states lost by more than 10 points')} : ${fM(waste)}.`:''}</div>${recapHTML(mine)}${achHTML(newA)}${win&&!G.scn&&!G.reel?`<button class="btn full" style="margin-top:12px" data-act="termstart">${t('Gouverner : commencer le mandat','Govern: start the term','Gobernar: empezar el mandato')}</button>`:''}${win&&G.reel?`<p><b>${t('Vous êtes réélu(e) : fin de la saga.','You are re-elected: end of the saga.','Has sido reelegido/a: fin de la saga.')}</b></p>`:''}<div class="irow" style="margin-top:12px"><button class="btn alt" data-act="share">${t('Partager','Share')}</button><button class="btn" data-act="restart">${t('Nouvelle partie','New game')}</button></div>`;
     if(win&&!G.scn&&!G.reel)save();else dropSave(G.slot);
   }
-  showModal(body);
+  showModal(body,'night');
   if(!done){clearTimeout(nightTick.h);nightTick.h=setTimeout(()=>{n.idx++;nightTick()},first?700:130)}
 }

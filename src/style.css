@@ -235,3 +235,4 @@ html[data-anim="0"] *{animation:none!important;transition:none!important}
 .panel .irow .btn small{display:block;font-weight:400;opacity:.8;font-size:12px}
 .coach .todo{font-weight:600;color:var(--ink)}.coach .todo.done{color:var(--muted);font-weight:400}
 .coach .btn[disabled]{opacity:.45}
+.sheet.noanim{animation:none}
