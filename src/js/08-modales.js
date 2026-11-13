@@ -1,5 +1,5 @@
 /* ---------- Modales ---------- */
-function showModal(h,k){if(SIM)return;const m=$('#modal'),same=!!k&&!m.hidden&&UI.mk===k,old=same&&m.querySelector('.sheet'),st=old?old.scrollTop:0;UI.mk=k||null;m.innerHTML=`<div class="sheet${same?' noanim':''}">${h}</div>`;m.hidden=false;if(same){const s=m.querySelector('.sheet');if(s)s.scrollTop=st}}
+function showModal(h,k){if(SIM)return;const m=$('#modal'),same=!!k&&!m.hidden&&UI.mk===k,old=same&&m.querySelector('.sheet'),st=old?old.scrollTop:0;UI.mk=k||null;const hb=G&&!$('#game').hidden&&k!=='quit'?`<button class="help" data-act="quit" aria-label="${t('Retour à l’accueil','Back to the home screen','Volver al inicio')}" title="${t('Accueil','Home','Inicio')}" style="float:right;margin:0 0 6px 8px">⌂</button>`:'';m.innerHTML=`<div class="sheet${same?' noanim':''}">${hb}${h}</div>`;m.hidden=false;if(same){const s=m.querySelector('.sheet');if(s)s.scrollTop=st}}
 function hideModal(){UI.mk=null;$('#modal').hidden=true}
 function showEvent(){
   if(SIM)return;
@@ -94,4 +94,9 @@ function sagaNight(win){
   if(!G.saga)return win&&G.reel?`<p><b>${t('Vous êtes réélu(e) : fin de la saga.','You are re-elected: end of the saga.','Has sido reelegido/a: fin de la saga.')}</b></p>`:'';
   if(!G.sagaPts){G.sagaPts=1;if(win&&G.reel)sagaAdd(G.saga,120,'Réélection','Re-election','Reelección');if(!win||G.reel)sagaFinish(win)}
   return sagaHTML(G.saga)+(win&&G.reel?`<button class="btn full" style="margin-top:8px" data-act="termnext">${t('Passer le relais : nouveau cycle','Hand over: new cycle','Pasar el relevo: nuevo ciclo')}</button>`:'');
+}
+
+const homeBtn=()=>`<button class="help" data-act="quit" aria-label="${t('Retour à l’accueil','Back to the home screen','Volver al inicio')}" title="${t('Accueil','Home','Inicio')}" style="margin-right:6px">⌂</button>`;
+function quitAsk(){
+  showModal(`<h2>${t('Retourner à l’accueil ?','Back to the home screen?','¿Volver al inicio?')}</h2><p>${t('Votre partie est sauvegardée automatiquement : vous pourrez la reprendre avec « Continuer » depuis l’accueil.','Your game is saved automatically: you can resume it with “Continue” from the home screen.','Tu partida se guarda automáticamente: podrás retomarla con «Continuar» desde el inicio.')}</p><div class="irow"><button class="btn alt" data-act="closeHelp">${t('Rester','Stay','Quedarme')}</button><button class="btn" data-act="quityes">${t('Quitter','Quit','Salir')}</button></div>`,'quit');
 }

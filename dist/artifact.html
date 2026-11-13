@@ -703,6 +703,7 @@ const A={
  tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  courtsen(d){courtSen(+d.i)},cabopen(d){cabOpen(d.k)},cabpick(d){cabPick(d.k,+d.i)},
  dist(d){distCampaign(d.code)},redraw(d){redraw(d.ab)},
+ quit(){quitAsk()},quityes(){if(G&&G.phase!=='over')save();A.restart()},
  weekly(){startWeekly()},termnext(){termToNext()},
  dbg(d){dbgRun(d.k)},
  tprop(d){termTry(d.id,'p')},tpush(d){termTry(d.id,'push')},tord(d){termTry(d.id,'ord')},tnuke(){termNuke()},tend(){termEndQ()},tev(d){tevChoose(+d.i)},tevnext(){hideModal();afterQ()},
@@ -795,14 +796,14 @@ function barMid(c,tot){const pc=v=>(v/tot*100)+'%';return`<div class="evbar" rol
 function hudMidHTML(){
   const P=projMid(),dl=daysLeft(G.wk),ch=(c)=>c[0]+c[1],oh=(c)=>c[3]+c[4];
   const leg=(lab,c,tot)=>`<div class="evleg"><span style="color:${myC()}"><b>${lab} ${ch(c)}</b></span><span class="muted">${t('Incertain','Toss-up',`Reñido`)} ${c[2]}</span><span style="color:${opC()}"><b>${t('Adv.','Opp.',`Opos.`)} ${oh(c)}</b></span></div>`;
-  return`<div class="row"><span class="wk">${t('Semaine','Week',`Semana`)} ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · ${t(`J−${dl}`,`${dl} days left`,`${dl} días restantes`)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span>${undoBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
+  return`<div class="row"><span class="wk">${t('Semaine','Week',`Semana`)} ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · ${t(`J−${dl}`,`${dl} days left`,`${dl} días restantes`)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span>${undoBtn()}${homeBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
   <div class="muted" style="font-size:12px;margin-top:4px">${t('Chambre des représentants (218 pour la majorité)','House of Representatives (218 for a majority)',`Cámara de Representantes (218 para la mayoría)`)}</div>${barMid(P.H,435)}${leg(t('Chambre','House',`Cámara`),P.H,435)}
   <div class="muted" style="font-size:12px;margin-top:4px">${t('Sénat (51 pour la majorité)','Senate (51 for a majority)',`Senado (51 para la mayoría)`)}</div>${barMid(P.S,100)}${leg(t('Sénat','Senate',`Senado`),P.S,100)}`;
 }
 function renderHud(){
   const p=proj();let nat=0;G.states.forEach(s=>nat+=s.ev*pollOf(s));nat/=538;
   const pc=v=>(v/538*100)+'%',dl=daysLeft(G.wk);
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Semaine','Week',`Semana`)} ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · ${t(`J−${dl}`,`${dl} days left`,`${dl} días restantes`)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span>${undoBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Semaine','Week',`Semana`)} ${Math.min(G.wk,12)}/12 <span class="muted" style="font-size:14px;white-space:nowrap;font-family:var(--f-body);text-transform:none;letter-spacing:0">${wkLabel(G.wk)} · ${t(`J−${dl}`,`${dl} days left`,`${dl} días restantes`)}</span></span><span class="rt"><span class="cash">${fM(G.cash)}</span>${undoBtn()}${homeBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
   <div class="evbar" role="img" aria-label="${t('Projection','Projection',`Proyección`)} : ${t('vous','you',`tú`)} ${p.you}, ${t('incertain','toss-up',`reñido`)} ${p.c}, ${t('adversaire','opponent',`oponente`)} ${p.opp}">
    <i style="width:${pc(p.ys)};background:${myC()}"></i><i style="width:${pc(p.yl)};background:${myC()};opacity:.55"></i><i style="width:${pc(p.c)};background:var(--tu)"></i><i style="width:${pc(p.ol)};background:${opC()};opacity:.55"></i><i style="width:${pc(p.os)};background:${opC()}"></i><span class="mark"></span></div>
   <div class="evleg"><span style="color:${myC()}"><b>${t('Vous','You',`Tú`)} ${p.you}</b></span><span class="muted">${t('Incertain','Toss-up',`Reñido`)} ${p.c} · ${t('national','national',`nacional`)} ${fD(nat)}</span><span style="color:${opC()}"><b>${t('Adv.','Opp.',`Opos.`)} ${p.opp}</b></span></div>`;
@@ -894,7 +895,7 @@ function renderMain(){
 }
 function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;if(G.phase==='cand'||G.phase==='prim'){renderPrim();firstTip(G.phase);return}if(G.phase==='term'){renderTerm();return}if(UI.tutoPending&&G.phase==='play'&&$('#modal').hidden){UI.tutoPending=false;if(!tutoSeen()){tutoGo(0);return}}if($('#tabsNav').dataset.t){delete $('#tabsNav').dataset.t;$('#tabsNav').innerHTML=tabsHTML();UI.tab='map'}$('#tabsNav').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
 /* ---------- Modales ---------- */
-function showModal(h,k){if(SIM)return;const m=$('#modal'),same=!!k&&!m.hidden&&UI.mk===k,old=same&&m.querySelector('.sheet'),st=old?old.scrollTop:0;UI.mk=k||null;m.innerHTML=`<div class="sheet${same?' noanim':''}">${h}</div>`;m.hidden=false;if(same){const s=m.querySelector('.sheet');if(s)s.scrollTop=st}}
+function showModal(h,k){if(SIM)return;const m=$('#modal'),same=!!k&&!m.hidden&&UI.mk===k,old=same&&m.querySelector('.sheet'),st=old?old.scrollTop:0;UI.mk=k||null;const hb=G&&!$('#game').hidden&&k!=='quit'?`<button class="help" data-act="quit" aria-label="${t('Retour à l’accueil','Back to the home screen','Volver al inicio')}" title="${t('Accueil','Home','Inicio')}" style="float:right;margin:0 0 6px 8px">⌂</button>`:'';m.innerHTML=`<div class="sheet${same?' noanim':''}">${hb}${h}</div>`;m.hidden=false;if(same){const s=m.querySelector('.sheet');if(s)s.scrollTop=st}}
 function hideModal(){UI.mk=null;$('#modal').hidden=true}
 function showEvent(){
   if(SIM)return;
@@ -989,6 +990,11 @@ function sagaNight(win){
   if(!G.saga)return win&&G.reel?`<p><b>${t('Vous êtes réélu(e) : fin de la saga.','You are re-elected: end of the saga.','Has sido reelegido/a: fin de la saga.')}</b></p>`:'';
   if(!G.sagaPts){G.sagaPts=1;if(win&&G.reel)sagaAdd(G.saga,120,'Réélection','Re-election','Reelección');if(!win||G.reel)sagaFinish(win)}
   return sagaHTML(G.saga)+(win&&G.reel?`<button class="btn full" style="margin-top:8px" data-act="termnext">${t('Passer le relais : nouveau cycle','Hand over: new cycle','Pasar el relevo: nuevo ciclo')}</button>`:'');
+}
+
+const homeBtn=()=>`<button class="help" data-act="quit" aria-label="${t('Retour à l’accueil','Back to the home screen','Volver al inicio')}" title="${t('Accueil','Home','Inicio')}" style="margin-right:6px">⌂</button>`;
+function quitAsk(){
+  showModal(`<h2>${t('Retourner à l’accueil ?','Back to the home screen?','¿Volver al inicio?')}</h2><p>${t('Votre partie est sauvegardée automatiquement : vous pourrez la reprendre avec « Continuer » depuis l’accueil.','Your game is saved automatically: you can resume it with “Continue” from the home screen.','Tu partida se guarda automáticamente: podrás retomarla con «Continuar» desde el inicio.')}</p><div class="irow"><button class="btn alt" data-act="closeHelp">${t('Rester','Stay','Quedarme')}</button><button class="btn" data-act="quityes">${t('Quitter','Quit','Salir')}</button></div>`,'quit');
 }
 /* ---------- Tutoriel et manuel ---------- */
 const TUTO_BASE=[
@@ -1357,13 +1363,13 @@ function renderPrim(){
   $('#tabsNav').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');
   const m=$('#main');
   if(G.phase==='cand'){
-    $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Votre candidat','Your candidate',`Tu candidato`)}</span><span class="rt"><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>`;
+    $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Votre candidat','Your candidate',`Tu candidato`)}</span><span class="rt">${homeBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>`;
     m.innerHTML=`<p class="muted" style="margin:14px 0 4px">${t('Trois profils tirés au hasard. Chaque candidat a deux atouts et une faiblesse qui pèsent sur la campagne, primaires comprises.','Three randomly drawn profiles. Each candidate has two strengths and one weakness that shape the campaign, primaries included.',`Tres perfiles al azar. Cada candidato tiene dos puntos fuertes y una debilidad que influyen en la campaña, incluidas las primarias.`)}</p>`+G.cands.map((c,i)=>candCard(c,i)).join('')+`<div class="panel" style="padding-top:6px;padding-bottom:6px">${archNext()||`<p class="muted" style="font-size:13px;margin:0">★ ${t('Tous les archétypes sont débloqués.','All archetypes unlocked.','Todos los arquetipos están desbloqueados.')}</p>`}</div>`+`<div class="panel"><button class="btn alt full" data-act="rerollc">${t('Tirer trois autres candidats','Draw three other candidates','Sortear otros tres candidatos')}</button><label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer"><input type="checkbox" data-act="skipp" ${UI.skipPrim?'checked':''} style="margin-top:3px"><span><b>${t('Passer les primaires','Skip the primaries','Omitir las primarias')}</b><br><span class="muted" style="font-size:13px">${t('Votre choix devient le candidat du parti et la campagne générale commence directement.','Your pick becomes the party nominee and the general election starts right away.','Tu elección es el candidato del partido y la campaña general empieza directamente.')}</span></span></label></div>`;
     return;
   }
   const pr=G.pr,r=Math.min(pr.r,NR()-1),rd=PRDS()[r],myCol=myC();
   setTimeout(()=>{if(G&&G.pr&&G.pr.deb&&G.phase==='prim')showPDeb()},0);
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries',`Primarias`)} ${r+1}/${NR()} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Primaires','Primaries',`Primarias`)} ${r+1}/${NR()} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t(rd.n)} · ${t(rd.m)}</span></span><span class="rt"><span class="cash">${fM(pr.cash)}</span>${homeBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual',`Abrir el manual`)}">?</button></span></div>
   <div class="aps" style="display:flex;gap:6px;align-items:center;margin-top:6px">${[0,1].map(i=>`<i class="${i<pr.ap?'on':''}" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);${i<pr.ap?'background:var(--gold)':''}"></i>`).join('')}<span class="muted" style="font-size:13px">${pr.ap} ${t('action(s) ce tour','action(s) this round',`acción(es) en esta ronda`)}</span></div>`;
   const nz=pr.pn,sh=prShares(nz),rows=[{k:'you',n:G.cand.n,col:myCol,you:true},...pr.riv.map((q,i)=>({k:i,n:q.c.n,col:RIVC[i],out:q.out}))];
   const cs=cumShares(pr.r);
@@ -2788,7 +2794,7 @@ function renderTerm(){
   const nav=$('#tabsNav');nav.hidden=false;nav.dataset.t='1';
   nav.innerHTML=tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-tab="${k}" aria-selected="${UI.tab===k}">${l}</button>`).join('');
   const yr=Math.ceil(Math.min(T.q,T.qmax)/4)+(T.half===2?2:0);
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Mandat','Term','Mandato')} · ${t('Trim.','Qtr','Trim.')} ${Math.min(T.q,T.qmax)}/${T.qmax} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t('Année','Year','Año')} ${yr}</span></span><span class="rt"><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual','Abrir el manual')}">?</button></span></div>`;
+  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Mandat','Term','Mandato')} · ${t('Trim.','Qtr','Trim.')} ${Math.min(T.q,T.qmax)}/${T.qmax} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t('Année','Year','Año')} ${yr}</span></span><span class="rt">${homeBtn()}<button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual','Abrir el manual')}">?</button></span></div>`;
   const fn={tAg:tabAg,tPro:tabPro,tSen:tabSen,tCab:tabCab,tBil:tabBil}[UI.tab];
   $('#main').innerHTML=`<div class="panel"><div class="irow" style="justify-content:space-between"><span><b>${t('Popularité','Approval','Aprobación')}</b> ${Math.round(T.pop)} %</span><span><b>${t('Capital','Capital','Capital')}</b> ${T.pc} ◆</span><span><b>${t('Actions','Actions','Acciones')}</b> ${T.acts}/2</span></div></div>${fn(T)}
   <button class="btn full" style="margin-top:8px" data-act="tend" ${T.ev?'disabled':''}>${t('Fin du trimestre','End the quarter','Fin del trimestre')}</button>
