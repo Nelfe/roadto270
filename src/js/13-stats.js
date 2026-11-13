@@ -17,6 +17,8 @@ const ACH=[
  {id:'histall',n:B('Mémoire des urnes','Ballot memory'),d:B('Gagner les scénarios 2016, 2020 et 2024.','Win the 2016, 2020 and 2024 scenarios.'),ck:c=>!!c.S.sc&&['2016','2020','2024'].every(y=>c.S.sc[y])},
  {id:'recount',n:B('Recomptage gagnant','Recount winner'),d:B('Gagner après un recomptage qui inverse le résultat.','Win after a recount that flips the result.'),ck:c=>c.win&&!!c.post&&!!c.post.wonRecount},
  {id:'court',n:B('Verdict favorable','Favorable verdict'),d:B('Gagner grâce à la Cour suprême.','Win thanks to the Supreme Court.'),ck:c=>c.win&&!!c.post&&!!c.post.wonCourt},
+ {id:'weekly',n:B('Défi relevé','Challenge met','Desafío superado'),d:B('Gagner un défi de la semaine.','Win a weekly challenge.','Ganar un desafío semanal.'),ck:c=>c.win&&c.weekly},
+ {id:'saga1',n:B('Deux mandats','Two terms','Dos mandatos'),d:B('Être réélu(e) président(e).','Win re-election as president.','Ser reelegido/a presidente.'),ck:c=>c.win&&c.reel},
  {id:'daily',n:B('Gagnant du jour','Daily winner'),d:B('Gagner un défi du jour.','Win a daily challenge.'),ck:c=>c.win&&c.daily}
 ];
 const DIFFN=()=>[t('Facile','Easy'),'Normal',t('Difficile','Hard')];
@@ -31,7 +33,8 @@ function finish(win,mine,theirs){
   const flips=G.states.filter(q=>Math.sign(q.final)===G.me&&Math.sign(q.lean)!==G.me).length;
   const mn=Math.min(999,...(G.hist||[]).filter(h=>h.w>=4&&h.w<=8).map(h=>h.y));
   if(G.scn&&win){S.sc=S.sc||{};S.sc[G.scn]=1}
-  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,S,post:G.post,scn:G.scn,rw:!!G.scn&&sd!==SCN[G.scn].winner},got=[];
+  if(G.weekly){S.wk=S.wk||{};S.wk[G.weekly]=win?1:0}
+  const c={win,mine,diff:G.diff,flips,cash:G.cash,mn,daily:!!G.daily,weekly:!!G.weekly,reel:!!G.reel,S,post:G.post,scn:G.scn,rw:!!G.scn&&sd!==SCN[G.scn].winner},got=[];
   ACH.forEach(a=>{if(!S.ach[a.id]&&a.ck(c)){S.ach[a.id]=Date.now();got.push(a.id)}});
   TEL.send('end',{mode:G.scn?'h'+G.scn:'pres',diff:G.diff,side:G.me,win:+!!win,ev:mine});
   S.h.unshift({t:Date.now(),me:G.me,df:G.diff,win,ev:mine,op:theirs,seed:G.seed,daily:G.daily,scn:G.scn});S.h=S.h.slice(0,30);

@@ -162,7 +162,7 @@ function recordSummary(T){
   return`<p>${t('Lois en vigueur','Laws in force','Leyes en vigor')} : <b>${L.length}</b>${L.length?' — '+L.map(l=>t(l.n.fr,l.n.en,l.n.es)).join(' · '):''}.<br>${t('Popularité','Approval','Aprobación')} : <b>${Math.round(T.pop)} %</b>. ${t('Économie','Economy','Economía')} : ${T.econ>.6?t('bonne','good','buena'):T.econ<-.6?t('mauvaise','poor','mala'):t('moyenne','average','media')}.</p>`;
 }
 function showTermEnd(){
-  const T=TM(),first=T.half===1;
+  const T=TM(),first=T.half===1;T.sgd=T.sgd||{};if(!T.sgd[T.half]){T.sgd[T.half]=1;sagaTermEnd(T)}
   showModal(`<h2>${first?t('Mi-mandat','Midterm moment','A mitad de mandato'):t('Fin du mandat','End of the term','Fin del mandato')}</h2>${recordSummary(T)}<p>${first?t('Les midterms arrivent : le bilan de ces deux années pèsera sur le résultat, ainsi que votre capacité à mobiliser votre base.','The midterms are here: your two-year record will weigh on the result, along with your ability to energize your base.','Llegan las elecciones intermedias: el balance de estos dos años pesará en el resultado, junto con tu capacidad de movilizar a tu base.'):t('La réélection se joue maintenant : vos lois, la popularité et l’économie dessineront le climat de la campagne.','Re-election is on the line: your laws, approval and the economy will set the campaign’s climate.','La reelección está en juego: tus leyes, la aprobación y la economía marcarán el clima de la campaña.')}</p><button class="btn full" data-act="${first?'termmid':'termreel'}">${first?t('Lancer la campagne des midterms','Launch the midterm campaign','Lanzar la campaña de las intermedias'):t('Lancer la campagne de réélection','Launch the re-election campaign','Lanzar la campaña de reelección')}</button>`);
 }
 function termToMid(){
@@ -176,12 +176,13 @@ function chainNext(){ // après les midterms : seconde moitié du mandat
   const T0=G.chain,R=G.res,my=side();
   const T=Object.assign({},T0,{half:2,q:1,qmax:4,acts:2,ev:null,evRes:null,ag:[],log:[],orders:[],h:{[my]:my==='D'?R.hD:R.hR,[oside()]:my==='D'?R.hR:R.hD},s:{[my]:my==='D'?R.sD:R.sR,[oside()]:my==='D'?R.sR:R.sD},midWon:R.hCtl===my,pc:clamp(T0.pc+2,0,12)});
   adjT(T,{pop:R.hCtl===my?1.5:-1});
+  if(R.hCtl===my)sagaAdd(T,40,'Chambre conservée aux midterms','House held at the midterms','Cámara conservada en las intermedias');if(R.sCtl===my)sagaAdd(T,20,'Sénat conservé aux midterms','Senate held at the midterms','Senado conservado en las intermedias');
   hideModal();mkShell(T,G);render();
 }
 function termToReel(){
   const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand,dbg=G.dbg;
   newGame(me,diff,(seed|0)+202,null,'pres');
-  G.dbg=dbg;G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
+  G.dbg=dbg;G.slot=slot;G.reel=true;G.saga=T.saga||null;G.reelT={pop:T.pop,econ:T.econ,debt:T.debt};G.inc=side();G.econ=T.econ;
   G.env=PARAM.neutral+me*((T.pop-45)*.09+.12*Math.min(4,T.base)-.15*Math.min(4,T.back)+T.econ*.3+(T.midWon?.4:-.2)+m2Shift(T)*1.3+randn()*.9)+me*({0:1.2,1:0,2:-1.2}[diff])*.5;
   G.cand=cand;G.cands=[cand];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);
   G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp';
@@ -189,5 +190,5 @@ function termToReel(){
   UI.tab='map';UI.sel=null;save();hideModal();render();showBrief();
 }
 function termStart(){ // appelé depuis la soirée électorale (victoire)
-  const T=newTerm();hideModal();mkShell(T,G);render();firstTip('term');
+  const T=newTerm();T.saga=G.saga||{pts:0,cycles:1,log:[]};sagaAdd(T,100,G.dyn?`Cycle ${T.saga.cycles} : élection remportée`:'Élection remportée',G.dyn?`Cycle ${T.saga.cycles}: election won`:'Election won',G.dyn?`Ciclo ${T.saga.cycles}: elección ganada`:'Elección ganada');if(G.carry)T.debt=G.carry.debt;hideModal();mkShell(T,G);render();firstTip('term');
 }

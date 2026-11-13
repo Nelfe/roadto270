@@ -4,12 +4,13 @@ const {chromium}=require('playwright');const path=require('path');
 const N=+process.argv[2]||120;
 const SEED_JS=`(()=>{let a=12345;Math.random=()=>{a=(a+0x6D2B79F5)>>>0;let z=a;z=Math.imul(z^z>>>15,z|1);z^=z+Math.imul(z^z>>>7,z|61);return((z^z>>>14)>>>0)/4294967296}})()`;
 // [mode, difficulty, strategy, min, max]  (win rate of the bot)
-const BANDS=[
+const ALLB=[
  ['pres',1,'idle',0.00,0.25],['pres',1,'ads',0.12,0.55],['pres',1,'full',0.55,0.85],
  ['pres',2,'full',0.35,0.75],['pres',0,'full',0.72,0.98],
- ['h2016',1,'full',0.55,0.88],['h2020',1,'full',0.55,0.88],['h2024',1,'full',0.55,0.88],
- ['mid',1,'idle',0.10,0.60],['mid',1,'full',0.50,0.85]
+ ['h2008',1,'full',0.55,0.88],['h2012',1,'full',0.55,0.88],['h2016',1,'full',0.55,0.88],['h2020',1,'full',0.55,0.88],['h2024',1,'full',0.55,0.88],
+ ['m2010',1,'full',0.35,0.85],['m2018',1,'full',0.35,0.85],['m2022',1,'full',0.35,0.85],['mid',1,'idle',0.10,0.60],['mid',1,'full',0.50,0.85]
 ];
+const BANDS=process.env.ONLY?ALLB.filter(x=>new RegExp(process.env.ONLY).test(x[0])):ALLB;
 (async()=>{
  const b=await chromium.launch();const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
  await p.addInitScript(SEED_JS);
@@ -50,8 +51,8 @@ const BANDS=[
   let d=0;G.states.forEach(s=>comps(s).forEach((k,i)=>{if(s.final+(s.dn?s.dn[i]:0)>0)d+=k[0]}));return me===1?d:538-d;
  }
 
- function playMid(me,diff,strat){
-  SIM=true;newGame(me,diff,null,null,'mid');G.phase='play';snap();
+ function playMid(me,diff,strat,mm){
+  SIM=true;newGame(me,diff,null,null,mm||'mid');G.phase='play';snap();
   for(let w=1;w<=12&&G.phase!=='over';w++){
    if(strat!=='idle'){
     const sd=side();
@@ -82,7 +83,7 @@ const BANDS=[
   const out=[];
   for(const [mode,diff,strat] of BANDS.map(x=>x)){
    let w=0;
-   for(let i=0;i<N;i++){const me=i%2?1:-1;const r=mode==='mid'?playMid(me,diff,strat):playPres(me,diff,strat,mode==='pres'?undefined:mode);w+=(mode==='mid'?r>=10:r>=270)?1:0}
+   for(let i=0;i<N;i++){const me=i%2?1:-1;const isM=mode==='mid'||/^m20/.test(mode);const r=isM?playMid(me,diff,strat,mode==='mid'?undefined:mode):playPres(me,diff,strat,mode==='pres'?undefined:mode);w+=(isM?r>=10:r>=270)?1:0}
    out.push([mode,diff,strat,w/N]);
   }
   return out},[N,BANDS.map(x=>x.slice(0,3))]);

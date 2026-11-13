@@ -48,7 +48,7 @@ const pollOf=s=>margin(s)+G.pbNat+s.pb+s.noise*(1-.2*sk('pol'));
 
 function newGame(me,diff,seed,daily,mode){
   if(typeof UNDO!=='undefined')UNDO.used=0;
-  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const lng=mode==='long';if(lng)mode='pres';
+  const scn=/^h20/.test(mode||'')?mode.slice(1):null;if(scn)mode='pres';const mscn=/^m20/.test(mode||'')?mode.slice(1):null;if(mscn)mode='mid';const lng=mode==='long';if(lng)mode='pres';
   if(typeof G!=='undefined'&&G&&G.phase&&G.phase!=='over'&&!G.rec)TEL.send('abandon',{mode:G.scn?'h'+G.scn:G.mode,diff:G.diff,week:G.week,phase:G.phase});
   const sd=seed!=null?seed:Math.floor(Math['random']()*SEEDS);_s=sd>>>0;
   const RPB={},RSH={};['NE','SE','MW','SW','W','PL'].forEach(k=>{RPB[k]=randn()*1.6;RSH[k]=randn()*1.4});
@@ -64,9 +64,10 @@ function newGame(me,diff,seed,daily,mode){
      econ:clamp(randn()*.8,-2,2),tgtP:GROUPS.map(()=>0),tgtO:GROUPS.map(()=>0),seen:0,
      pos:{D:ISSUES.map(i=>i.dD),R:ISSUES.map(i=>i.dR)},states,prep:0,log:[],used:[],ev:null,phase:'cand',spentP:0,spentO:0,analyst:true,hint:null,vpName:'',seed:sd,daily:daily||null,slot:SIM?1:pickSlot(),t:Date.now(),hist:[],rec:false};
   G.deck=mkDeck();
-  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.opp.pf=pickR(Object.keys(RIVALS));G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
+  {const used=[];G.cands=[0,1,2].map(()=>genCand(me===1?'D':'R',used)).concat(archCands(me===1?'D':'R',used));G.opp=genCand(me===1?'R':'D',used);G.opp.pf=pickR(Object.keys(RIVALS));G.cand=null;G.pr=null;G.staff={};G.offers=genOffers(used);G.viral=null;G.posMoves=0;
     G.third=rnd()<.7?{name:genNamePick(used),side:pickR(['D','R']),pow:0,on:false,wk:3+Math.floor(rnd()*3)}:null}
   if(mid)midInit();
+  if(mscn){applyMScn(G,mscn)}
   G.regSh=RSH;G.tur=randn();
   if(lng)G.long=true;
   if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}

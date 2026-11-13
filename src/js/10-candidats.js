@@ -61,7 +61,7 @@ function applyCand(c,mine){
   if(c.tr.includes('home')){const q=ST(c.hs);if(q)q[mine?'vpP':'vpO']+=2.5}
 }
 function candCard(c,i){
-  return`<div class="panel"><h2 style="font-size:26px">${c.n}</h2><span class="muted">${roleTxt(c)}</span>
+  return`<div class="panel"><h2 style="font-size:26px">${c.n}</h2>${c.arch?`<span style="color:var(--gold);font-weight:600">★ ${t(ARCH.find(a=>a.id===c.arch).n.fr,ARCH.find(a=>a.id===c.arch).n.en,ARCH.find(a=>a.id===c.arch).n.es)}</span><br>`:''}<span class="muted">${roleTxt(c)}</span>
   <ul class="trl">${c.tr.map(k=>`<li><b style="color:var(--good)">+ ${t(TRAITS[k].n)}</b><br><span class="muted">${t(TRAITS[k].d)}</span></li>`).join('')}<li><b style="color:var(--bad)">− ${t(WEAKS[c.wk].n)}</b><br><span class="muted">${t(WEAKS[c.wk].d)}</span></li></ul>
   ${i!=null?`<button class="btn full" data-act="pickc" data-i="${i}">${t('Choisir ce candidat','Choose this candidate')}</button>`:''}</div>`;
 }

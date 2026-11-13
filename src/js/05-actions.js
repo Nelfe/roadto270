@@ -41,6 +41,7 @@ const A={
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
  tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  courtsen(d){courtSen(+d.i)},cabopen(d){cabOpen(d.k)},cabpick(d){cabPick(d.k,+d.i)},
+ weekly(){startWeekly()},termnext(){termToNext()},
  dbg(d){dbgRun(d.k)},
  tprop(d){termTry(d.id,'p')},tpush(d){termTry(d.id,'push')},tord(d){termTry(d.id,'ord')},tnuke(){termNuke()},tend(){termEndQ()},tev(d){tevChoose(+d.i)},tevnext(){hideModal();afterQ()},
  termstart(){termStart()},termmid(){termToMid()},termreel(){termToReel()},chainnext(){chainNext()},
@@ -52,7 +53,7 @@ const A={
  pickc(d){G.cand=G.cands[+d.i];
   if(UI.skipPrim){G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=clamp(PARAM.pcash+4+DM.cash[G.diff],16,46);G.phase='vp';L('news',both(()=>t(`${G.cand.n} est le candidat de votre parti (primaires sautées). L’adversaire : ${G.opp.n}.`,`${G.cand.n} is your party’s nominee (primaries skipped). The opponent: ${G.opp.n}.`,`${G.cand.n} es el candidato de tu partido (primarias omitidas). El rival: ${G.opp.n}.`)));save();render();showBrief();window.scrollTo(0,0);return}
   initPrim();G.phase='prim';save();render();window.scrollTo(0,0)},
- rerollc(){const used=[G.opp.n];G.cands=[0,1,2].map(()=>genCand(side(),used));save();render();window.scrollTo(0,0)},
+ rerollc(){const used=[G.opp.n];G.cands=[0,1,2].map(()=>genCand(side(),used)).concat(archCands(side(),used));save();render();window.scrollTo(0,0)},
  skipp(){UI.skipPrim=!UI.skipPrim;try{localStorage.setItem('cap270.skipPrim',UI.skipPrim?'1':'')}catch(e){}render()},
  pbase(){primAct('base')},pcenter(){primAct('center')},pads(){primAct('ads')},ptour(){primAct('tour')},pfund(){primAct('fund')},patk(d){primAct('attack',d)},pend(){endRound();window.scrollTo(0,0)},
  restart(){hideModal();G=null;UI.tuto=null;$('#game').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');renderTitle();$('#title').hidden=false}
