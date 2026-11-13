@@ -41,6 +41,7 @@ const A={
  mediago(d){mediaDo(+d.i,false)},mediasur(d){mediaDo(+d.i,true)},
  tutoNext(){if(UI.tuto>=tutoSteps().length-1){UI.tuto=null;tutoMark();render()}else tutoGo(UI.tuto+1)},
  courtsen(d){courtSen(+d.i)},cabopen(d){cabOpen(d.k)},cabpick(d){cabPick(d.k,+d.i)},
+ dist(d){distCampaign(d.code)},redraw(d){redraw(d.ab)},
  weekly(){startWeekly()},termnext(){termToNext()},
  dbg(d){dbgRun(d.k)},
  tprop(d){termTry(d.id,'p')},tpush(d){termTry(d.id,'push')},tord(d){termTry(d.id,'ord')},tnuke(){termNuke()},tend(){termEndQ()},tev(d){tevChoose(+d.i)},tevnext(){hideModal();afterQ()},

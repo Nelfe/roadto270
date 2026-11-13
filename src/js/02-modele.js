@@ -71,6 +71,7 @@ function newGame(me,diff,seed,daily,mode){
   G.regSh=RSH;G.tur=randn();
   if(lng)G.long=true;
   if(scn){applyScn(G,scn);G.cand=G.cands[0];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp'}
+  yearDeck();
   UI={tab:'map',sel:null,night:null};
   save();
 }

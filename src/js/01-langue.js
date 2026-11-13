@@ -56,14 +56,15 @@ const valOf=s=>G.mode==='mid'?s.hs+(s.sen?6:0)+1:s.ev;
 function midInit(){
   G.cands=[];G.opp=null;G.cand=null;G.third=null;G.phase='vp';
   G.states.forEach(s=>{s.hs=HSEATS[s.ab]||0;s.sen=SEN_UP[s.ab]||null;s.dz=Array.from({length:s.hs},()=>randn()*10);s.sq=s.sen?randn()*2.5:0});
-  let lo=-15,hi=15;for(let i=0;i<30;i++){const K=(lo+hi)/2;let e=0;G.states.forEach(s=>s.dz.forEach(z=>e+=PHI((s.lean+K+z)/3.5)));if(e>PARAM.midBase)hi=K;else lo=K}
+  seedGerry();
+  let lo=-15,hi=15;for(let i=0;i<30;i++){const K=(lo+hi)/2;let e=0;G.states.forEach(s=>s.dz.forEach(z=>e+=PHI((s.lean+K+z+(s.gm||0))/3.5)));if(e>PARAM.midBase)hi=K;else lo=K}
   G.HK=(lo+hi)/2-PARAM.neutral;
 }
 function projMid(){
   const H=[0,0,0,0,0],S=[0,0,0,0,0];let eH=0,eS=0;
   const cat=(p,a)=>{a[p>=4?0:p>=1.5?1:p>-1.5?2:p>-4?3:4]++};
   G.states.forEach(s=>{const pl=pollOf(s);
-    s.dz.forEach(z=>{const m=pl+G.HK+z;eH+=PHI(G.me*m/3.5);cat(G.me*m,H)});
+    s.dz.forEach(z=>{const m=pl+G.HK+z+(s.gm||0);eH+=PHI(G.me*m/3.5);cat(G.me*m,H)});
     if(s.sen){const m=pl+senAdj(s);eS+=PHI(G.me*m/3.2);cat(G.me*m,S)}});
   S[0]+=HOLD[side()];S[4]+=HOLD[oside()];
   return{H,S,youH:Math.round(eH),youS:Math.round(HOLD[side()]+eS)};
@@ -90,7 +91,7 @@ function loadSaves(){
 function dropSave(n){try{localStorage.removeItem(slotKey(n))}catch(e){}}
 function pickSlot(){const ss=loadSaves();for(let n=1;n<=3;n++)if(!ss.find(q=>q.slot===n))return n;return ss.sort((a,b)=>(a.t||0)-(b.t||0))[0].slot}
 function copyText(x){try{navigator.clipboard.writeText(x).then(()=>toast(t('Copié','Copied')),()=>toast(x))}catch(e){toast(x)}}
-function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...(G.mode==='mid'?['gaffe','scandal','deepfake','taxes','oldrival','interview']:[]),...(G.scn&&!G.long?['oldrival']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mkDeck(){const a=EVENTS.filter(e=>!['debate','vpdebate','surprise','third',...Object.values(YEV).flat(),...(G.mode==='mid'?['gaffe','scandal','deepfake','taxes','oldrival','interview']:[]),...(G.scn&&!G.long?['oldrival']:[])].includes(e.id)).map(e=>e.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function snap(){G.hist=G.hist||[];G.hist.push({w:G.wk,y:G.mode==='mid'?projMid().youH:proj().you})}
 function L(kind,tx){G.log.unshift({w:G.wk,k:kind,t:tx})}
 function toast(msg){if(SIM)return;const e=$('#toast');e.textContent=msg;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2200)}
