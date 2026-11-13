@@ -29,6 +29,9 @@ const adjT=(T,f)=>{
   if(f.econ)T.econ=clamp(T.econ+f.econ,-2,2);
   if(f.base)T.base=Math.max(0,T.base+f.base);
   if(f.back)T.back=Math.max(0,T.back+f.back);
+  if(f.debt)T.debt+=f.debt;
+  if(f.hard)T.hard=clamp(T.hard+f.hard,0,100);
+  if(f.mod)T.mod=clamp(T.mod+f.mod,0,100);
 };
 const divided=T=>T.h[side()]<218||T.s[side()]<50;
 const TEVENTS=[
@@ -70,7 +73,7 @@ function seatsFrom(nat){ // nat = marge nationale (D+) de la présidentielle
 }
 function newTerm(extra){
   const sd=seatsFrom(G.natM||0);
-  return Object.assign({q:1,qmax:8,half:1,pc:6,pop:clamp(Math.round(50+1.5*G.me*(G.natM||0)),44,62),econ:clamp(G.econ||0,-1.5,1.5),base:0,back:0,acts:2,laws:[],failed:0,orders:[],nuke:false,ag:[],log:[],ev:null,evRes:null,h:sd.h,s:sd.s,cand:G.cand,midWon:null,bonus:0},extra||{});
+  return Object.assign({q:1,qmax:8,half:1,pc:6,pop:clamp(Math.round(50+1.5*G.me*(G.natM||0)),44,62),econ:clamp(G.econ||0,-1.5,1.5),base:0,back:0,acts:2,laws:[],failed:0,orders:[],nuke:false,ag:[],log:[],ev:null,evRes:null,h:sd.h,s:sd.s,cand:G.cand,midWon:null,bonus:0},extra||{},m2Init());
 }
 function mkShell(T,keep){
   const k=keep||G;
@@ -85,9 +88,9 @@ function newAgenda(){
 }
 function lawOdds(l,push){
   const T=TM(),me=side(),hm=T.h[me],ho=435-hm,sm=T.s[me],so=100-sm;
-  const cross=clamp((l.ap-.48)*2.2*(l.k==='B'?1.25:1),0,.6),def=l.k==='B'?.02:clamp(.03+(.55-l.ap)*.5,0,.3);
+  m2Ensure(T);const cross=clamp((l.ap-.48)*2.2*(l.k==='B'?1.25:1),0,.6),def=clamp((l.k==='B'?.02:.03+(.55-l.ap)*.5)+m2Def(T,l),0,.4);
   const bonus=(push?5:0)+(T.pop-47)*.12;
-  const yh=hm*(1-def)+ho*cross+bonus*1.5,ys=sm*(1-def)+so*cross+bonus*.4;
+  const yh=hm*(1-def)+ho*cross+bonus*1.5,ys=sm*(1-def)+so*cross+bonus*.4+m2Sen(T,l);
   const need=(l.fil&&!T.nuke)?59.5:49.5;
   const ph=PHI((yh-217.5)/9),ps=PHI((ys-need)/2.2);
   return{p:ph*ps,ph,ps};
@@ -96,7 +99,7 @@ const lawPass=(T,l,ord)=>{
   const k=ord?.6:1,my=side();
   adjT(T,{pop:((l.ap-.5)*12+(l.k==='B'?1:0))*k,econ:l.ec*k});
   if(l.k===my)adjT(T,{base:.4*k,back:l.ap<.5?.5*k:0});
-  T.laws.push(l.id);
+  T.laws.push(l.id);m2Pass(T,l,k);
 };
 function tLog(T,fn){T.log.unshift(both(fn));T.log=T.log.slice(0,6)}
 function termTry(id,mode){ // mode: 'p' proposer, 'push', 'ord'
@@ -128,8 +131,10 @@ function termEndQ(){
   // dérive
   adjT(T,{pop:T.econ*.9-(T.half===1?.9:.3)+(47-T.pop)*.12+randn()*1.8,econ:randn()*.35-.05*T.econ});
   T.pc=clamp(T.pc+2+(T.pop>55?1:0),0,12);
+  m2Quarter(T);
   T.q++;T.acts=2;
   const pool=TEVENTS.filter(e=>!e.req||e.req(T));
+  if(T.q<=T.qmax&&T.q%4===3){T.ev='budget';T.evRes=null;newAgenda();save();render();showTev();return}
   if(rnd()<.8&&pool.length){T.ev=pool[Math.floor(rnd()*pool.length)].id;T.evRes=null;newAgenda();save();render();showTev();return}
   afterQ();
 }
@@ -149,9 +154,9 @@ function termResume(){
 }
 function tevChoose(i){
   const T=TM(),e=TEVENTS.find(q=>q.id===T.ev);if(!e||T.evRes!=null)return;
-  T.evRes=e.ch[i].f(T);save();showTev();render();
+  const p0=T.pop;T.evRes=e.ch[i].f(T);m2Post(T,e,p0);save();showTev();render();
 }
-function shiftOf(T){return(T.pop-46)*.1+.15*Math.min(4,T.base)-.2*Math.min(4,T.back)+T.econ*.25}
+function shiftOf(T){return(T.pop-46)*.1+.15*Math.min(4,T.base)-.2*Math.min(4,T.back)+T.econ*.25+m2Shift(T)}
 function recordSummary(T){
   const L=T.laws.map(id=>LAW(id)).filter(Boolean);
   return`<p>${t('Lois en vigueur','Laws in force','Leyes en vigor')} : <b>${L.length}</b>${L.length?' — '+L.map(l=>t(l.n.fr,l.n.en,l.n.es)).join(' · '):''}.<br>${t('Popularité','Approval','Aprobación')} : <b>${Math.round(T.pop)} %</b>. ${t('Économie','Economy','Economía')} : ${T.econ>.6?t('bonne','good','buena'):T.econ<-.6?t('mauvaise','poor','mala'):t('moyenne','average','media')}.</p>`;
@@ -177,31 +182,12 @@ function termToReel(){
   const T=TM(),me=G.me,diff=G.diff,slot=G.slot,seed=G.seed,cand=T.cand,dbg=G.dbg;
   newGame(me,diff,(seed|0)+202,null,'pres');
   G.dbg=dbg;G.slot=slot;G.reel=true;G.inc=side();G.econ=T.econ;
-  G.env=PARAM.neutral+me*((T.pop-45)*.09+.12*Math.min(4,T.base)-.15*Math.min(4,T.back)+T.econ*.3+(T.midWon?.4:-.2)+randn()*.9)+me*({0:1.2,1:0,2:-1.2}[diff])*.5;
+  G.env=PARAM.neutral+me*((T.pop-45)*.09+.12*Math.min(4,T.base)-.15*Math.min(4,T.back)+T.econ*.3+(T.midWon?.4:-.2)+m2Shift(T)*1.3+randn()*.9)+me*({0:1.2,1:0,2:-1.2}[diff])*.5;
   G.cand=cand;G.cands=[cand];G.pr=null;applyCand(G.cand,true);applyCand(G.opp,false);
   G.cash=PARAM.pcash+4+DM.cash[diff];G.cashO=PARAM.pcash+4+(diff===2?3:0);G.phase='vp';
+  if(m2Chal(T)){G.chal=true;G.env-=G.me*.7;G.cash=Math.max(8,G.cash-4)}
   UI.tab='map';UI.sel=null;save();hideModal();render();showBrief();
 }
 function termStart(){ // appelé depuis la soirée électorale (victoire)
   const T=newTerm();hideModal();mkShell(T,G);render();firstTip('term');
-}
-function renderTerm(){
-  const T=TM(),my=side(),ho=T.h[my],sm=T.s[my];
-  $('#tabsNav').hidden=true;$('#dock').hidden=true;$('#coach').hidden=true;document.body.classList.remove('tuto');
-  const yr=Math.ceil(Math.min(T.q,T.qmax)/4)+(T.half===2?2:0);
-  $('#hudTop').innerHTML=`<div class="row"><span class="wk">${t('Mandat','Term','Mandato')} · ${t('Trim.','Qtr','Trim.')} ${Math.min(T.q,T.qmax)}/${T.qmax} <span class="muted" style="font-size:14px;font-family:var(--f-body);text-transform:none;letter-spacing:0">${t('Année','Year','Año')} ${yr}</span></span><span class="rt"><button class="help" data-act="help" aria-label="${t('Ouvrir le manuel','Open the manual','Abrir el manual')}">?</button></span></div>`;
-  const bar=(lab,v,max,lines)=>`<div class="pbar you"><span class="nm">${lab}</span><span class="tr"><i style="width:${(v/max*100).toFixed(1)}%;background:${myC()}"></i>${lines.map(x=>`<b style="position:absolute;left:${(x/max*100).toFixed(1)}%;top:0;bottom:0;border-left:2px solid var(--ink)"></b>`).join('')}</span><span class="v">${v}</span></div>`;
-  const cards=T.ag.map(id=>{const l=LAW(id),o=lawOdds(l,false),oo=lawOdds(l,true),disabled=T.acts<1||T.ev,done=T.laws.includes(id);
-    const can=c=>T.pc>=c&&!disabled&&!done;
-    return`<div class="card" style="display:block"><div><h3>${t(l.n.fr,l.n.en,l.n.es)}</h3><p>${t(l.d.fr,l.d.en,l.d.es)}</p><p class="muted" style="font-size:13px">${t('Coût','Cost','Coste')} ${l.c} ◆ · ${t('Soutien public','Public support','Apoyo público')} ${Math.round(l.ap*100)} % · ${t('Chances','Odds','Probabilidad')} <b>${Math.round(o.p*100)} %</b>${l.fil&&!T.nuke?` · ${t('filibuster','filibuster','filibusterismo')}`:''}</p></div>
-    <div class="irow"><button class="btn sm" data-act="tprop" data-id="${id}" ${can(l.c)?'':'disabled'}>${t('Proposer','Propose','Proponer')}</button><button class="btn sm alt" data-act="tpush" data-id="${id}" ${can(l.c+2)?'':'disabled'}>${t('Pousser fort','Push hard','Presionar')} (${l.c+2} ◆ · ${Math.round(oo.p*100)} %)</button>${l.k!=='B'?`<button class="btn sm alt" data-act="tord" data-id="${id}" ${can(Math.max(1,l.c-2))?'':'disabled'}>${t('Décret','Order','Decreto')} (${Math.max(1,l.c-2)} ◆)</button>`:''}</div></div>`}).join('');
-  $('#main').innerHTML=`<div class="panel"><h3 style="font-size:20px">${t('Le Congrès','Congress','El Congreso')}</h3>
-   ${bar(t('Chambre','House','Cámara'),ho,435,[218])}${bar(t('Sénat','Senate','Senado'),sm,100,T.nuke?[50]:[50,60])}
-   <p class="muted" style="font-size:13px;margin:4px 0 0">${ho>=218?t('Vous avez la majorité à la Chambre.','You hold the House majority.','Tienes la mayoría en la Cámara.'):t('L’opposition tient la Chambre.','The opposition holds the House.','La oposición controla la Cámara.')} ${sm>=60?t('Vous avez 60 sièges : le filibuster ne vous bloque pas.','You have 60 seats: the filibuster cannot stop you.','Tienes 60 escaños: el filibusterismo no te frena.'):sm>=50?t('Majorité au Sénat grâce à la vice-présidence (50 suffisent) ; 60 voix requises pour passer le filibuster.','Senate majority via the vice-presidency (50 suffice); 60 votes needed to beat the filibuster.','Mayoría en el Senado gracias a la vicepresidencia (bastan 50); hacen falta 60 votos para superar el filibusterismo.'):t('L’opposition tient le Sénat.','The opposition holds the Senate.','La oposición controla el Senado.')}</p></div>
-  <div class="panel"><div class="irow" style="justify-content:space-between"><span><b>${t('Popularité','Approval','Aprobación')}</b> ${Math.round(T.pop)} %</span><span><b>${t('Capital politique','Political capital','Capital político')}</b> ${T.pc} ◆</span><span><b>${t('Actions','Actions','Acciones')}</b> ${T.acts}/2</span></div>
-   ${!T.nuke&&sm>=50?`<div class="irow" style="margin-top:8px"><button class="btn sm alt" data-act="tnuke" ${T.pc>=4&&!T.ev?'':'disabled'}>${t('Supprimer le filibuster (4 ◆, impopulaire)','Scrap the filibuster (4 ◆, unpopular)','Eliminar el filibusterismo (4 ◆, impopular)')}</button></div>`:''}</div>
-  <h3 class="sect" style="font-size:18px">${t('Agenda législatif','Legislative agenda','Agenda legislativo')}</h3>${cards||`<p class="muted">${t('Plus aucun texte à proposer.','Nothing left to propose.','No queda ningún texto por proponer.')}</p>`}
-  <div class="panel">${recordSummary(T)}${T.log.length?`<p class="muted" style="font-size:13px;margin:0">${T.log.map(l=>t(l.fr,l.en,l.es)).join('<br>')}</p>`:''}</div>
-  <button class="btn full" data-act="tend" ${T.ev?'disabled':''}>${t('Fin du trimestre','End the quarter','Fin del trimestre')}</button>
-  <div class="irow" style="margin-top:10px"><button class="btn alt sm" data-act="restart">${t('Menu (partie sauvegardée)','Menu (game saved)','Menú (partida guardada)')}</button></div>`;
 }

@@ -14,6 +14,9 @@ const r=await p.evaluate(()=>{
     if(!T.nuke&&T.s[side()]>=50&&T.pc>=6)termNuke();
     termEndQ();while(TM().ev){tevChoose(0);afterQ()}
     if(TM().q>TM().qmax)break}};
+  for(const tb of ['tAg','tPro','tSen','tCab','tBil']){UI.tab=tb;render()}out.tabs=document.querySelectorAll('#tabsNav button').length===5;
+  UI.tab='tAg';courtSen(0);out.court=TM().sen[0].fav===1;cabOpen('tre');out.cabModal=!$('#modal').hidden;TM().pc=12;let cb=0;for(let i=0;i<3&&!TM().cab.tre;i++){cabPick('tre',2);cb++;if(TM().co.tre===undefined)break;}out.cab=!!TM().cab.tre||cb>0;
+  out.prom=TM().prom.length===3;out.debt=isFinite(TM().debt);
   runHalf();out.laws1=TM().laws.length;out.pop1=Math.round(TM().pop);out.q=TM().q;
   showTermEnd();termToMid();out.mid=G.mode==='mid'&&!!G.chain&&G.inc===side();
   SIM=true;G.phase='play';for(let i=0;i<60&&G.phase!=='over';i++){if(G.phase==='event'){const e=EVENTS.find(q=>q.id===G.ev.id);A.choose({i:0});A.evnext()}else endWeek()}SIM=false;
@@ -23,6 +26,6 @@ const r=await p.evaluate(()=>{
   termToReel();out.reel=!!G.reel&&G.mode==='pres'&&G.phase==='vp'&&!!G.cand;
   out.envOK=isFinite(G.env);
   return out});
-const ok=r.phase==='term'&&r.ren&&r.laws1>=1&&r.mid&&r.over&&r.half2&&r.reel&&r.envOK&&!errs.length;if(!ok)bad++;
+const ok=r.phase==='term'&&r.ren&&r.laws1>=1&&r.tabs&&r.court&&r.cabModal&&r.cab&&r.prom&&r.debt&&r.mid&&r.over&&r.half2&&r.reel&&r.envOK&&!errs.length;if(!ok)bad++;
 console.log(ok?'ok  ':'FAIL',lang,JSON.stringify(r),errs);await p.close()}
 await b.close();process.exit(bad?1:0)})();

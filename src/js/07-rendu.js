@@ -131,4 +131,4 @@ function renderMain(){
   }
   m.innerHTML=h;
 }
-function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;if(G.phase==='cand'||G.phase==='prim'){renderPrim();firstTip(G.phase);return}if(G.phase==='term'){renderTerm();return}if(UI.tutoPending&&G.phase==='play'&&$('#modal').hidden){UI.tutoPending=false;if(!tutoSeen()){tutoGo(0);return}}$('#tabsNav').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
+function render(){if(!G||SIM)return;$('#title').hidden=true;$('#game').hidden=false;if(G.phase==='cand'||G.phase==='prim'){renderPrim();firstTip(G.phase);return}if(G.phase==='term'){renderTerm();return}if(UI.tutoPending&&G.phase==='play'&&$('#modal').hidden){UI.tutoPending=false;if(!tutoSeen()){tutoGo(0);return}}if($('#tabsNav').dataset.t){delete $('#tabsNav').dataset.t;$('#tabsNav').innerHTML=tabsHTML();UI.tab='map'}$('#tabsNav').hidden=false;$('#dock').hidden=false;renderHud();renderMain();renderCoach()}
